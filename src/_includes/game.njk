@@ -1,0 +1,11 @@
+---
+layout: base.njk
+---
+<article class="detail wide">
+  <p class="crumb"><a href="/games/">← 小遊戲</a></p>
+  <h1>{{ title }}</h1>
+  {% if description %}<p class="lead">{{ description }}</p>{% endif %}
+  <div class="game-frame"><iframe src="{{ play }}" title="{{ title }}" allow="fullscreen"></iframe></div>
+  <p><a href="{{ play }}" target="_blank" rel="noopener">全螢幕開啟 ↗</a></p>
+  <div class="prose">{{ content | safe }}</div>
+</article>

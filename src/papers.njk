@@ -1,0 +1,14 @@
+---
+layout: base.njk
+title: 學術論文
+permalink: /papers/
+---
+{% import "cards.njk" as c %}
+<section class="page-head">
+  <h1>學術論文</h1>
+  <p class="lead">共 {{ collections.papers.length }} 篇，依年份排列。</p>
+  {{ c.filters("paperList", collections.papers | uniq("type")) }}
+</section>
+<ol class="papers" id="paperList">
+  {% for p in collections.papers %}{{ c.paperRow(p) }}{% endfor %}
+</ol>

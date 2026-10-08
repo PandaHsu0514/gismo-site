@@ -1,0 +1,15 @@
+---
+layout: base.njk
+---
+<article class="detail">
+  <p class="crumb"><a href="/papers/">← 學術論文</a></p>
+  <p class="eyebrow">{{ type }}・{{ year }}</p>
+  <h1>{{ title }}</h1>
+  <p class="meta">{{ authors }}{% if venue %}<br><em>{{ venue }}</em>{% endif %}</p>
+  <div class="actions">
+    {% if pdf %}<a class="btn" href="{{ pdf }}" target="_blank" rel="noopener">下載 PDF</a>{% endif %}
+    {% if doi %}<a class="btn ghost" href="https://doi.org/{{ doi }}" target="_blank" rel="noopener">DOI：{{ doi }}</a>{% endif %}
+  </div>
+  {% if abstract %}<section class="abstract"><h2>摘要</h2><p>{{ abstract }}</p></section>{% endif %}
+  <div class="prose">{{ content | safe }}</div>
+</article>

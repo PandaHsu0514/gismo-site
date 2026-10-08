@@ -1,0 +1,12 @@
+---
+layout: base.njk
+---
+<article class="detail">
+  <p class="crumb"><a href="/works/">← AI 創作</a></p>
+  <p class="eyebrow">{{ kind }}・{{ year }}{% if tools %}・{{ tools }}{% endif %}</p>
+  <h1>{{ title }}</h1>
+  {% if description %}<p class="lead">{{ description }}</p>{% endif %}
+  {% if cover %}<img class="cover" src="{{ cover }}" alt="{{ title }}">{% endif %}
+  {% if link %}<p><a class="btn" href="{{ link }}" target="_blank" rel="noopener">查看作品</a></p>{% endif %}
+  <div class="prose">{{ content | safe }}</div>
+</article>

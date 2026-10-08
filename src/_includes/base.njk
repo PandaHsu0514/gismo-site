@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if title %}{{ title }}｜{% endif %}{{ site.name }}</title>
+  <meta name="description" content="{{ description or site.bio }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+  <script>
+    try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">{{ site.name }}</a>
+    <nav>
+      {%- for item in site.nav %}
+      {%- set active = (item.url == "/" and page.url == "/") or (item.url != "/" and page.url.startsWith(item.url)) %}
+      <a href="{{ item.url }}"{% if active %} aria-current="page"{% endif %}>{{ item.label }}</a>
+      {%- endfor %}
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="切換深淺色">◐</button>
+  </header>
+
+  <main>
+    {{ content | safe }}
+  </main>
+
+  <footer>© <span id="year"></span> {{ site.domain }}</footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+    document.getElementById("themeToggle").addEventListener("click", function () {
+      var root = document.documentElement;
+      var dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      root.dataset.theme = dark ? "light" : "dark";
+      try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+    });
+    // 列表頁的篩選按鈕：data-filter-group 內的按鈕篩選 data-filter-target 內有 data-tag 的項目
+    document.querySelectorAll("[data-filter-group]").forEach(function (group) {
+      var target = document.getElementById(group.dataset.filterGroup);
+      group.addEventListener("click", function (e) {
+        var btn = e.target.closest("button"); if (!btn) return;
+        group.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b === btn); });
+        target.querySelectorAll("[data-tag]").forEach(function (el) {
+          el.hidden = btn.dataset.value !== "" && el.dataset.tag !== btn.dataset.value;
+        });
+      });
+    });
+  </script>
+</body>
+</html>

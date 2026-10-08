@@ -1,0 +1,22 @@
+{
+  "domain": "gismo.com.tw",
+  "name": "你的名字",
+  "nameEn": "Your Name",
+  "title": "研究者・AI 創作者",
+  "affiliation": "所屬學校／單位",
+  "bio": "一兩句自我介紹：研究領域、正在做的事、對什麼有興趣。",
+  "interests": ["研究興趣 1", "研究興趣 2", "生成式 AI", "互動設計"],
+  "email": "you@gismo.com.tw",
+  "links": [
+    { "label": "GitHub", "url": "https://github.com/s94215508" },
+    { "label": "Google Scholar", "url": "" },
+    { "label": "ORCID", "url": "" }
+  ],
+  "nav": [
+    { "label": "首頁", "url": "/" },
+    { "label": "論文", "url": "/papers/" },
+    { "label": "AI 創作", "url": "/works/" },
+    { "label": "小遊戲", "url": "/games/" },
+    { "label": "關於", "url": "/about/" }
+  ]
+}

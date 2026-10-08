@@ -1,0 +1,26 @@
+---
+layout: base.njk
+---
+{% import "cards.njk" as c %}
+<section class="hero">
+  <p class="eyebrow">{{ site.title }}</p>
+  <h1>{{ site.name }} <small>{{ site.nameEn }}</small></h1>
+  <p class="affil">{{ site.affiliation }}</p>
+  <p class="bio">{{ site.bio }}</p>
+  <ul class="chips">{% for i in site.interests %}<li>{{ i }}</li>{% endfor %}</ul>
+</section>
+
+<section>
+  <div class="section-head"><h2>最新論文</h2><a href="/papers/">全部 {{ collections.papers.length }} 篇 →</a></div>
+  <ol class="papers">{% for p in collections.papers | first(3) %}{{ c.paperRow(p) }}{% endfor %}</ol>
+</section>
+
+<section>
+  <div class="section-head"><h2>AI 創作</h2><a href="/works/">全部 {{ collections.works.length }} 件 →</a></div>
+  <div class="grid">{% for w in collections.works | first(3) %}{{ c.card(w, [w.data.kind, w.data.year]) }}{% endfor %}</div>
+</section>
+
+<section>
+  <div class="section-head"><h2>小遊戲</h2><a href="/games/">全部 {{ collections.games.length }} 款 →</a></div>
+  <div class="grid">{% for g in collections.games | first(3) %}{{ c.card(g, g.data.gameTags) }}{% endfor %}</div>
+</section>
