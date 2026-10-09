@@ -28,7 +28,7 @@ jobs:
         env:
           # 用自訂網域時留空；暫用 github.io/gismo-site/ 時設成 /gismo-site/
           PATH_PREFIX: ${{ vars.PATH_PREFIX }}
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
   deploy:
