@@ -29,14 +29,6 @@
   ],
   "nav": [
     {
-      "label": "文章",
-      "url": "/articles/"
-    },
-    {
-      "label": "晚安故事",
-      "url": "/stories/"
-    },
-    {
       "label": "勇博開講",
       "url": "/finance/"
     },
@@ -49,11 +41,19 @@
       "url": "/teaching/"
     },
     {
+      "label": "AI 小工具",
+      "url": "/tools/"
+    },
+    {
       "label": "AI 遊樂場",
       "url": "/games/",
       "also": [
         "/works/"
       ]
+    },
+    {
+      "label": "晚安故事",
+      "url": "/stories/"
     },
     {
       "label": "關於",

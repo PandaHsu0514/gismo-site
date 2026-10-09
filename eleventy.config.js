@@ -23,6 +23,7 @@ export default function (eleventyConfig) {
   // 首頁「最近講的」：文章、勇博開講、文獻筆記混在一起依日期排（晚安故事有自己的書架）
   eleventyConfig.addCollection("recent", (api) =>
     api.getFilteredByGlob(["src/articles/*.md", "src/finance/*.md", "src/notes/*.md"]).filter((p) => !p.data.draft).sort(byDate));
+  eleventyConfig.addCollection("tools", (api) => api.getFilteredByGlob("src/tools/*.njk").filter((p) => p.url !== "/tools/").sort((a, b) => (a.data.order || 99) - (b.data.order || 99)));
   eleventyConfig.addCollection("teaching", (api) => api.getFilteredByGlob("src/teaching/*.md").sort(byDate));
   eleventyConfig.addCollection("papers", (api) => api.getFilteredByGlob("src/papers/*.md").sort(byYear));
   eleventyConfig.addCollection("works", (api) => api.getFilteredByGlob("src/works/*.md").sort(byYear));

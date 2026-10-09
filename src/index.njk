@@ -8,7 +8,7 @@ layout: base.njk
     <h1>勇博<span>講古</span></h1>
     <p class="tagline">{{ site.tagline }}</p>
     <p class="hero-links">
-      <a class="btn" href="/articles/">開始讀文章</a>
+      <a class="btn" href="/notes/">看文獻筆記</a>
       <a class="btn ghost" href="/about/">認識我</a>
     </p>
   </div>
@@ -17,7 +17,7 @@ layout: base.njk
 
 <div class="home-main">
   <section class="home-articles">
-    <div class="section-head"><h2>最近講的</h2><a href="/articles/">所有文章 →</a></div>
+    <div class="section-head"><h2>最近講的</h2><a href="/notes/">文獻筆記 →</a></div>
     <ol class="entries">{% for a in collections.recent | first(7) %}{{ c.feedRow(a) }}{% endfor %}</ol>
   </section>
 

@@ -1,0 +1,198 @@
+---
+layout: base.njk
+title: 文獻下載小幫手
+description: 輸入 DOI 或論文標題，自動查 Unpaywall、OpenAlex、Semantic Scholar 等資料庫，找出可以合法免費下載的開放取用 PDF，也能一次查一整份清單並匯出 Excel。
+permalink: /tools/paper-finder/
+icon: "📄"
+order: 1
+toolTags: [學術研究, 免費]
+connectSrc: https://api.unpaywall.org https://api.crossref.org https://api.openalex.org https://api.semanticscholar.org
+---
+<article class="tool">
+  <p class="crumb"><a href="/tools/">← AI 小工具</a></p>
+  <header class="reading-head">
+    <h1>文獻下載小幫手</h1>
+    <p class="lead">輸入 DOI 或論文標題，幫你找出<strong>可以合法免費下載</strong>的開放取用（Open Access）版本。可以一次貼上一整份清單，查完匯出成 Excel 可開的 CSV。</p>
+  </header>
+
+  <form class="pf-form" id="pfForm">
+    <label for="pfInput">每行一篇：DOI、DOI 網址或論文英文標題都可以</label>
+    <textarea id="pfInput" rows="6" placeholder="10.1038/s41598-024-69423-2&#10;https://doi.org/10.1287/isre.2024.0984&#10;Generative AI without guardrails can harm learning" required></textarea>
+    <div class="pf-actions">
+      <button type="submit" class="btn" id="pfGo">開始查詢</button>
+      <label class="btn ghost pf-file">匯入 CSV／TXT<input type="file" id="pfFile" accept=".csv,.txt" hidden></label>
+      <button type="button" class="btn ghost" id="pfCsv" disabled>匯出 CSV</button>
+      <span class="pf-status" id="pfStatus" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <div class="pf-summary" id="pfSummary" hidden></div>
+  <ol class="pf-results" id="pfResults"></ol>
+
+  <section class="prose pf-help">
+    <h2>怎麼運作</h2>
+    <ul>
+      <li>有 DOI 就直接查；只有標題時，先到 Crossref 找出最相符的 DOI（會顯示比對到的標題讓你確認）。</li>
+      <li>依序查 <a href="https://unpaywall.org/" target="_blank" rel="noopener">Unpaywall</a>、<a href="https://openalex.org/" target="_blank" rel="noopener">OpenAlex</a>、<a href="https://www.semanticscholar.org/" target="_blank" rel="noopener">Semantic Scholar</a>，找出期刊官方開放版、作者自存稿、機構典藏或 arXiv 等合法版本。</li>
+      <li>查詢直接從你的瀏覽器送到這些公開資料庫，不經過我的伺服器，我也看不到你查了什麼。</li>
+    </ul>
+    <h2>找不到 PDF 怎麼辦</h2>
+    <ul>
+      <li>代表這篇目前沒有公開的免費版本。可以點「出版社頁面」看學校有沒有訂閱，或透過學校圖書館的館際合作申請。</li>
+      <li>也可以直接寫信向作者索取，多數作者都很樂意分享。</li>
+      <li>本工具只找合法的開放取用版本，不會連到未經授權的下載網站。</li>
+    </ul>
+    <p class="note-disclaimer">瀏覽器的安全限制讓網頁無法一次幫你把所有 PDF 存下來，請點每篇的「下載 PDF」開啟後存檔。查詢結果依各資料庫收錄狀況而定，版本（出版版、接受稿、預印本）請以標示為準。</p>
+  </section>
+</article>
+
+<script>
+(function () {
+  var EMAIL = "{{ site.email }}";
+  var $ = function (id) { return document.getElementById(id); };
+  var rows = [];
+  var VERSION = { publishedVersion: "出版版", acceptedVersion: "接受稿", submittedVersion: "預印本" };
+
+  function getJSON(url) {
+    return fetch(url, { headers: { Accept: "application/json" } }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+  function norm(s) { return (s || "").toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, " ").trim(); }
+  // 標題相似度：完全相同給 1；否則看「輸入的字有多少出現在候選標題」為主，候選標題多出的字為輔
+  function similarity(q, cand) {
+    var a = norm(q), b = norm(cand);
+    if (!a || !b) return 0;
+    if (a === b) return 1;
+    var A = a.split(" "), B = b.split(" "), setB = new Set(B), hit = 0;
+    A.forEach(function (w) { if (setB.has(w)) hit++; });
+    var cover = hit / A.length, extra = hit / B.length;
+    if (A.length < 3) return cover === 1 && extra === 1 ? 0.95 : 0;
+    return 0.75 * cover + 0.2 * extra;
+  }
+  function parseDoi(s) {
+    var m = s.trim().match(/(10\.\d{4,9}\/[^\s"<>]+)/);
+    return m ? m[1].replace(/[.,;)\]]+$/, "") : null;
+  }
+
+  // 只有標題時：同時問 Crossref 和 OpenAlex（後者也收 arXiv 預印本），挑最相符的
+  async function findDoiByTitle(title) {
+    var q = encodeURIComponent(title), m = encodeURIComponent(EMAIL);
+    var res = await Promise.all([
+      getJSON("https://api.crossref.org/works?rows=5&select=DOI,title&mailto=" + m + "&query.bibliographic=" + q).catch(function () { return null; }),
+      getJSON("https://api.openalex.org/works?per-page=5&select=doi,display_name&mailto=" + m + "&search=" + q).catch(function () { return null; })
+    ]);
+    var cands = [];
+    ((res[0] && res[0].message && res[0].message.items) || []).forEach(function (it) { cands.push({ doi: it.DOI, title: (it.title || [""])[0] }); });
+    ((res[1] && res[1].results) || []).forEach(function (it) { if (it.doi) cands.push({ doi: it.doi.replace(/^https?:\/\/doi\.org\//, ""), title: it.display_name }); });
+    var best = null, score = 0;
+    cands.forEach(function (c) { var s = similarity(title, c.title); if (s > score) { score = s; best = c; } });
+    if (best && score >= 0.72) return { doi: best.doi, matched: best.title, score: score };
+    return null;
+  }
+
+  async function lookup(input) {
+    var r = { input: input, doi: parseDoi(input), title: "", year: "", journal: "", pdf: "", landing: "", source: "", version: "", note: "", status: "closed" };
+    try {
+      if (!r.doi) {
+        var f = await findDoiByTitle(input);
+        if (!f) { r.status = "notfound"; r.note = "找不到相符的論文，請改用 DOI 或檢查標題"; return r; }
+        r.doi = f.doi; if (f.score < 0.85) r.note = "以標題比對到：" + f.matched;
+      }
+      var u = await getJSON("https://api.unpaywall.org/v2/" + encodeURIComponent(r.doi) + "?email=" + encodeURIComponent(EMAIL)).catch(function () { return null; });
+      if (u) {
+        r.title = u.title || ""; r.year = u.year || ""; r.journal = u.journal_name || "";
+        var locs = [u.best_oa_location].concat(u.oa_locations || []).filter(Boolean);
+        var withPdf = locs.find(function (l) { return l.url_for_pdf; });
+        if (withPdf) { r.pdf = withPdf.url_for_pdf; r.source = "Unpaywall・" + (withPdf.host_type === "publisher" ? "出版社" : "典藏庫"); r.version = VERSION[withPdf.version] || ""; }
+        else if (locs[0]) { r.landing = locs[0].url_for_landing_page || locs[0].url; }
+      }
+      if (!r.pdf) {
+        var o = await getJSON("https://api.openalex.org/works/doi:" + encodeURIComponent(r.doi) + "?mailto=" + encodeURIComponent(EMAIL)).catch(function () { return null; });
+        if (o) {
+          r.title = r.title || o.title || ""; r.year = r.year || o.publication_year || "";
+          r.journal = r.journal || (o.primary_location && o.primary_location.source && o.primary_location.source.display_name) || "";
+          var ol = [o.best_oa_location].concat(o.locations || []).filter(function (l) { return l && l.pdf_url && l.is_oa; })[0];
+          if (ol) { r.pdf = ol.pdf_url; r.source = "OpenAlex・" + ((ol.source && ol.source.display_name) || "開放版本"); r.version = VERSION[ol.version] || ""; }
+          else if (!r.landing && o.open_access && o.open_access.oa_url) r.landing = o.open_access.oa_url;
+        }
+      }
+      if (!r.pdf) {
+        var s = await getJSON("https://api.semanticscholar.org/graph/v1/paper/DOI:" + encodeURIComponent(r.doi) + "?fields=title,year,venue,openAccessPdf").catch(function () { return null; });
+        if (s) {
+          r.title = r.title || s.title || ""; r.year = r.year || s.year || ""; r.journal = r.journal || s.venue || "";
+          if (s.openAccessPdf && s.openAccessPdf.url) { r.pdf = s.openAccessPdf.url; r.source = "Semantic Scholar"; }
+        }
+      }
+      if (!r.title && !u) { r.status = "notfound"; r.note = r.note || "資料庫裡查不到這個 DOI，請確認是否正確"; return r; }
+      r.status = r.pdf ? "pdf" : r.landing ? "landing" : "closed";
+    } catch (e) {
+      r.status = "error"; r.note = "查詢失敗（" + e.message + "），可能是網路或資料庫暫時忙碌，稍後再試";
+    }
+    return r;
+  }
+
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  var LABEL = { pdf: "✅ 找到免費 PDF", landing: "🔓 有免費全文網頁", closed: "🔒 目前沒有免費版本", notfound: "❓ 找不到這篇", error: "⚠️ 查詢失敗" };
+  function render(r, li) {
+    var q = encodeURIComponent(r.title || r.input);
+    li.className = "pf-item is-" + r.status;
+    li.innerHTML =
+      '<p class="pf-state">' + LABEL[r.status] + (r.version ? "・" + r.version : "") + (r.source ? '<span class="pf-src">' + esc(r.source) + "</span>" : "") + "</p>" +
+      '<h3 lang="en">' + esc(r.title || r.input) + "</h3>" +
+      '<p class="pf-meta">' + [r.journal, r.year, r.doi ? "DOI " + r.doi : ""].filter(Boolean).map(esc).join("・") + "</p>" +
+      (r.note ? '<p class="pf-note">' + esc(r.note) + "</p>" : "") +
+      '<p class="pf-links">' +
+        (r.pdf ? '<a class="btn" href="' + esc(r.pdf) + '" target="_blank" rel="noopener">下載 PDF</a>' : "") +
+        (r.landing ? '<a class="btn ghost" href="' + esc(r.landing) + '" target="_blank" rel="noopener">閱讀免費全文</a>' : "") +
+        (r.doi ? '<a href="https://doi.org/' + esc(r.doi) + '" target="_blank" rel="noopener">出版社頁面</a>' : "") +
+        '<a href="https://scholar.google.com/scholar?q=' + q + '" target="_blank" rel="noopener">Google Scholar</a>' +
+      "</p>";
+  }
+
+  $("pfForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var lines = $("pfInput").value.split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+    lines = lines.filter(function (s, i) { return lines.indexOf(s) === i; }).slice(0, 200);
+    if (!lines.length) return;
+    rows = []; $("pfResults").innerHTML = ""; $("pfSummary").hidden = true; $("pfGo").disabled = true; $("pfCsv").disabled = true;
+    var lis = lines.map(function (l) { var li = document.createElement("li"); li.className = "pf-item is-loading"; li.innerHTML = '<p class="pf-state">查詢中…</p><h3 lang="en">' + esc(l) + "</h3>"; $("pfResults").appendChild(li); return li; });
+    // 一次查 3 篇，避免被資料庫限流
+    var next = 0, done = 0;
+    async function worker() {
+      while (next < lines.length) {
+        var i = next++, r = await lookup(lines[i]);
+        rows[i] = r; render(r, lis[i]); done++;
+        $("pfStatus").textContent = "已查 " + done + " / " + lines.length;
+      }
+    }
+    await Promise.all([worker(), worker(), worker()]);
+    var c = { pdf: 0, landing: 0, closed: 0, other: 0 };
+    rows.forEach(function (r) { c[r.status in c ? r.status : "other"]++; });
+    $("pfSummary").innerHTML = "共 " + rows.length + " 篇：<b>" + c.pdf + "</b> 篇有免費 PDF、<b>" + c.landing + "</b> 篇有免費全文網頁、<b>" + c.closed + "</b> 篇目前沒有免費版本" + (c.other ? "、" + c.other + " 篇查不到或失敗" : "") + "。";
+    $("pfSummary").hidden = false; $("pfStatus").textContent = "完成"; $("pfGo").disabled = false; $("pfCsv").disabled = false;
+  });
+
+  $("pfCsv").addEventListener("click", function () {
+    var head = ["輸入", "標題", "年份", "期刊", "DOI", "狀態", "PDF 連結", "全文網頁", "來源", "版本", "備註"];
+    var csv = [head].concat(rows.map(function (r) { return [r.input, r.title, r.year, r.journal, r.doi, LABEL[r.status].replace(/^\S+ /, ""), r.pdf, r.landing, r.source, r.version, r.note]; }))
+      .map(function (row) { return row.map(function (v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; }).join(","); }).join("\r\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    a.download = "文獻查詢結果.csv"; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  $("pfFile").addEventListener("change", function () {
+    var f = this.files[0]; if (!f) return;
+    f.text().then(function (t) {
+      // 每行取第一欄；跳過看起來像表頭的第一行
+      var lines = t.replace(/^﻿/, "").split(/\r?\n/).map(function (l) { return l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[0].replace(/^"|"$/g, "").trim(); }).filter(Boolean);
+      if (lines.length && /^(doi|title|標題|題目)$/i.test(lines[0])) lines.shift();
+      $("pfInput").value = lines.join("\n");
+    });
+    this.value = "";
+  });
+})();
+</script>

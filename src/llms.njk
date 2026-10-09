@@ -37,6 +37,11 @@ eleventyExcludeFromCollections: true
 - [{{ n.data.title }}]({{ site.url }}{{ n.url }})：{{ n.data.paperTitle }}（{{ n.data.journal | journalName }}{% if n.data.doi %}，https://doi.org/{{ n.data.doi }}{% endif %}）
 {%- endfor %}
 
+## AI 小工具（免費、直接在瀏覽器使用）
+{% for t in collections.tools %}
+- [{{ t.data.title }}]({{ site.url }}{{ t.url }})：{{ t.data.description }}
+{%- endfor %}
+
 ## 教學分享
 {% for l in collections.teaching %}
 - [{{ l.data.title }}]({{ site.url }}{{ l.url }})（{{ l.data.audience }}）：{{ l.data.summary }}

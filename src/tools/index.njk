@@ -1,0 +1,22 @@
+---
+layout: base.njk
+title: AI 小工具
+description: 用 AI 協作做出來的實用小工具，免安裝、免登入，直接在瀏覽器使用。
+permalink: /tools/
+---
+<section class="page-head">
+  <h1>AI 小工具</h1>
+  <p class="lead">跟 AI 一起做的實用小工具。免安裝、免登入，打開網頁就能用，資料不會傳到我的伺服器。</p>
+</section>
+<div class="grid tools-grid">
+  {%- for t in collections.tools %}
+  <a class="card" href="{{ t.url }}">
+    <div class="thumb icon"><span>{{ t.data.icon }}</span></div>
+    <div class="body">
+      <div class="tags">{% for g in t.data.toolTags %}<span class="tag">{{ g }}</span>{% endfor %}</div>
+      <h3>{{ t.data.title }}</h3>
+      <p>{{ t.data.description }}</p>
+    </div>
+  </a>
+  {%- endfor %}
+</div>
