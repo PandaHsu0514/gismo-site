@@ -1,11 +1,11 @@
 ---
 layout: base.njk
 ---
-<article class="detail">
-  <p class="crumb"><a href="/papers/">← 學術論文</a></p>
+<article class="detail reading">
+  <p class="crumb"><a href="/papers/">← 學術著作</a></p>
   <p class="eyebrow">{{ type }}・{{ year }}</p>
   <h1>{{ title }}</h1>
-  <p class="meta">{{ authors }}{% if venue %}<br><em>{{ venue }}</em>{% endif %}</p>
+  <p class="meta">{{ authors | replace("Hung-Yung Hsu", "<strong>Hung-Yung Hsu</strong>") | safe }}{% if venue %}<br><em>{{ venue }}</em>{% endif %}</p>
   <div class="actions">
     {% if pdf %}<a class="btn" href="{{ pdf }}" target="_blank" rel="noopener">下載 PDF</a>{% endif %}
     {% if doi %}<a class="btn ghost" href="https://doi.org/{{ doi }}" target="_blank" rel="noopener">DOI：{{ doi }}</a>{% endif %}

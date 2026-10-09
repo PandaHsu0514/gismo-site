@@ -1,0 +1,14 @@
+---
+layout: base.njk
+title: 教學分享
+permalink: /teaching/
+---
+{% import "cards.njk" as c %}
+<section class="page-head">
+  <h1>教學分享</h1>
+  <p class="lead">教案、教材和課堂上的嘗試，歡迎拿去用。</p>
+</section>
+<ul class="lessons list-page">
+  {% for l in collections.teaching %}{{ c.lessonRow(l) }}{% endfor %}
+</ul>
+{% if not collections.teaching.length %}<p class="empty list-page">教案整理中，敬請期待。</p>{% endif %}

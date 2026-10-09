@@ -1,12 +1,12 @@
 ---
 layout: base.njk
-title: 學術論文
+title: 學術著作
 permalink: /papers/
 ---
 {% import "cards.njk" as c %}
 <section class="page-head">
-  <h1>學術論文</h1>
-  <p class="lead">共 {{ collections.papers.length }} 篇，依年份排列。</p>
+  <h1>學術著作</h1>
+  <p class="lead">共 {{ collections.papers.length }} 篇，依年份排列。完整紀錄見 <a href="https://orcid.org/0009-0002-4869-3865" target="_blank" rel="noopener">ORCID</a>。</p>
   {{ c.filters("paperList", collections.papers | uniq("type")) }}
 </section>
 <ol class="papers" id="paperList">

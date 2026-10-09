@@ -1,14 +1,15 @@
 ---
 layout: base.njk
-title: AI 創作
+title: AI 小作品
 permalink: /works/
 ---
 {% import "cards.njk" as c %}
 <section class="page-head">
-  <h1>AI 創作</h1>
-  <p class="lead">用生成式 AI 做的圖像、影像、音樂、文字與互動作品。</p>
+  <h1>AI 小作品</h1>
+  <p class="lead">用 AI 做的各種小東西：圖像、文字、互動小工具。</p>
   {{ c.filters("workGrid", collections.works | uniq("kind")) }}
 </section>
 <div class="grid" id="workGrid">
   {% for w in collections.works %}{{ c.card(w, [w.data.kind, w.data.year]) }}{% endfor %}
 </div>
+{% if not collections.works.length %}<p class="empty list-page">AI 小作品製作中，敬請期待。</p>{% endif %}

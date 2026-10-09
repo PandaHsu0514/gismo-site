@@ -1,10 +1,31 @@
-{#- 共用元件：論文列與作品卡片 -#}
+{#- 共用元件：文章列、教學列、論文列、作品卡片 -#}
+{% macro articleRow(a) %}
+<li class="entry" data-tag="{{ a.data.kind }}">
+  <time datetime="{{ a.date | isoDate }}">{{ a.date | ymd }}</time>
+  <div>
+    <p class="kind{% if a.data.kind == '好文' %} is-share{% endif %}">{{ a.data.kind }}{% if a.data.source %}・{{ a.data.source }}{% endif %}</p>
+    <h3><a href="{{ a.url }}">{{ a.data.title }}</a></h3>
+    {% if a.data.summary %}<p class="summary">{{ a.data.summary }}</p>{% endif %}
+  </div>
+</li>
+{% endmacro %}
+
+{% macro lessonRow(l) %}
+<li class="lesson">
+  <a href="{{ l.url }}">
+    <span class="lesson-meta">{{ l.data.audience }}{% if l.data.duration %}・{{ l.data.duration }}{% endif %}</span>
+    <span class="lesson-title">{{ l.data.title }}</span>
+    {% if l.data.summary %}<span class="lesson-sum">{{ l.data.summary }}</span>{% endif %}
+  </a>
+</li>
+{% endmacro %}
+
 {% macro paperRow(p) %}
 <li class="paper" data-tag="{{ p.data.type }}">
   <div class="yr">{{ p.data.year }}</div>
   <div>
     <h3><a href="{{ p.url }}">{{ p.data.title }}</a></h3>
-    <p class="meta">{{ p.data.authors }}{% if p.data.venue %}・<em>{{ p.data.venue }}</em>{% endif %}</p>
+    <p class="meta">{{ p.data.authors | replace("Hung-Yung Hsu", "<strong>Hung-Yung Hsu</strong>") | safe }}{% if p.data.venue %}・<em>{{ p.data.venue }}</em>{% endif %}</p>
     <div class="actions">
       {% if p.data.type %}<span class="tag">{{ p.data.type }}</span>{% endif %}
       {% if p.data.pdf %}<a href="{{ p.data.pdf }}" target="_blank" rel="noopener">PDF</a>{% endif %}
@@ -17,7 +38,7 @@
 {% macro card(item, tags) %}
 <a class="card" href="{{ item.url }}" data-tag="{{ tags[0] }}">
   {% if item.data.cover %}<img class="thumb" src="{{ item.data.cover }}" alt="" loading="lazy">
-  {% else %}<div class="thumb">{{ item.data.title | truncate(1, true, "") }}</div>{% endif %}
+  {% else %}<div class="thumb"><span>{{ item.data.title | truncate(1, true, "") }}</span></div>{% endif %}
   <div class="body">
     <div class="tags">{% for t in tags %}{% if t %}<span class="tag">{{ t }}</span>{% endif %}{% endfor %}</div>
     <h3>{{ item.data.title }}</h3>

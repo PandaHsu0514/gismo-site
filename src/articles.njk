@@ -1,0 +1,15 @@
+---
+layout: base.njk
+title: 文章
+permalink: /articles/
+---
+{% import "cards.njk" as c %}
+<section class="page-head">
+  <h1>文章</h1>
+  <p class="lead">自己寫的，和讀到值得分享的好文章。不分主題，照時間排。</p>
+  {{ c.filters("articleList", collections.articles | uniq("kind")) }}
+</section>
+<ol class="entries list-page" id="articleList">
+  {% for a in collections.articles %}{{ c.articleRow(a) }}{% endfor %}
+</ol>
+{% if not collections.articles.length %}<p class="empty list-page">第一篇文章正在寫，敬請期待。</p>{% endif %}

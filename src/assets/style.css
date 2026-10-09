@@ -1,140 +1,252 @@
+/* 勇博講古：宣紙底、墨色字、朱紅印章 */
 :root {
-  --bg: #fbfaf7;
-  --surface: #ffffff;
-  --text: #1d1f23;
-  --muted: #5d636e;
-  --line: #e4e1da;
-  --accent: #2f6f5e;
-  --accent-soft: #e3efe9;
-  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  --bg: #f5efe3;          /* 宣紙 */
+  --surface: #fbf7ef;
+  --text: #2b2520;        /* 墨 */
+  --muted: #776b5d;
+  --line: #e2d7c3;
+  --accent: #b23a26;      /* 朱紅 */
+  --accent-soft: #f3dfd6;
+  --share: #3f6b5c;       /* 好文分享用的青綠 */
+  --share-soft: #dfe9e2;
+  --seal-text: #fbf3e8;
+  --shadow: 0 1px 0 rgba(80, 60, 30, .06);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #14161a; --surface: #1c1f24; --text: #e8e6e1; --muted: #9aa0aa;
-    --line: #2c3037; --accent: #7cc4ad; --accent-soft: #1f322c;
+    --bg: #1b1815; --surface: #24201c; --text: #ece3d4; --muted: #a69888;
+    --line: #3a332c; --accent: #e0775f; --accent-soft: #3a2520;
+    --share: #8cc0aa; --share-soft: #22322b; --seal-text: #1b1815;
     --shadow: none;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #14161a; --surface: #1c1f24; --text: #e8e6e1; --muted: #9aa0aa;
-  --line: #2c3037; --accent: #7cc4ad; --accent-soft: #1f322c;
+  --bg: #1b1815; --surface: #24201c; --text: #ece3d4; --muted: #a69888;
+  --line: #3a332c; --accent: #e0775f; --accent-soft: #3a2520;
+  --share: #8cc0aa; --share-soft: #22322b; --seal-text: #1b1815;
   --shadow: none;
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
-  font: 16px/1.75 "Noto Sans TC", system-ui, sans-serif;
+  font: 16px/1.8 "Noto Sans TC", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+h1, h2, h3 { font-family: "Noto Serif TC", serif; line-height: 1.35; font-weight: 600; }
+[hidden] { display: none !important; }
 
+/* 印章：四個字由右上往下、再換左行，跟傳統印章讀法一樣 */
+.seal {
+  display: inline-grid; place-items: center;
+  width: 2.6em; height: 2.6em; padding: .15em;
+  writing-mode: vertical-rl; text-orientation: upright;
+  background: var(--accent); color: var(--seal-text);
+  font: 900 15px/1.05 "Noto Serif TC", serif; letter-spacing: 0;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 0 3.5px var(--seal-text);
+}
+.seal-lg { font-size: 54px; border-radius: 10px; transform: rotate(-4deg);
+  box-shadow: inset 0 0 0 6px var(--accent), inset 0 0 0 9px var(--seal-text); }
+
+/* 導覽列 */
 .topbar {
   position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; gap: 16px;
-  padding: 12px max(16px, calc((100% - 960px) / 2));
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  display: flex; align-items: center; gap: 20px;
+  padding: 10px max(16px, calc((100% - 1080px) / 2));
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
-.brand { font: 700 20px "Noto Serif TC", serif; color: var(--text); }
-.topbar nav { display: flex; gap: 16px; margin-left: auto; flex-wrap: wrap; }
-.topbar nav a { color: var(--muted); font-size: 15px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); }
+.brand:hover { text-decoration: none; }
+.brand .seal { font-size: 13px; }
+.brand-name { font: 700 20px "Noto Serif TC", serif; letter-spacing: .08em; }
+.topbar nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.topbar nav a { color: var(--muted); font-size: 15px; padding: 4px 10px; border-radius: 6px; }
+.topbar nav a:hover { color: var(--text); text-decoration: none; background: var(--surface); }
+.topbar nav a[aria-current="page"] { color: var(--accent); font-weight: 500; }
 .theme-toggle {
   border: 1px solid var(--line); background: var(--surface); color: var(--text);
-  border-radius: 999px; width: 34px; height: 34px; cursor: pointer; font-size: 16px;
+  border-radius: 999px; width: 34px; height: 34px; cursor: pointer; font-size: 16px; flex: none;
 }
 
-main { max-width: 960px; margin: 0 auto; padding: 0 16px; }
-section { padding: 56px 0; border-bottom: 1px solid var(--line); }
-section:last-child { border-bottom: 0; }
-h1, h2 { font-family: "Noto Serif TC", serif; line-height: 1.3; }
-h2 { font-size: 26px; margin: 0; }
-.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
-
-.hero { padding-top: 72px; }
-.eyebrow { color: var(--accent); font-weight: 500; margin: 0; letter-spacing: .05em; }
-.hero h1 { font-size: clamp(34px, 6vw, 52px); margin: 8px 0; }
-.hero h1 small { font: 400 .45em "Noto Sans TC", sans-serif; color: var(--muted); }
-.affil { color: var(--muted); margin: 0; }
-.bio { font-size: 18px; max-width: 640px; }
-.chips { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.chips li, .tag {
-  background: var(--accent-soft); color: var(--accent);
-  padding: 2px 12px; border-radius: 999px; font-size: 14px;
+main { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+section { padding: 48px 0; }
+h2 { font-size: 24px; margin: 0; }
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--text);
 }
+.section-head a { font-size: 14px; color: var(--muted); }
+.section-head a:hover { color: var(--accent); }
 
-.filters { display: flex; gap: 6px; flex-wrap: wrap; }
-.filters button {
-  border: 1px solid var(--line); background: var(--surface); color: var(--muted);
-  padding: 4px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px;
+.btn { display: inline-block; padding: 8px 20px; border-radius: 999px; background: var(--accent); color: var(--seal-text);
+  font-size: 15px; border: 1px solid var(--accent); }
+.btn:hover { text-decoration: none; opacity: .9; }
+.btn.ghost { background: transparent; color: var(--accent); }
+
+/* 首頁主視覺 */
+.hero {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 32px;
+  padding: 72px 0 56px; border-bottom: 1px solid var(--line);
 }
-.filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.eyebrow { color: var(--accent); font-size: 15px; letter-spacing: .2em; margin: 0; }
+.hero h1 { font: 900 clamp(52px, 10vw, 96px)/1.1 "Noto Serif TC", serif; margin: 12px 0 16px; letter-spacing: .06em; }
+.hero h1 span { color: var(--accent); }
+.tagline { font: 400 clamp(18px, 2.4vw, 22px)/1.7 "Noto Serif TC", serif; color: var(--muted); margin: 0 0 28px; max-width: 32em; }
+.hero-links { display: flex; gap: 12px; flex-wrap: wrap; margin: 0; }
+.hero-seal { padding-right: 24px; }
 
-.papers { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.paper {
-  display: grid; grid-template-columns: 64px 1fr; gap: 16px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-  padding: 16px 20px; box-shadow: var(--shadow);
+/* 首頁：文章（主）＋側欄 */
+.home-main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 56px; border-bottom: 1px solid var(--line); }
+.home-side { padding: 48px 0; display: flex; flex-direction: column; gap: 40px; }
+.side-block { padding: 0; }
+.about-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; box-shadow: var(--shadow); }
+.about-card h2 { font-size: 18px; margin-bottom: 6px; }
+.about-card p { margin: 0 0 10px; color: var(--muted); font-size: 15px; }
+.about-card a { font-size: 14px; }
+
+/* 文章列表 */
+.entries { list-style: none; margin: 0; padding: 0; }
+.entry {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 20px;
+  padding: 20px 0; border-bottom: 1px dashed var(--line);
 }
-.paper .yr { font: 700 20px "Noto Serif TC", serif; color: var(--accent); }
-.paper h3 { margin: 0 0 4px; font-size: 17px; line-height: 1.5; }
-.paper .meta { color: var(--muted); font-size: 14px; margin: 0; }
-.paper .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 14px; align-items: center; }
-.paper details summary { cursor: pointer; color: var(--accent); }
-.paper details p { margin: 8px 0 0; font-size: 15px; }
+.entry:last-child { border-bottom: 0; }
+.entry time { font: 400 15px "Noto Serif TC", serif; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.kind { margin: 0; font-size: 13px; color: var(--accent); letter-spacing: .08em; }
+.kind.is-share { color: var(--share); }
+.entry h3 { margin: 2px 0 6px; font-size: 21px; }
+.entry h3 a { color: var(--text); }
+.entry h3 a:hover { color: var(--accent); text-decoration: none; }
+.summary { margin: 0; color: var(--muted); font-size: 15px; }
+.list-page { max-width: 760px; padding-bottom: 64px; }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+/* 教學列表 */
+.lessons { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lesson a {
+  display: flex; flex-direction: column; gap: 2px; color: var(--text);
+  padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--surface);
+  border-radius: 0 8px 8px 0; transition: transform .15s;
+}
+.lesson a:hover { text-decoration: none; transform: translateX(3px); }
+.lesson-meta { font-size: 13px; color: var(--accent); }
+.lesson-title { font: 600 17px/1.5 "Noto Serif TC", serif; }
+.lesson-sum { font-size: 14px; color: var(--muted); }
+.lessons.list-page { gap: 14px; }
+.lessons.list-page .lesson a { padding: 18px 22px; }
+.lessons.list-page .lesson-title { font-size: 20px; }
+
+/* AI 作品、遊戲卡片 */
+.lab + .lab { padding-top: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
   overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column;
-  color: var(--text); transition: transform .15s;
+  color: var(--text); transition: transform .15s, border-color .15s;
 }
-a.card:hover { transform: translateY(-2px); text-decoration: none; }
-.card .thumb { aspect-ratio: 16 / 10; background: var(--accent-soft); object-fit: cover; width: 100%;
-  display: grid; place-items: center; color: var(--accent); font: 700 28px "Noto Serif TC", serif; }
-.card .body { padding: 14px 16px 18px; }
-.card h3 { margin: 6px 0 4px; font-size: 17px; }
+a.card:hover { transform: translateY(-3px); border-color: var(--accent); text-decoration: none; }
+.card .thumb { aspect-ratio: 16 / 10; width: 100%; object-fit: cover; display: grid; place-items: center;
+  background: repeating-linear-gradient(135deg, var(--accent-soft) 0 10px, color-mix(in srgb, var(--accent-soft) 70%, var(--surface)) 10px 20px); }
+.card .thumb span { font: 900 40px "Noto Serif TC", serif; color: var(--accent); }
+.card .body { padding: 14px 18px 20px; }
+.card h3 { margin: 8px 0 4px; font-size: 18px; }
 .card p { margin: 0; color: var(--muted); font-size: 14px; }
 .card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { background: var(--accent-soft); color: var(--accent); padding: 1px 10px; border-radius: 999px; font-size: 13px; }
 
-.empty { color: var(--muted); }
-.contact .links { list-style: none; padding: 0; display: flex; gap: 16px; flex-wrap: wrap; }
-footer { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 16px; }
-
-@media (max-width: 560px) {
-  .topbar .brand { display: none; }
-  .topbar nav { margin-left: 0; gap: 12px; }
-  .paper { grid-template-columns: 1fr; gap: 4px; }
+/* 篩選按鈕 */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters button {
+  border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  padding: 4px 14px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px;
 }
+.filters button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
 
-/* 多頁式：導覽、列表頁、內頁 */
-.topbar nav a[aria-current="page"] { color: var(--accent); font-weight: 500; }
-.section-head a { font-size: 15px; }
-[hidden] { display: none !important; }
+/* 列表頁標題 */
+.page-head { padding: 56px 0 24px; max-width: 760px; }
+.page-head h1 { font-size: clamp(34px, 6vw, 48px); margin: 0 0 6px; font-weight: 900; letter-spacing: .04em; }
+.lead { color: var(--muted); font-size: 17px; margin: 0 0 18px; }
+main > .grid, main > .papers { padding-bottom: 64px; }
+
+/* 內頁：閱讀版面 */
+.reading { max-width: 720px; margin: 0 auto; padding: 40px 0 72px; }
+.detail.wide { max-width: 960px; margin: 0 auto; padding: 40px 0 72px; }
+.crumb { margin: 0 0 28px; font-size: 14px; }
+.crumb a { color: var(--muted); }
+.reading-head { padding-bottom: 24px; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
+.reading h1, .detail h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 900; margin: 8px 0 14px; }
+.reading-head .lead { margin: 0; font-size: 18px; }
+.source {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 28px; padding: 14px 18px;
+  background: var(--share-soft); color: var(--text); border-radius: 10px;
+}
+.source:hover { text-decoration: none; filter: brightness(.98); }
+.source-label { font-size: 13px; color: var(--share); white-space: nowrap; }
+.source-name { font-weight: 500; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.downloads { list-style: none; padding: 0; margin: 0 0 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.prose { font: 400 18px/2 "Noto Serif TC", serif; }
+.prose h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 900; margin: 0 0 20px; }
+.prose h2 { font-size: 24px; margin: 44px 0 12px; }
+.prose h3 { font-size: 20px; margin: 32px 0 8px; }
+.prose p { margin: 0 0 1.2em; }
+.prose img { max-width: 100%; border-radius: 8px; }
+.prose blockquote { margin: 1.5em 0; padding: 4px 0 4px 20px; border-left: 3px solid var(--accent); color: var(--muted); }
+.prose code { font-size: .88em; background: var(--surface); padding: 1px 6px; border-radius: 4px; }
+.prose li { margin: 4px 0; }
+
+/* 學術著作 */
+.about-papers { margin-top: 32px; }
+.papers { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; max-width: 860px; }
+.paper {
+  display: grid; grid-template-columns: 64px 1fr; gap: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px;
+}
+.paper .yr { font: 600 18px "Noto Serif TC", serif; color: var(--accent); }
+.paper h3 { margin: 0 0 4px; font-size: 17px; line-height: 1.5; }
 .paper h3 a { color: var(--text); }
-
-.page-head { padding: 48px 0 24px; border-bottom: 0; }
-.page-head h1 { font-size: clamp(30px, 5vw, 40px); margin: 0 0 4px; }
-.lead { color: var(--muted); font-size: 17px; margin: 0 0 16px; }
-main > .papers, main > .grid { padding-bottom: 56px; }
-
-.detail { max-width: 720px; padding: 40px 0 64px; }
-.detail.wide { max-width: 960px; }
-.detail h1 { font-size: clamp(28px, 5vw, 38px); margin: 4px 0 12px; }
+.paper .meta { color: var(--muted); font-size: 14px; margin: 0; }
+.paper .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 14px; align-items: center; }
 .detail .meta { color: var(--muted); }
 .detail .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-.crumb { margin: 0 0 16px; font-size: 14px; }
-.btn { display: inline-block; padding: 8px 18px; border-radius: 999px; background: var(--accent); color: var(--bg); font-size: 15px; }
-.btn:hover { text-decoration: none; opacity: .9; }
-.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-.abstract { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin: 24px 0; }
+.abstract { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; margin: 24px 0; }
 .abstract h2 { font-size: 18px; margin-bottom: 4px; }
 .abstract p { margin: 0; }
 .cover { width: 100%; border-radius: 12px; margin: 8px 0 16px; }
-.prose img { max-width: 100%; border-radius: 8px; }
-.prose h1 { font-size: clamp(28px, 5vw, 38px); }
-.prose h2 { font-size: 22px; margin-top: 32px; }
 .game-frame { aspect-ratio: 4 / 5; max-height: 80vh; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 16px 0 8px; }
 .game-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* 頁尾 */
+.footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 40px 16px 24px; color: var(--muted); font-size: 14px; }
+.footer-inner { max-width: 1080px; margin: 0 auto; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.footer-inner p { margin: 0; }
+.footer-name { font: 700 18px "Noto Serif TC", serif; color: var(--text); letter-spacing: .08em; }
+.footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 20px; flex-wrap: wrap; }
+.footer a { color: var(--muted); }
+.footer a:hover { color: var(--accent); }
+.copy { text-align: center; margin: 32px 0 0; font-size: 12px; }
+
+@media (max-width: 860px) {
+  .home-main { grid-template-columns: 1fr; gap: 0; }
+  .home-side { padding-top: 0; }
+}
+@media (max-width: 640px) {
+  .topbar { flex-wrap: wrap; gap: 8px 12px; }
+  .brand-name { font-size: 18px; }
+  .topbar nav { order: 3; width: 100%; margin: 0 -10px; gap: 0; flex-wrap: nowrap; overflow-x: auto; }
+  .topbar nav a { white-space: nowrap; }
+  .theme-toggle { margin-left: auto; }
+  .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
+  .hero-seal { display: none; }
+  .entry { grid-template-columns: 1fr; gap: 2px; }
+  .entry h3 { font-size: 19px; }
+  .paper { grid-template-columns: 1fr; gap: 4px; }
+  .prose { font-size: 17px; }
+}
+.detail.reading h1 { font-size: clamp(24px, 3.6vw, 32px); font-weight: 600; }
+.empty { color: var(--muted); font: 400 17px/1.8 "Noto Serif TC", serif; padding: 24px 0 48px; margin: 0; }

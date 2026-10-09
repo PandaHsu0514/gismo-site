@@ -1,12 +1,12 @@
 ---
 layout: base.njk
-title: 小遊戲
+title: AI 遊戲
 permalink: /games/
 ---
 {% import "cards.njk" as c %}
 <section class="page-head">
-  <h1>小遊戲</h1>
-  <p class="lead">可以直接在瀏覽器玩，手機也可以。</p>
+  <h1>AI 遊戲</h1>
+  <p class="lead">跟 AI 一起做的小遊戲，直接在瀏覽器玩，手機也可以。</p>
 </section>
 <div class="grid">
   {% for g in collections.games %}{{ c.card(g, g.data.gameTags) }}{% endfor %}

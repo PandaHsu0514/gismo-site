@@ -1,0 +1,10 @@
+---
+title: "The influence of generative AI on creative self-efficacy and innovation performance: evidence from the advertising industry"
+authors: "Hung-Yung Hsu, Tsung-Sheng Chang"
+venue: "Journal of Intellectual Capital, 1-27"
+year: 2026
+type: 期刊
+pdf: ""
+doi: 10.1108/JIC-12-2025-0525
+abstract: "Purpose Generative artificial intelligence (AI) is increasingly used in advertising. However, previous research has paid little attention to how AI-related resources shape employees' creative self-efficacy (CSE) or their innovation performance in professional creative settings. This study addresses this gap by examining how AI-related personal resources (learning orientation and digital skills) and contextual resources (organizational and technological support) influence CSE and innovation performance in the advertising industry. Design/methodology/approach A research model was developed to examine how AI-related personal resources and contextual resources shape employees' CSE and innovation performance. Survey data were collected from 422 employees in Taiwanese advertising firms whose work involved generative AI, and the hypotheses were tested using partial least squares structural equation modeling. Findings The results show that learning orientation, digital skills, organizational support, and technological support have significant positive effects on CSE. These findings indicate that individual and contextual factors jointly enhance employees' confidence in their creative abilities. Furthermore, CSE is positively associated with innovation performance, suggesting that strengthening these resources can improve innovation outcomes. Originality/value This study contributes to the generative AI and advertising literature by shifting attention from AI adoption to employee-level resources that enable effective AI-supported creative work. It also extends CSE research to a generative AI-enabled professional context and demonstrates how personal and contextual resources foster innovation performance in a creativity-intensive industry."
+---

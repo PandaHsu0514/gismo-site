@@ -13,12 +13,43 @@ npm run dev      # 打開 http://localhost:8080 ，改檔案會自動重新整�
 
 | 要新增 | 放在 | 檔案（PDF、圖片）放在 |
 |---|---|---|
+| 文章（原創或好文分享） | `src/articles/日期-簡稱.md` | `src/files/articles/` |
+| 教案／教學分享 | `src/teaching/日期-簡稱.md` | `src/files/teaching/` |
 | 論文 | `src/papers/年份-簡稱.md` | `src/files/papers/` |
 | AI 創作 | `src/works/年份-簡稱.md` | `src/files/works/` |
 | 小遊戲說明頁 | `src/games/簡稱.md` | 遊戲本體放 `src/play/簡稱/index.html` |
 
 檔名會變成網址，例如 `src/papers/2025-tourism.md` → `gismo.com.tw/papers/2025-tourism/`。
 建議用英文小寫和 `-`，不要用空格。最簡單的做法是複製一個範例檔再修改。
+
+### 文章欄位
+
+```yaml
+---
+title: 文章標題
+date: 2026-10-01
+summary: 列表上顯示的一兩句摘要
+kind: 好文              # 不寫就是「原創」；分享別人的文章寫「好文」
+source: 原作者／媒體     # 好文才需要
+sourceUrl: https://...   # 好文才需要，頁面上會出現「閱讀原文」
+---
+內文用 Markdown 寫。
+```
+
+### 教學欄位
+
+```yaml
+---
+title: 教案名稱
+date: 2026-09-15
+audience: 國中・八年級   # 對象
+duration: 2 節課         # 可省略
+summary: 一兩句說明
+files:                   # 可省略，會變成下載按鈕
+  - label: 教案 PDF
+    url: /files/teaching/xxx.pdf
+---
+```
 
 ### 論文欄位
 
@@ -65,6 +96,6 @@ gameTags: [標籤一, 標籤二]
 ## 其他
 
 - 個人資料、導覽列：`src/_data/site.json`
-- 關於頁：`src/about.md`
+- 關於頁：`src/about.md`（學術著作會自動列在關於頁下方）
 - 顏色與版面：`src/assets/style.css`
 - 自訂網域：`src/CNAME`（內容是 `gismo.com.tw`）

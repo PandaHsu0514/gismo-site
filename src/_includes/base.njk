@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if title %}{{ title }}｜{% endif %}{{ site.name }}</title>
-  <meta name="description" content="{{ description or site.bio }}">
+  <meta name="description" content="{{ summary or description or site.tagline }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
   <script>
     try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -15,10 +15,13 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/">{{ site.name }}</a>
+    <a class="brand" href="/" aria-label="{{ site.name }}首頁">
+      <span class="seal" aria-hidden="true">勇博講古</span>
+      <span class="brand-name">{{ site.name }}</span>
+    </a>
     <nav>
       {%- for item in site.nav %}
-      {%- set active = (item.url == "/" and page.url == "/") or (item.url != "/" and page.url.startsWith(item.url)) %}
+      {%- set active = page.url.startsWith(item.url) %}
       <a href="{{ item.url }}"{% if active %} aria-current="page"{% endif %}>{{ item.label }}</a>
       {%- endfor %}
     </nav>
@@ -29,7 +32,20 @@
     {{ content | safe }}
   </main>
 
-  <footer>© <span id="year"></span> {{ site.domain }}</footer>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-name">{{ site.name }}</p>
+        <p>{{ site.tagline }}</p>
+      </div>
+      <ul>
+        <li><a href="/papers/">學術著作</a></li>
+        {%- if site.email %}<li><a href="mailto:{{ site.email }}">Email</a></li>{% endif %}
+        {%- for l in site.links %}{% if l.url %}<li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.label }}</a></li>{% endif %}{% endfor %}
+      </ul>
+    </div>
+    <p class="copy">© <span id="year"></span> {{ site.domain }}</p>
+  </footer>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();

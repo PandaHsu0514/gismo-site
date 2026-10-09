@@ -1,22 +1,40 @@
 {
   "domain": "gismo.com.tw",
-  "name": "你的名字",
-  "nameEn": "Your Name",
-  "title": "研究者・AI 創作者",
-  "affiliation": "所屬學校／單位",
-  "bio": "一兩句自我介紹：研究領域、正在做的事、對什麼有興趣。",
-  "interests": ["研究興趣 1", "研究興趣 2", "生成式 AI", "互動設計"],
-  "email": "you@gismo.com.tw",
+  "name": "勇博講古",
+  "author": "許鴻勇",
+  "tagline": "一張隨時可以坐下來聊聊的桌子。桌上有故事、有想法、有教學，也有一些正在嘗試的新玩意。",
+  "bio": "我是許鴻勇，管理學博士，在大學兼任教學，待過科技與遊戲產業，也走過創業這條路。喜歡保持好奇：不懂就多問，有趣就動手試試看。",
+  "email": "panda@esad.cc",
   "links": [
-    { "label": "GitHub", "url": "https://github.com/s94215508" },
-    { "label": "Google Scholar", "url": "" },
-    { "label": "ORCID", "url": "" }
+    {
+      "label": "GitHub",
+      "url": "https://github.com/s94215508"
+    },
+    {
+      "label": "ORCID",
+      "url": "https://orcid.org/0009-0002-4869-3865"
+    }
   ],
   "nav": [
-    { "label": "首頁", "url": "/" },
-    { "label": "論文", "url": "/papers/" },
-    { "label": "AI 創作", "url": "/works/" },
-    { "label": "小遊戲", "url": "/games/" },
-    { "label": "關於", "url": "/about/" }
+    {
+      "label": "文章",
+      "url": "/articles/"
+    },
+    {
+      "label": "教學",
+      "url": "/teaching/"
+    },
+    {
+      "label": "AI 小作品",
+      "url": "/works/"
+    },
+    {
+      "label": "AI 遊戲",
+      "url": "/games/"
+    },
+    {
+      "label": "關於",
+      "url": "/about/"
+    }
   ]
 }

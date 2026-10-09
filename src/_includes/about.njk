@@ -1,0 +1,13 @@
+---
+layout: base.njk
+---
+{% import "cards.njk" as c %}
+<article class="reading">
+  <div class="prose">{{ content | safe }}</div>
+  {% if collections.papers.length %}
+  <section class="about-papers" id="papers">
+    <div class="section-head"><h2>學術著作</h2><a href="/papers/">完整列表 →</a></div>
+    <ol class="papers">{% for p in collections.papers | first(5) %}{{ c.paperRow(p) }}{% endfor %}</ol>
+  </section>
+  {% endif %}
+</article>

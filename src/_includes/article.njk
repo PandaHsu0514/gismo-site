@@ -1,0 +1,19 @@
+---
+layout: base.njk
+---
+<article class="reading">
+  <p class="crumb"><a href="/articles/">← 所有文章</a></p>
+  <header class="reading-head">
+    <p class="kind{% if kind == '好文' %} is-share{% endif %}">{{ kind }}・<time datetime="{{ page.date | isoDate }}">{{ page.date | ymd }}</time></p>
+    <h1>{{ title }}</h1>
+    {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
+  </header>
+  {% if sourceUrl %}
+  <a class="source" href="{{ sourceUrl }}" target="_blank" rel="noopener">
+    <span class="source-label">閱讀原文</span>
+    <span class="source-name">{{ source or sourceUrl }}</span>
+    <span aria-hidden="true">↗</span>
+  </a>
+  {% endif %}
+  <div class="prose">{{ content | safe }}</div>
+</article>

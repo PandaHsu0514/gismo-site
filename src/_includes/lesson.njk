@@ -1,0 +1,17 @@
+---
+layout: base.njk
+---
+<article class="reading">
+  <p class="crumb"><a href="/teaching/">← 教學分享</a></p>
+  <header class="reading-head">
+    <p class="kind">{{ audience }}{% if duration %}・{{ duration }}{% endif %}・<time datetime="{{ page.date | isoDate }}">{{ page.date | ymd }}</time></p>
+    <h1>{{ title }}</h1>
+    {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
+  </header>
+  {% if files %}
+  <ul class="downloads">
+    {% for f in files %}<li><a class="btn ghost" href="{{ f.url }}" target="_blank" rel="noopener">{{ f.label }}</a></li>{% endfor %}
+  </ul>
+  {% endif %}
+  <div class="prose">{{ content | safe }}</div>
+</article>
