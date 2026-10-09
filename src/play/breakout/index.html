@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>打磚塊</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>關卡 <b id="level">1</b>・生命 <b id="lives">3</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="400" height="520"></canvas><div class="ov" id="ov"></div></div>
+    <p class="help">滑鼠或手指左右移動球拍，點一下發球；鍵盤用 ← → 和空白鍵</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    var hud = K.hud("breakout-best"), P = K.pointer(cv), lastPX = null;
+    var COLORS = ["accent", "gold", "accent2", "blue", "purple"];
+    var pad, ball, bricks, lives, score, level, stuck, playing = false;
+
+    function build() {
+      bricks = [];
+      var rows = Math.min(3 + level, 8), cols = 8, bw = 44, bh = 16, gap = 4, ox = (W - cols * (bw + gap) + gap) / 2;
+      for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+        if (level % 2 === 0 && (r + c) % 5 === 0) continue; // 偶數關挖洞，換個樣子
+        bricks.push({ x: ox + c * (bw + gap), y: 56 + r * (bh + gap), w: bw, h: bh, color: K.c(COLORS[r % COLORS.length]), hp: r < level - 2 ? 2 : 1 });
+      }
+    }
+    function reset() { pad = { x: W / 2 - 40, y: H - 30, w: 80, h: 10 }; ball = { x: W / 2, y: H - 40, r: 6, vx: 0, vy: 0 }; stuck = true; }
+    function start() { lives = 3; score = 0; level = 1; hud.set(0); build(); reset(); playing = true; ui(); }
+    function ui() { K.$("lives").textContent = lives; K.$("level").textContent = level; }
+    function launch() {
+      if (!playing || !stuck) return;
+      stuck = false;
+      var sp = 300 + level * 25, a = K.rand(-0.5, 0.5);
+      ball.vx = sp * Math.sin(a); ball.vy = -sp * Math.cos(a);
+    }
+    P.onDown = launch;
+    addEventListener("keydown", function (e) { if (e.key === " ") launch(); });
+
+    function step(dt) {
+      ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+      if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); }
+      if (ball.x > W - ball.r) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); }
+      if (ball.y < ball.r) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); }
+      // 球拍：打到哪裡決定反彈角度
+      if (ball.vy > 0 && ball.y + ball.r >= pad.y && ball.y - ball.r <= pad.y + pad.h && ball.x >= pad.x - ball.r && ball.x <= pad.x + pad.w + ball.r) {
+        var off = K.clamp((ball.x - (pad.x + pad.w / 2)) / (pad.w / 2), -1, 1), sp = Math.hypot(ball.vx, ball.vy);
+        ball.vx = sp * Math.sin(off * 1.05); ball.vy = -sp * Math.cos(off * 1.05);
+        ball.y = pad.y - ball.r; K.beep(440, 0.05, "square", 0.03);
+      }
+      for (var i = 0; i < bricks.length; i++) {
+        var b = bricks[i];
+        var nx = K.clamp(ball.x, b.x, b.x + b.w), ny = K.clamp(ball.y, b.y, b.y + b.h);
+        if ((ball.x - nx) ** 2 + (ball.y - ny) ** 2 > ball.r * ball.r) continue;
+        var px = ball.x - ball.vx * dt, py = ball.y - ball.vy * dt;
+        if (px < b.x || px > b.x + b.w) ball.vx = -ball.vx; else ball.vy = -ball.vy;
+        if (--b.hp <= 0) { bricks.splice(i, 1); score += 10 * level; hud.set(score); }
+        K.beep(660 + (i % 5) * 60, 0.05, "square", 0.03);
+        break;
+      }
+      if (ball.y > H + 20) {
+        lives--; ui();
+        if (lives <= 0) return over();
+        reset();
+      }
+      if (!bricks.length) { level++; ui(); build(); reset(); }
+    }
+    function over() {
+      playing = false;
+      var nb = hud.finish(score);
+      K.show(nb ? "新紀錄！" : "遊戲結束", "得分 " + score + "，到第 " + level + " 關", "再玩一次", start);
+    }
+    K.loop(function (dt) {
+      if (playing) {
+        if (K.left()) pad.x -= 460 * dt;
+        else if (K.right()) pad.x += 460 * dt;
+        else if (P.x !== lastPX && P.active) pad.x = P.x - pad.w / 2;
+        lastPX = P.x;
+        pad.x = K.clamp(pad.x, 0, W - pad.w);
+        if (stuck) { ball.x = pad.x + pad.w / 2; ball.y = pad.y - ball.r - 1; }
+        else { var n = Math.ceil(Math.hypot(ball.vx, ball.vy) * dt / 4); for (var s = 0; s < n && playing; s++) step(dt / n); }
+      }
+      draw();
+    });
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      if (!bricks) return;
+      bricks.forEach(function (b) {
+        ctx.fillStyle = b.color; ctx.globalAlpha = b.hp > 1 ? 1 : 0.85;
+        ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h, 4); ctx.fill();
+        if (b.hp > 1) { ctx.strokeStyle = K.c("text"); ctx.lineWidth = 2; ctx.stroke(); }
+      });
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = K.c("text"); ctx.beginPath(); ctx.roundRect(pad.x, pad.y, pad.w, pad.h, 5); ctx.fill();
+      ctx.fillStyle = K.c("accent"); ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, 7); ctx.fill();
+      if (playing && stuck) { ctx.fillStyle = K.c("muted"); ctx.font = "15px sans-serif"; ctx.textAlign = "center"; ctx.fillText("點一下發球", W / 2, H / 2 + 60); }
+    }
+    level = 1; build(); reset();
+    K.show("打磚塊", "把磚塊全部打掉就過關。\n有外框的磚塊要打兩下。", "開始", start);
+  </script>
+</body>
+</html>

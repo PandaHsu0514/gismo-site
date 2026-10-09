@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>寶石消消</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>剩 <b id="moves">25</b> 步</span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="448" height="448"></canvas><div class="ov" id="ov"></div></div>
+    <p class="help">點兩顆相鄰的寶石交換（或直接滑動），排成三顆以上同色就會消掉</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), N = 8, S = 56, T = 6;
+    var hud = K.hud("match3-best"), g, sel = null, busy = false, score, movesLeft, anim = [], combo;
+    var COLS = ["accent", "gold", "accent2", "blue", "purple", "muted"];
+    function rnd() { return K.ri(0, T - 1); }
+    function fill() {
+      g = [];
+      for (var y = 0; y < N; y++) { g.push([]); for (var x = 0; x < N; x++) { var v; do v = rnd(); while ((x > 1 && g[y][x - 1] === v && g[y][x - 2] === v) || (y > 1 && g[y - 1][x] === v && g[y - 2][x] === v)); g[y].push(v); } }
+      if (!hasMove()) fill();
+    }
+    function matches() {
+      var m = {};
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+        var v = g[y][x]; if (v < 0) continue;
+        if (x < N - 2 && g[y][x + 1] === v && g[y][x + 2] === v) for (var k = x; k < N && g[y][k] === v; k++) m[y * N + k] = 1;
+        if (y < N - 2 && g[y + 1][x] === v && g[y + 2][x] === v) for (var j = y; j < N && g[j][x] === v; j++) m[j * N + x] = 1;
+      }
+      return Object.keys(m).map(Number);
+    }
+    function swap(a, b) { var t = g[a[1]][a[0]]; g[a[1]][a[0]] = g[b[1]][b[0]]; g[b[1]][b[0]] = t; }
+    function hasMove() {
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) for (var d = 0; d < 2; d++) {
+        var b = d ? [x, y + 1] : [x + 1, y]; if (b[0] >= N || b[1] >= N) continue;
+        swap([x, y], b); var ok = matches().length > 0; swap([x, y], b); if (ok) return true;
+      }
+      return false;
+    }
+    function start() { fill(); score = 0; movesLeft = 25; sel = null; busy = false; hud.set(0); K.$("moves").textContent = 25; }
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    async function resolve() {
+      combo = 0;
+      for (;;) {
+        var m = matches(); if (!m.length) break;
+        combo++; score += m.length * 10 * combo; hud.set(score); K.beep(500 + combo * 120, 0.12);
+        m.forEach(function (i) { anim.push({ x: i % N, y: i / N | 0, c: g[i / N | 0][i % N], t: 0.25 }); g[i / N | 0][i % N] = -1; });
+        await wait(220);
+        for (var x = 0; x < N; x++) { // 往下掉、上面補新的
+          var col = []; for (var y = N - 1; y >= 0; y--) if (g[y][x] >= 0) col.push(g[y][x]);
+          for (var y2 = N - 1, k = 0; y2 >= 0; y2--, k++) g[y2][x] = k < col.length ? col[k] : rnd();
+        }
+        await wait(160);
+      }
+      if (!hasMove()) { fill(); }
+    }
+    async function trySwap(a, b) {
+      busy = true; swap(a, b);
+      if (!matches().length) { await wait(180); swap(a, b); K.beep(150, 0.08, "triangle"); busy = false; return; }
+      movesLeft--; K.$("moves").textContent = movesLeft;
+      await resolve(); busy = false;
+      if (movesLeft <= 0) { var nb = hud.finish(score); K.show(nb ? "新紀錄！" : "步數用完了", "得分 " + score, "再玩一次", start); }
+    }
+    function cellAt(e) { var r = cv.getBoundingClientRect(); return [Math.floor((e.clientX - r.left) / r.width * N), Math.floor((e.clientY - r.top) / r.height * N)]; }
+    var downAt = null;
+    cv.addEventListener("pointerdown", function (e) { downAt = { c: cellAt(e), x: e.clientX, y: e.clientY }; });
+    cv.addEventListener("pointerup", function (e) {
+      if (!downAt || busy || movesLeft <= 0) return; var dx = e.clientX - downAt.x, dy = e.clientY - downAt.y, c = downAt.c; downAt = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) > 20) { // 滑動
+        var t = Math.abs(dx) > Math.abs(dy) ? [c[0] + Math.sign(dx), c[1]] : [c[0], c[1] + Math.sign(dy)];
+        if (t[0] >= 0 && t[1] >= 0 && t[0] < N && t[1] < N) { sel = null; trySwap(c, t); } return;
+      }
+      if (sel && Math.abs(sel[0] - c[0]) + Math.abs(sel[1] - c[1]) === 1) { var s = sel; sel = null; trySwap(s, c); }
+      else sel = sel && sel[0] === c[0] && sel[1] === c[1] ? null : c;
+    });
+    function gem(x, y, c, scale) {
+      var cx = x * S + S / 2, cy = y * S + S / 2, r = S * 0.36 * scale;
+      ctx.fillStyle = K.c(COLS[c]); ctx.beginPath();
+      if (c === 0) ctx.arc(cx, cy, r, 0, 7);
+      else if (c === 1) { ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r, cy); }
+      else if (c === 2) ctx.roundRect(cx - r * 0.85, cy - r * 0.85, r * 1.7, r * 1.7, 6);
+      else if (c === 3) { ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy + r * 0.8); ctx.lineTo(cx - r, cy + r * 0.8); }
+      else if (c === 4) for (var i = 0; i < 6; i++) { var a = i * Math.PI / 3; ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); }
+      else for (var j = 0; j < 10; j++) { var b = j * Math.PI / 5 - Math.PI / 2, rr = j % 2 ? r * 0.45 : r; ctx.lineTo(cx + Math.cos(b) * rr, cy + Math.sin(b) * rr); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.3, r * 0.22, 0, 7); ctx.fill();
+    }
+    K.loop(function (dt) {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+        if ((x + y) % 2) { ctx.fillStyle = K.c("surface"); ctx.globalAlpha = 0.6; ctx.fillRect(x * S, y * S, S, S); ctx.globalAlpha = 1; }
+        if (g && g[y][x] >= 0) gem(x, y, g[y][x], 1);
+      }
+      anim.forEach(function (a) { a.t -= dt; ctx.globalAlpha = Math.max(0, a.t / 0.25); gem(a.x, a.y, a.c, 1 + (0.25 - a.t) * 2); }); ctx.globalAlpha = 1;
+      anim = anim.filter(function (a) { return a.t > 0; });
+      if (sel) { ctx.strokeStyle = K.c("text"); ctx.lineWidth = 3; ctx.strokeRect(sel[0] * S + 2, sel[1] * S + 2, S - 4, S - 4); }
+    });
+    fill(); movesLeft = 25;
+    K.show("寶石消消", "25 步內拿越多分越好。\n連鎖消除分數會加倍！", "開始", start);
+  </script>
+</body>
+</html>

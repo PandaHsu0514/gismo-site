@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>疊高塔</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>層數 <b id="score">0</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="360" height="560"></canvas><div class="ov" id="ov"></div></div>
+    <p class="help">點畫面或按空白鍵放下方塊。沒對齊的部分會被切掉，完全對齊會放大</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height, BH = 26;
+    var hud = K.hud("stack-best"), P = K.pointer(cv);
+    var tower, cur, cam, camTarget, falling, playing = false, perfect = 0;
+    var HUES = ["accent", "gold", "accent2", "blue", "purple"];
+    function start() {
+      tower = [{ x: 80, w: 200, c: 0 }]; falling = []; cam = camTarget = 0; perfect = 0; playing = true; hud.set(0); spawn();
+    }
+    function spawn() {
+      var top = tower[tower.length - 1], from = tower.length % 2 ? -1 : 1;
+      cur = { x: from < 0 ? -top.w : W, w: top.w, v: from < 0 ? 1 : -1, speed: Math.min(140 + tower.length * 6, 380), c: tower.length };
+    }
+    function drop() {
+      if (!playing) return;
+      var top = tower[tower.length - 1], l = Math.max(cur.x, top.x), r = Math.min(cur.x + cur.w, top.x + top.w);
+      if (r <= l) { falling.push({ x: cur.x, y: lvY(tower.length), w: cur.w, c: cur.c, vy: 0 }); playing = false; cur = null; end(); return; }
+      if (Math.abs(cur.x - top.x) < 4) { // 對齊！
+        perfect++; l = top.x; r = top.x + top.w;
+        if (perfect >= 3 && top.w < 200) { l -= 6; r += 6; }
+        K.beep(600 + perfect * 80, 0.15);
+      } else {
+        perfect = 0; K.beep(400, 0.06, "triangle");
+        var cutX = cur.x < l ? cur.x : r, cutW = cur.w - (r - l);
+        falling.push({ x: cutX, y: lvY(tower.length), w: cutW, c: cur.c, vy: 0 });
+      }
+      tower.push({ x: l, w: r - l, c: cur.c });
+      hud.set(tower.length - 1);
+      camTarget = Math.max(0, (tower.length - 12) * BH);
+      spawn();
+    }
+    function lvY(i) { return H - 60 - (i + 1) * BH; }
+    function end() { var s = tower.length - 1, nb = hud.finish(s); K.beep(140, 0.3, "sawtooth"); setTimeout(function () { K.show(nb ? "新紀錄！" : "沒接到", "疊了 " + s + " 層", "再疊一次", start); }, 700); }
+    P.onDown = drop;
+    addEventListener("keydown", function (e) { if (e.key === " ") drop(); });
+    function color(i) { return K.c(HUES[(i / 4 | 0) % HUES.length]); }
+    K.loop(function (dt) {
+      if (cur) { cur.x += cur.v * cur.speed * dt; if (cur.x < -cur.w * 0.6 && cur.v < 0) cur.v = 1; if (cur.x > W - cur.w * 0.4 && cur.v > 0) cur.v = -1; }
+      cam += (camTarget - cam) * Math.min(1, dt * 5);
+      falling.forEach(function (f) { f.vy += 900 * dt; f.y += f.vy * dt; });
+      falling = falling.filter(function (f) { return f.y < H + cam + 100; });
+      ctx.clearRect(0, 0, W, H);
+      if (!tower) return;
+      ctx.save(); ctx.translate(0, cam);
+      ctx.fillStyle = K.c("line"); ctx.fillRect(40, H - 60, W - 80, 60);
+      tower.forEach(function (b, i) { ctx.fillStyle = color(b.c); ctx.globalAlpha = 0.75 + (i % 4) * 0.08; ctx.fillRect(b.x, lvY(i), b.w, BH - 2); });
+      ctx.globalAlpha = 1;
+      if (cur) { ctx.fillStyle = color(cur.c); ctx.fillRect(cur.x, lvY(tower.length), cur.w, BH - 2); }
+      falling.forEach(function (f) { ctx.fillStyle = color(f.c); ctx.globalAlpha = 0.6; ctx.fillRect(f.x, f.y, f.w, BH - 2); }); ctx.globalAlpha = 1;
+      ctx.restore();
+      if (perfect >= 2 && playing) { ctx.fillStyle = K.c("accent"); ctx.font = "bold 18px sans-serif"; ctx.textAlign = "center"; ctx.fillText("完美 ×" + perfect, W / 2, 40); }
+    });
+    K.show("疊高塔", "方塊左右移動，抓準時機放下。\n連續完美對齊三次，方塊會變寬。", "開始", start);
+  </script>
+</body>
+</html>

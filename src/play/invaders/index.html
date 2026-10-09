@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>外星艦隊</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>第 <b id="wave">1</b> 波・生命 <b id="lives">3</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="420" height="520"></canvas><div class="ov" id="ov"></div></div>
+    <div class="pad" id="pad"></div>
+    <p class="help">← → 移動，空白鍵發射；手機可以拖曳砲台、點畫面發射</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    var hud = K.hud("invaders-best"), P = K.pointer(cv);
+    var me, aliens, dir, stepT, shots, bombs, shields, score, lives, wave, playing = false, cool = 0, frame = 0, ufo = null;
+    K.pad([["◀", "ArrowLeft"], ["●", " "], ["▶", "ArrowRight"]]);
+
+    // 外星人造型：每列一種，用 8x6 的點陣
+    var SHAPES = [
+      ["00100100", "00011000", "00111100", "01011010", "11111111", "10100101"],
+      ["00011000", "00111100", "01111110", "11011011", "11111111", "00100100"],
+      ["01000010", "00100100", "01111110", "11011011", "11111111", "01000010"]
+    ];
+    function wavesetup() {
+      aliens = [];
+      for (var r = 0; r < 5; r++) for (var c = 0; c < 9; c++)
+        aliens.push({ x: 40 + c * 38, y: 60 + r * 32 + Math.min(wave - 1, 4) * 10, w: 28, h: 20, row: r, pts: (5 - r) * 10 });
+      dir = 1; stepT = 0; shots = []; bombs = [];
+    }
+    function makeShields() {
+      shields = [];
+      for (var s = 0; s < 4; s++) for (var y = 0; y < 5; y++) for (var x = 0; x < 9; x++) {
+        if (y === 0 && (x === 0 || x === 8)) continue;
+        if (y >= 3 && x >= 3 && x <= 5) continue;
+        shields.push({ x: 40 + s * 100 + x * 6, y: H - 120 + y * 6, w: 6, h: 6 });
+      }
+    }
+    function start() { me = { x: W / 2, y: H - 40, w: 34, h: 16 }; score = 0; lives = 3; wave = 1; hud.set(0); makeShields(); wavesetup(); playing = true; ui(); }
+    function ui() { K.$("lives").textContent = lives; K.$("wave").textContent = wave; }
+    function fire() { if (playing && cool <= 0 && shots.length < 2) { shots.push({ x: me.x, y: me.y - 12 }); cool = 0.35; K.beep(900, 0.06, "square", 0.03); } }
+    addEventListener("keydown", function (e) { if (e.key === " ") fire(); });
+    var moved = false;
+    P.onDown = function () { moved = false; };
+    P.onUp = function () { if (!moved) fire(); };
+    cv.addEventListener("pointermove", function (e) { if (P.down) { moved = true; } });
+
+    function update(dt) {
+      frame += dt; cool -= dt;
+      if (K.left()) me.x -= 260 * dt; if (K.right()) me.x += 260 * dt;
+      if (P.down && moved) me.x += (P.x - me.x) * Math.min(1, dt * 12);
+      me.x = K.clamp(me.x, 20, W - 20);
+      // 外星人一格一格前進，越少越快
+      var speed = Math.max(0.05, (0.06 + aliens.length / 45 * 0.6) * Math.pow(0.88, wave - 1));
+      stepT -= dt;
+      if (stepT <= 0) {
+        stepT = speed;
+        var edge = aliens.some(function (a) { return (dir > 0 && a.x + a.w > W - 10) || (dir < 0 && a.x < 10); });
+        aliens.forEach(function (a) { if (edge) a.y += 14; else a.x += dir * 8; });
+        if (edge) dir = -dir;
+        K.beep(90 + (frame * 10 | 0) % 2 * 20, 0.05, "triangle", 0.04);
+      }
+      // 開火
+      if (Math.random() < dt * (0.8 + wave * 0.3) && aliens.length) {
+        var cols = {}; aliens.forEach(function (a) { var k = Math.round(a.x); if (!cols[k] || cols[k].y < a.y) cols[k] = a; });
+        var shooter = K.pick(Object.values(cols));
+        bombs.push({ x: shooter.x + shooter.w / 2, y: shooter.y + shooter.h });
+      }
+      if (!ufo && Math.random() < dt * 0.06) ufo = { x: -40, y: 30, w: 40, h: 14, v: 90 };
+      if (ufo) { ufo.x += ufo.v * dt; if (ufo.x > W + 40) ufo = null; }
+      shots.forEach(function (s) { s.y -= 480 * dt; });
+      bombs.forEach(function (b) { b.y += (180 + wave * 15) * dt; });
+      shots = shots.filter(function (s) {
+        var r = { x: s.x - 1.5, y: s.y - 6, w: 3, h: 12 };
+        for (var i = 0; i < aliens.length; i++) if (K.hit(r, aliens[i])) { score += aliens[i].pts; aliens.splice(i, 1); hud.set(score); K.beep(300, 0.08, "square", 0.04); return false; }
+        if (ufo && K.hit(r, ufo)) { score += K.pick([50, 100, 150, 300]); hud.set(score); ufo = null; K.beep(1200, 0.2); return false; }
+        for (var j = 0; j < shields.length; j++) if (K.hit(r, shields[j])) { shields.splice(j, 1); return false; }
+        return s.y > 0;
+      });
+      var mb = { x: me.x - me.w / 2, y: me.y - me.h / 2, w: me.w, h: me.h };
+      bombs = bombs.filter(function (b) {
+        var r = { x: b.x - 2, y: b.y - 5, w: 4, h: 10 };
+        for (var j = 0; j < shields.length; j++) if (K.hit(r, shields[j])) { shields.splice(j, 1); return false; }
+        if (K.hit(r, mb)) { lives--; ui(); K.beep(100, 0.3, "sawtooth", 0.08); if (lives <= 0) over(); return false; }
+        return b.y < H;
+      });
+      aliens.forEach(function (a) { shields = shields.filter(function (s) { return !K.hit(s, a); }); });
+      if (aliens.some(function (a) { return a.y + a.h >= me.y - 8; })) over();
+      if (!aliens.length) { wave++; ui(); wavesetup(); }
+    }
+    function over() {
+      if (!playing) return; playing = false;
+      var nb = hud.finish(score);
+      K.show(nb ? "新紀錄！" : "地球淪陷", "得分 " + score + "，撐到第 " + wave + " 波", "再戰一次", start);
+    }
+    function sprite(shape, x, y, w, h) {
+      var px = w / 8, py = h / 6;
+      for (var r = 0; r < 6; r++) for (var c = 0; c < 8; c++) if (shape[r][c] === "1") ctx.fillRect(x + c * px, y + r * py, px + 0.5, py + 0.5);
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      if (!aliens) return;
+      var colors = ["purple", "blue", "blue", "accent2", "accent2"];
+      aliens.forEach(function (a) { ctx.fillStyle = K.c(colors[a.row]); sprite(SHAPES[Math.min(2, a.row >> 1)], a.x, a.y, a.w, a.h); });
+      ctx.fillStyle = K.c("accent2"); ctx.globalAlpha = 0.8; shields.forEach(function (s) { ctx.fillRect(s.x, s.y, s.w, s.h); }); ctx.globalAlpha = 1;
+      if (ufo) { ctx.fillStyle = K.c("accent"); ctx.beginPath(); ctx.ellipse(ufo.x + 20, ufo.y + 8, 20, 7, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(ufo.x + 20, ufo.y + 4, 8, Math.PI, 0); ctx.fill(); }
+      ctx.fillStyle = K.c("gold"); shots.forEach(function (s) { ctx.fillRect(s.x - 1.5, s.y - 6, 3, 12); });
+      ctx.fillStyle = K.c("accent"); bombs.forEach(function (b) { ctx.fillRect(b.x - 2, b.y - 5, 4, 10); });
+      if (me) {
+        ctx.fillStyle = K.c("text");
+        ctx.fillRect(me.x - 17, me.y - 2, 34, 10); ctx.fillRect(me.x - 12, me.y - 6, 24, 6); ctx.fillRect(me.x - 3, me.y - 13, 6, 8);
+      }
+      ctx.strokeStyle = K.c("line"); ctx.beginPath(); ctx.moveTo(0, H - 18); ctx.lineTo(W, H - 18); ctx.stroke();
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(); });
+    wave = 1; makeShields(); wavesetup();
+    K.show("外星艦隊", "擋住一波波往下逼近的外星艦隊。\n躲在掩體後面，打掉上方的飛碟有額外分數。", "開始", start);
+  </script>
+</body>
+</html>

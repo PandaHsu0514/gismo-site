@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>記憶音階</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  .board { grid-template-columns: 1fr 1fr; gap: 14px; width: min(100%, 380px, calc(100vh - 160px)); }
+  .cell { border-radius: 24px; opacity: .45; transition: opacity .1s, transform .1s; }
+  .cell.lit { opacity: 1; transform: scale(1.04); }
+  .cell:nth-child(1) { background: var(--accent2); border-top-left-radius: 50%; }
+  .cell:nth-child(2) { background: var(--accent); border-top-right-radius: 50%; }
+  .cell:nth-child(3) { background: var(--gold); border-bottom-left-radius: 50%; }
+  .cell:nth-child(4) { background: var(--blue); border-bottom-right-radius: 50%; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>長度 <b id="score">0</b></span><span id="msg">準備好了嗎</span><span>最長 <b id="best">0</b></span></div>
+    <div class="stage"><div class="board" id="b"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div><div class="ov" id="ov"></div></div>
+    <p class="help">看清楚亮燈的順序，然後照著按一遍。每過一輪會多一個音</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var hud = K.hud("simon-best"), pads = [].slice.call(K.$("b").children), TONES = [330, 392, 262, 494];
+    var seq, pos, listening = false;
+    function flash(i, ms) { pads[i].classList.add("lit"); K.beep(TONES[i], ms / 1000, "sine", 0.12); setTimeout(function () { pads[i].classList.remove("lit"); }, ms); }
+    function play() {
+      listening = false; K.$("msg").textContent = "看清楚…";
+      var speed = Math.max(250, 600 - seq.length * 25);
+      seq.forEach(function (n, k) { setTimeout(function () { flash(n, speed * 0.75); }, 600 + k * speed); });
+      setTimeout(function () { listening = true; pos = 0; K.$("msg").textContent = "換你了"; }, 600 + seq.length * speed);
+    }
+    function start() { seq = [K.ri(0, 3)]; hud.set(0); play(); }
+    pads.forEach(function (p, i) {
+      p.addEventListener("pointerdown", function () {
+        if (!listening) return;
+        flash(i, 220);
+        if (i !== seq[pos]) {
+          listening = false; K.beep(110, 0.5, "sawtooth", 0.1);
+          var n = seq.length - 1, nb = hud.finish(n);
+          K.$("msg").textContent = "按錯了";
+          setTimeout(function () { K.show(nb ? "新紀錄！" : "按錯了", "記住了 " + n + " 個音", "再玩一次", start); }, 600);
+          return;
+        }
+        if (++pos === seq.length) { hud.set(seq.length); seq.push(K.ri(0, 3)); listening = false; K.$("msg").textContent = "答對！"; setTimeout(play, 500); }
+      });
+    });
+    K.show("記憶音階", "四個色塊會依序亮起並發出聲音，\n照著順序按回來。建議開聲音！", "開始", start);
+  </script>
+</body>
+</html>

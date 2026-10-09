@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>方塊堆疊</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>等級 <b id="lvl">1</b>・行數 <b id="lines">0</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="360" height="480"></canvas><div class="ov" id="ov"></div></div>
+    <div class="pad" id="pad"></div>
+    <p class="help">← → 移動，↑ 旋轉，↓ 加速，空白鍵直接落下；手機用下方按鈕</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), COLS = 10, ROWS = 20, S = 24;
+    var hud = K.hud("blocks-best");
+    var PIECES = {
+      I: [[0, 1], [1, 1], [2, 1], [3, 1]], O: [[1, 0], [2, 0], [1, 1], [2, 1]], T: [[1, 0], [0, 1], [1, 1], [2, 1]],
+      S: [[1, 0], [2, 0], [0, 1], [1, 1]], Z: [[0, 0], [1, 0], [1, 1], [2, 1]], J: [[0, 0], [0, 1], [1, 1], [2, 1]], L: [[2, 0], [0, 1], [1, 1], [2, 1]]
+    };
+    var COLOR = { I: "blue", O: "gold", T: "purple", S: "accent2", Z: "accent", J: "blue", L: "gold" };
+    var board, cur, next, bag = [], score, lines, level, dropT, playing = false, lockT;
+    K.pad([["◀", "ArrowLeft"], ["⟳", "ArrowUp"], ["▶", "ArrowRight"], ["▼", "ArrowDown"], ["⤓", " "]]);
+
+    function fromBag() { if (!bag.length) bag = K.shuffle(Object.keys(PIECES)); return bag.pop(); }
+    function make(t) { return { t: t, cells: PIECES[t].map(function (c) { return c.slice(); }), x: 3, y: 0 }; }
+    function fits(p, dx, dy, cells) {
+      return (cells || p.cells).every(function (c) {
+        var x = p.x + c[0] + dx, y = p.y + c[1] + dy;
+        return x >= 0 && x < COLS && y < ROWS && (y < 0 || !board[y][x]);
+      });
+    }
+    function rotate() {
+      if (cur.t === "O") return;
+      var n = cur.t === "I" ? 3 : 2;
+      var cells = cur.cells.map(function (c) { return [n - c[1], c[0]]; });
+      var kicks = [0, -1, 1, -2, 2];
+      for (var i = 0; i < kicks.length; i++) if (fits(cur, kicks[i], 0, cells)) { cur.cells = cells; cur.x += kicks[i]; lockT = 0; return; }
+    }
+    function spawn() {
+      cur = make(next || fromBag()); next = fromBag();
+      if (!fits(cur, 0, 0)) over();
+    }
+    function lock() {
+      cur.cells.forEach(function (c) { var y = cur.y + c[1]; if (y >= 0) board[y][cur.x + c[0]] = COLOR[cur.t]; });
+      if (cur.cells.some(function (c) { return cur.y + c[1] < 0; })) return over();
+      var n = 0;
+      for (var y = ROWS - 1; y >= 0; y--) if (board[y].every(Boolean)) { board.splice(y, 1); board.unshift(Array(COLS).fill(null)); n++; y++; }
+      if (n) {
+        lines += n; score += [0, 100, 300, 500, 800][n] * level; level = 1 + (lines / 10 | 0);
+        hud.set(score); K.$("lines").textContent = lines; K.$("lvl").textContent = level; K.beep(520 + n * 120, 0.15);
+      }
+      spawn();
+    }
+    function interval() { return Math.max(0.06, 0.8 * Math.pow(0.85, level - 1)); }
+    function start() {
+      board = []; for (var y = 0; y < ROWS; y++) board.push(Array(COLS).fill(null));
+      score = 0; lines = 0; level = 1; dropT = 0; lockT = 0; bag = []; next = null;
+      hud.set(0); K.$("lines").textContent = 0; K.$("lvl").textContent = 1; spawn(); playing = true;
+    }
+    function over() {
+      playing = false; var nb = hud.finish(score);
+      K.show(nb ? "新紀錄！" : "堆滿了", "得分 " + score + "，消了 " + lines + " 行", "再玩一次", start);
+    }
+    // 按住左右會連續移動
+    var held = { ArrowLeft: 0, ArrowRight: 0, ArrowDown: 0 };
+    function act(k) {
+      if (!playing) return;
+      if (k === "ArrowLeft" || k === "a") { if (fits(cur, -1, 0)) { cur.x--; lockT = 0; } }
+      else if (k === "ArrowRight" || k === "d") { if (fits(cur, 1, 0)) { cur.x++; lockT = 0; } }
+      else if (k === "ArrowDown" || k === "s") { if (fits(cur, 0, 1)) { cur.y++; score++; hud.set(score); dropT = 0; } }
+      else if (k === "ArrowUp" || k === "w") rotate();
+      else if (k === " ") { while (fits(cur, 0, 1)) { cur.y++; score += 2; } hud.set(score); lock(); }
+    }
+    addEventListener("keydown", function (e) { if (e.repeat) return; act(e.key.length === 1 ? e.key.toLowerCase() : e.key); if (e.key in held) held[e.key] = -0.17; });
+    K.loop(function (dt) {
+      if (playing) {
+        Object.keys(held).forEach(function (k) {
+          var on = K.keys[k] || (k === "ArrowLeft" && K.keys.a) || (k === "ArrowRight" && K.keys.d) || (k === "ArrowDown" && K.keys.s);
+          if (!on) { held[k] = 0; return; }
+          held[k] += dt; while (held[k] > 0.05) { held[k] -= 0.05; act(k); }
+        });
+        if (fits(cur, 0, 1)) { dropT += dt; lockT = 0; if (dropT >= interval()) { dropT = 0; cur.y++; } }
+        else { lockT += dt; if (lockT > 0.5) { lockT = 0; lock(); } }
+      }
+      draw();
+    });
+    function cell(x, y, color, s, alpha) {
+      ctx.globalAlpha = alpha || 1; ctx.fillStyle = K.c(color);
+      ctx.beginPath(); ctx.roundRect(x + 1, y + 1, s - 2, s - 2, 4); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    function draw() {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.fillStyle = K.c("surface"); ctx.fillRect(0, 0, COLS * S, ROWS * S);
+      ctx.strokeStyle = K.c("line"); ctx.lineWidth = 1;
+      for (var i = 1; i < COLS; i++) { ctx.beginPath(); ctx.moveTo(i * S + 0.5, 0); ctx.lineTo(i * S + 0.5, ROWS * S); ctx.stroke(); }
+      if (!board) return;
+      board.forEach(function (row, y) { row.forEach(function (c, x) { if (c) cell(x * S, y * S, c, S); }); });
+      if (playing) {
+        var gy = 0; while (fits(cur, 0, gy + 1)) gy++;
+        cur.cells.forEach(function (c) { cell((cur.x + c[0]) * S, (cur.y + c[1] + gy) * S, COLOR[cur.t], S, 0.25); });
+        cur.cells.forEach(function (c) { if (cur.y + c[1] >= 0) cell((cur.x + c[0]) * S, (cur.y + c[1]) * S, COLOR[cur.t], S); });
+      }
+      ctx.fillStyle = K.c("muted"); ctx.font = "15px sans-serif"; ctx.textAlign = "center"; ctx.fillText("下一個", 300, 30);
+      if (next) PIECES[next].forEach(function (c) { cell(252 + c[0] * 22, 50 + c[1] * 22, COLOR[next], 22); });
+    }
+    K.show("方塊堆疊", "把一整行排滿就會消掉。\n一次消越多行分數越高。", "開始", start);
+  </script>
+</body>
+</html>

@@ -10,14 +10,14 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/play");
   eleventyConfig.addPassthroughCopy("src/CNAME");
 
-  // 文章、教學依日期新到舊；論文、作品、遊戲依年份新到舊，同年份再依檔名
+  // 文章、教學依日期新到舊；論文、作品依年份新到舊，同年份再依檔名；遊戲依 order 欄位
   const byDate = (a, b) => b.date - a.date;
   const byYear = (a, b) => (b.data.year || 0) - (a.data.year || 0) || b.fileSlug.localeCompare(a.fileSlug);
   eleventyConfig.addCollection("articles", (api) => api.getFilteredByGlob("src/articles/*.md").sort(byDate));
   eleventyConfig.addCollection("teaching", (api) => api.getFilteredByGlob("src/teaching/*.md").sort(byDate));
   eleventyConfig.addCollection("papers", (api) => api.getFilteredByGlob("src/papers/*.md").sort(byYear));
   eleventyConfig.addCollection("works", (api) => api.getFilteredByGlob("src/works/*.md").sort(byYear));
-  eleventyConfig.addCollection("games", (api) => api.getFilteredByGlob("src/games/*.md").sort(byYear));
+  eleventyConfig.addCollection("games", (api) => api.getFilteredByGlob("src/games/*.md").sort((a, b) => (a.data.order || 999) - (b.data.order || 999)));
 
   eleventyConfig.addFilter("uniq", (items, key) => [...new Set(items.map((i) => i.data[key]).filter(Boolean))]);
   eleventyConfig.addFilter("first", (items, n) => items.slice(0, n));

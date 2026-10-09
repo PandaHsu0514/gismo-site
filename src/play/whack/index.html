@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>打地鼠</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  .board { grid-template-columns: repeat(3, 1fr); gap: 14px; width: min(100%, 400px, calc(100vh - 150px)); }
+  .hole { aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 70%, var(--text) 0 38%, var(--line) 40%); position: relative; overflow: hidden; cursor: pointer; }
+  .mole { position: absolute; left: 50%; bottom: -70%; transform: translateX(-50%); font-size: clamp(40px, 15vw, 70px); transition: bottom .12s; pointer-events: none; }
+  .hole.up .mole { bottom: 12%; }
+  .hole.hit .mole { filter: grayscale(1); transform: translateX(-50%) scale(.85); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>剩 <b id="time">30</b> 秒</span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><div class="board" id="b"></div><div class="ov" id="ov"></div></div>
+    <p class="help">地鼠冒出來就打！打到金色地鼠 +3，打到炸彈 −5</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var hud = K.hud("whack-best"), el = K.$("b"), holes = [], score, timeLeft, playing = false, tick, spawnT;
+    for (var i = 0; i < 9; i++) {
+      var h = document.createElement("div"); h.className = "hole"; h.innerHTML = '<span class="mole"></span>'; el.appendChild(h);
+      holes.push({ el: h, up: false, kind: null, t: 0 });
+    }
+    function start() {
+      score = 0; timeLeft = 30; hud.set(0); K.$("time").textContent = 30; playing = true; spawnT = 0;
+      holes.forEach(function (h) { h.up = false; h.el.className = "hole"; });
+    }
+    function pop() {
+      var free = holes.filter(function (h) { return !h.up; }); if (!free.length) return;
+      var h = K.pick(free), r = Math.random();
+      h.kind = r < 0.12 ? "bomb" : r < 0.24 ? "gold" : "mole";
+      h.el.querySelector(".mole").textContent = { bomb: "💣", gold: "🌟", mole: "🐹" }[h.kind];
+      h.up = true; h.hit = false; h.t = Math.max(0.55, 1.2 - (30 - timeLeft) * 0.02); h.el.className = "hole up";
+    }
+    holes.forEach(function (h) {
+      h.el.addEventListener("pointerdown", function () {
+        if (!playing || !h.up || h.hit) return;
+        h.hit = true; h.el.classList.add("hit"); h.t = Math.min(h.t, 0.25);
+        if (h.kind === "bomb") { score -= 5; K.beep(120, 0.2, "sawtooth", 0.08); }
+        else { score += h.kind === "gold" ? 3 : 1; K.beep(h.kind === "gold" ? 1000 : 700, 0.08, "square", 0.04); }
+        hud.set(score);
+      });
+    });
+    K.loop(function (dt) {
+      if (!playing) return;
+      timeLeft -= dt; K.$("time").textContent = Math.max(0, Math.ceil(timeLeft));
+      spawnT -= dt; if (spawnT <= 0) { pop(); spawnT = Math.max(0.35, 0.8 - (30 - timeLeft) * 0.015); }
+      holes.forEach(function (h) { if (h.up) { h.t -= dt; if (h.t <= 0) { h.up = false; h.el.className = "hole"; } } });
+      if (timeLeft <= 0) {
+        playing = false; holes.forEach(function (h) { h.up = false; h.el.className = "hole"; });
+        var nb = hud.finish(score); K.show(nb ? "新紀錄！" : "時間到", "得分 " + score, "再玩一次", start);
+      }
+    });
+    K.show("打地鼠", "30 秒內盡量多打幾隻。\n小心別打到炸彈！", "開始", start);
+  </script>
+</body>
+</html>

@@ -46,5 +46,5 @@ layout: base.njk
 
 <section class="lab">
   <div class="section-head"><h2>AI 遊戲</h2><a href="/games/">全部 {{ collections.games.length }} 款 →</a></div>
-  <div class="grid">{% for g in collections.games | first(3) %}{{ c.card(g, g.data.gameTags) }}{% endfor %}</div>
+  <div class="grid games">{% for g in collections.games | first(6) %}{{ c.card(g, g.data.gameTags) }}{% endfor %}</div>
 </section>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>井字棋</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  .board { grid-template-columns: repeat(3, 1fr); gap: 8px; width: min(100%, 360px, calc(100vh - 170px)); }
+  .cell { background: var(--surface); border: 2px solid var(--line); font: 900 clamp(40px, 16vw, 72px) "Noto Serif TC", serif; }
+  .cell.x { color: var(--accent); } .cell.o { color: var(--blue); }
+  .cell.win { background: var(--board); border-color: var(--gold); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>你贏 <b id="w">0</b></span><span>和局 <b id="d">0</b></span><span>電腦贏 <b id="l">0</b></span></div>
+    <div class="stage"><div class="board" id="b"></div><div class="ov" id="ov" hidden></div></div>
+    <div class="controls"><button type="button" id="first">我先下</button><button type="button" class="ghost" id="second">電腦先下</button></div>
+    <p class="help" id="msg">你是 ✕，電腦是 ○。電腦不會輸喔，能逼成和局就算厲害</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var el = K.$("b"), b, over, LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+    var stats = { w: 0, d: 0, l: 0 };
+    try { stats = JSON.parse(localStorage.getItem("ttt-stats")) || stats; } catch (e) {}
+    for (var i = 0; i < 9; i++) { var c = document.createElement("div"); c.className = "cell"; c.dataset.i = i; el.appendChild(c); }
+    function winner(s) { for (var k = 0; k < 8; k++) { var L = LINES[k]; if (s[L[0]] && s[L[0]] === s[L[1]] && s[L[0]] === s[L[2]]) return { p: s[L[0]], line: L }; } return s.every(Boolean) ? { p: "draw" } : null; }
+    function minimax(s, turn, depth) {
+      var w = winner(s); if (w) return w.p === "o" ? 10 - depth : w.p === "x" ? depth - 10 : 0;
+      var best = turn === "o" ? -99 : 99;
+      for (var i = 0; i < 9; i++) if (!s[i]) {
+        s[i] = turn; var v = minimax(s, turn === "o" ? "x" : "o", depth + 1); s[i] = null;
+        best = turn === "o" ? Math.max(best, v) : Math.min(best, v);
+      }
+      return best;
+    }
+    function aiMove() {
+      var empty = b.map(function (v, i) { return v ? -1 : i; }).filter(function (i) { return i >= 0; });
+      if (empty.length === 9) return K.pick([0, 2, 4, 6, 8]);
+      var bestV = -99, picks = [];
+      empty.forEach(function (i) { b[i] = "o"; var v = minimax(b, "x", 1); b[i] = null; if (v > bestV) { bestV = v; picks = [i]; } else if (v === bestV) picks.push(i); });
+      return K.pick(picks);
+    }
+    function render() {
+      [].forEach.call(el.children, function (c, i) { c.textContent = b[i] === "x" ? "✕" : b[i] === "o" ? "○" : ""; c.className = "cell" + (b[i] ? " " + b[i] : ""); });
+      ["w", "d", "l"].forEach(function (k) { K.$(k).textContent = stats[k]; });
+    }
+    function check() {
+      var w = winner(b); if (!w) return false;
+      over = true;
+      if (w.line) w.line.forEach(function (i) { el.children[i].classList.add("win"); });
+      var k = w.p === "x" ? "w" : w.p === "o" ? "l" : "d"; stats[k]++;
+      try { localStorage.setItem("ttt-stats", JSON.stringify(stats)); } catch (e) {}
+      ["w", "d", "l"].forEach(function (q) { K.$(q).textContent = stats[q]; });
+      K.$("msg").textContent = { w: "你贏了！太厲害了", l: "電腦贏了，再試一次？", d: "和局！" }[k];
+      return true;
+    }
+    function start(aiFirst) {
+      b = Array(9).fill(null); over = false; K.$("msg").textContent = "輪到你了";
+      if (aiFirst) b[aiMove()] = "o";
+      render();
+    }
+    el.addEventListener("click", function (e) {
+      var c = e.target.closest(".cell"); if (!c || over || b[c.dataset.i]) return;
+      b[c.dataset.i] = "x"; render(); K.beep(500, 0.05);
+      if (check()) return;
+      setTimeout(function () { b[aiMove()] = "o"; render(); K.beep(350, 0.05); check(); }, 250);
+    });
+    K.$("first").onclick = function () { start(false); };
+    K.$("second").onclick = function () { start(true); };
+    start(false);
+  </script>
+</body>
+</html>

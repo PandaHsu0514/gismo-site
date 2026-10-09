@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>接水果</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>生命 <b id="lives">❤️❤️❤️</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="400" height="540"></canvas><div class="ov" id="ov"></div></div>
+    <p class="help">左右移動籃子接水果。漏接或接到炸彈會少一顆心</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    var hud = K.hud("catcher-best"), P = K.pointer(cv), lastPX = null;
+    var FRUITS = ["🍎", "🍊", "🍋", "🍇", "🍉", "🍑", "🍓", "🍐"];
+    var bk, items, score, lives, t, spawnT, playing = false, pops = [];
+    function start() { bk = { x: W / 2 - 40, y: H - 50, w: 80, h: 34 }; items = []; score = 0; lives = 3; t = 0; spawnT = 0; playing = true; hud.set(0); ui(); }
+    function ui() { K.$("lives").textContent = "❤️".repeat(lives) + "🤍".repeat(3 - lives); }
+    function update(dt) {
+      t += dt;
+      if (K.left()) bk.x -= 440 * dt; else if (K.right()) bk.x += 440 * dt; else if (P.active && P.x !== lastPX) bk.x = P.x - bk.w / 2;
+      lastPX = P.x; bk.x = K.clamp(bk.x, 0, W - bk.w);
+      spawnT -= dt;
+      if (spawnT <= 0) {
+        spawnT = Math.max(0.35, 1 - t / 80);
+        var r = Math.random(), kind = r < Math.min(0.25, 0.08 + t / 400) ? "bomb" : r > 0.95 ? "star" : "fruit";
+        items.push({ x: K.rand(20, W - 20), y: -20, v: 120 + t * 3 + K.rand(0, 60), kind: kind, e: kind === "bomb" ? "💣" : kind === "star" ? "⭐" : K.pick(FRUITS), spin: K.rand(-2, 2), a: 0 });
+      }
+      items.forEach(function (it) { it.y += it.v * dt; it.a += it.spin * dt; });
+      items = items.filter(function (it) {
+        if (it.y > bk.y - 8 && it.y < bk.y + 16 && it.x > bk.x - 6 && it.x < bk.x + bk.w + 6) {
+          if (it.kind === "bomb") { lives--; ui(); K.beep(110, 0.3, "sawtooth", 0.08); pops.push({ x: it.x, y: it.y, txt: "💥", life: 0.6 }); }
+          else { var pts = it.kind === "star" ? 5 : 1; score += pts; hud.set(score); K.beep(it.kind === "star" ? 1200 : 700, 0.06); pops.push({ x: it.x, y: it.y, txt: "+" + pts, life: 0.6 }); }
+          return false;
+        }
+        if (it.y > H + 20) { if (it.kind !== "bomb") { lives--; ui(); K.beep(200, 0.15, "triangle"); } return false; }
+        return true;
+      });
+      if (lives <= 0) { playing = false; var nb = hud.finish(score); K.show(nb ? "新紀錄！" : "遊戲結束", "接到 " + score + " 分", "再玩一次", start); }
+    }
+    function draw(dt) {
+      ctx.clearRect(0, 0, W, H);
+      if (!bk) return;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      items.forEach(function (it) { ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.a); ctx.font = "30px sans-serif"; ctx.fillText(it.e, 0, 0); ctx.restore(); });
+      ctx.fillStyle = K.c("gold");
+      ctx.beginPath(); ctx.moveTo(bk.x, bk.y); ctx.lineTo(bk.x + bk.w, bk.y); ctx.lineTo(bk.x + bk.w - 10, bk.y + bk.h); ctx.lineTo(bk.x + 10, bk.y + bk.h); ctx.fill();
+      ctx.strokeStyle = K.c("bg"); ctx.globalAlpha = 0.4; ctx.lineWidth = 2;
+      for (var k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(bk.x + 4 + k * 2, bk.y + k * 8); ctx.lineTo(bk.x + bk.w - 4 - k * 2, bk.y + k * 8); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      pops.forEach(function (p) { p.life -= dt; p.y -= 40 * dt; ctx.globalAlpha = Math.max(0, p.life / 0.6); ctx.fillStyle = K.c("accent"); ctx.font = "bold 20px sans-serif"; ctx.fillText(p.txt, p.x, p.y); });
+      ctx.globalAlpha = 1; pops = pops.filter(function (p) { return p.life > 0; });
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(dt); });
+    K.show("接水果", "水果越掉越快，⭐ 有 5 分。\n小心別接到 💣！", "開始", start);
+  </script>
+</body>
+</html>

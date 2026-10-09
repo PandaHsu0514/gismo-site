@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>跑跑小恐龍</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>距離 <b id="score">0</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="560" height="240"></canvas><div class="ov" id="ov"></div></div>
+    <div class="pad" id="pad"></div>
+    <p class="help">空白鍵或點畫面跳躍，↓ 蹲下躲飛鳥（手機用下方按鈕）</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height, G = H - 36;
+    var hud = K.hud("runner-best"), P = K.pointer(cv);
+    var dino, obs, dist, speed, nextT, playing = false, t = 0, clouds = [];
+    K.pad([["跳", " "], ["蹲", "ArrowDown"]]);
+    for (var i = 0; i < 4; i++) clouds.push({ x: K.rand(0, W), y: K.rand(20, 90) });
+    function start() { dino = { x: 50, y: G, vy: 0, duck: false }; obs = []; dist = 0; speed = 300; nextT = 1; playing = true; hud.set(0); }
+    function jump() { if (playing && dino.y >= G) { dino.vy = -620; K.beep(500, 0.06, "square", 0.03); } }
+    P.onDown = jump;
+    addEventListener("keydown", function (e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") jump(); });
+    function update(dt) {
+      t += dt; dist += speed * dt / 10; speed += 6 * dt; hud.set(dist | 0);
+      dino.duck = K.down() && dino.y >= G;
+      dino.vy += (K.down() ? 3600 : 1900) * dt; dino.y = Math.min(G, dino.y + dino.vy * dt); if (dino.y >= G) dino.vy = 0;
+      nextT -= dt;
+      if (nextT <= 0) {
+        if (dist > 300 && Math.random() < 0.25) obs.push({ bird: true, x: W + 20, y: G - K.pick([24, 46, 70]), w: 34, h: 20 });
+        else { var n = K.ri(1, dist > 200 ? 3 : 2); obs.push({ x: W + 20, y: G, w: 14 * n + 6, h: K.ri(28, 46) }); }
+        nextT = K.rand(0.7, 1.5) * 300 / speed + 0.25;
+      }
+      obs.forEach(function (o) { o.x -= speed * dt * (o.bird ? 1.15 : 1); });
+      obs = obs.filter(function (o) { return o.x > -60; });
+      var db = dino.duck ? { x: dino.x + 4, y: dino.y - 24, w: 44, h: 22 } : { x: dino.x + 6, y: dino.y - 44, w: 26, h: 42 };
+      obs.forEach(function (o) {
+        var ob = o.bird ? { x: o.x + 4, y: o.y - o.h + 4, w: o.w - 8, h: o.h - 8 } : { x: o.x + 2, y: o.y - o.h, w: o.w - 4, h: o.h };
+        if (K.hit(db, ob)) die();
+      });
+      if ((dist | 0) % 100 === 0 && dist > 1 && (dist - speed * dt / 10 | 0) % 100 !== 0) K.beep(1000, 0.1);
+    }
+    function die() {
+      if (!playing) return; playing = false; K.beep(140, 0.3, "sawtooth", 0.08);
+      var s = dist | 0, nb = hud.finish(s);
+      setTimeout(function () { K.show(nb ? "新紀錄！" : "撞到了", "跑了 " + s + " 公尺", "再跑一次", start); }, 300);
+    }
+    function drawDino() {
+      var x = dino.x, y = dino.y, leg = playing && dino.y >= G ? ((t * 12) | 0) % 2 : 0;
+      ctx.fillStyle = K.c("text");
+      if (dino.duck) {
+        ctx.fillRect(x, y - 22, 40, 16); ctx.fillRect(x + 28, y - 26, 22, 14);
+        ctx.fillRect(x + 8 + leg * 6, y - 6, 6, 6); ctx.fillRect(x + 22 - leg * 6, y - 6, 6, 6);
+        ctx.fillStyle = K.c("bg"); ctx.fillRect(x + 42, y - 23, 3, 3);
+      } else {
+        ctx.fillRect(x + 14, y - 46, 24, 16); ctx.fillRect(x + 6, y - 32, 22, 22); ctx.fillRect(x, y - 30, 8, 10); ctx.fillRect(x + 26, y - 26, 6, 4);
+        ctx.fillRect(x + 10, y - 10, 6, leg ? 6 : 10); ctx.fillRect(x + 20, y - 10, 6, leg ? 10 : 6);
+        ctx.fillStyle = K.c("bg"); ctx.fillRect(x + 30, y - 42, 3, 3);
+      }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = K.c("surface"); clouds.forEach(function (c) { if (playing) c.x -= 0.3; if (c.x < -60) c.x = W + 20; ctx.beginPath(); ctx.ellipse(c.x, c.y, 30, 10, 0, 0, 7); ctx.fill(); });
+      ctx.strokeStyle = K.c("muted"); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, G + 1); ctx.lineTo(W, G + 1); ctx.stroke();
+      if (!dino) return;
+      ctx.fillStyle = K.c("muted"); for (var k = 0; k < 20; k++) { var gx = ((k * 53 - dist * 10) % W + W) % W; ctx.fillRect(gx, G + 8 + (k % 3) * 6, 4 + k % 3 * 3, 2); }
+      obs.forEach(function (o) {
+        if (o.bird) {
+          ctx.fillStyle = K.c("accent"); var flap = ((t * 8) | 0) % 2;
+          ctx.fillRect(o.x, o.y - 10, 34, 8); ctx.fillRect(o.x - 6, o.y - 10, 8, 4);
+          ctx.fillRect(o.x + 10, flap ? o.y - 20 : o.y - 2, 12, 10);
+        } else {
+          ctx.fillStyle = K.c("accent2");
+          for (var x = o.x; x < o.x + o.w - 4; x += 14) { ctx.fillRect(x + 3, o.y - o.h, 8, o.h); ctx.fillRect(x, o.y - o.h * 0.65, 3, 8); ctx.fillRect(x + 11, o.y - o.h * 0.8, 3, 8); }
+        }
+      });
+      drawDino();
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(); });
+    start(); playing = false;
+    K.show("跑跑小恐龍", "跳過仙人掌、躲開飛鳥，\n越跑越快！", "開跑", start);
+  </script>
+</body>
+</html>

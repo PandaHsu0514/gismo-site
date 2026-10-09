@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>點燈</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  .board { grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(100%, 400px, calc(100vh - 160px)); }
+  .cell { background: var(--board); border: 2px solid var(--line); font-size: clamp(22px, 8vw, 36px); }
+  .cell.on { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 18px color-mix(in srgb, var(--gold) 60%, transparent); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>第 <b id="score">1</b> 關</span><span>步數 <b id="moves">0</b></span><span>最高關卡 <b id="best">0</b></span></div>
+    <div class="stage"><div class="board" id="b"></div><div class="ov" id="ov" hidden></div></div>
+    <div class="controls"><button type="button" class="ghost" id="reset">重來這關</button></div>
+    <p class="help">點一格會切換它和上下左右的燈。把所有燈都關掉就過關</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var el = K.$("b"), hud = K.hud("lights-best"), level = 1, on, startState, moves;
+    for (var i = 0; i < 25; i++) { var c = document.createElement("div"); c.className = "cell"; c.dataset.i = i; el.appendChild(c); }
+    function toggle(s, i) { var x = i % 5, y = i / 5 | 0; [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var nx = x + d[0], ny = y + d[1]; if (nx >= 0 && nx < 5 && ny >= 0 && ny < 5) s[ny * 5 + nx] = !s[ny * 5 + nx]; }); }
+    function newLevel() {
+      // 從全暗的狀態隨機按幾下，一定解得開
+      on = Array(25).fill(false);
+      var clicks = K.shuffle([...Array(25).keys()]).slice(0, Math.min(3 + level, 15));
+      clicks.forEach(function (i) { toggle(on, i); });
+      if (!on.some(Boolean)) return newLevel();
+      startState = on.slice(); moves = 0; render();
+    }
+    function render() {
+      [].forEach.call(el.children, function (c, i) { c.className = "cell" + (on[i] ? " on" : ""); });
+      K.$("score").textContent = level; K.$("moves").textContent = moves;
+    }
+    el.addEventListener("click", function (e) {
+      var c = e.target.closest(".cell"); if (!c) return;
+      toggle(on, +c.dataset.i); moves++; render(); K.beep(300 + on.filter(Boolean).length * 30, 0.05);
+      if (!on.some(Boolean)) {
+        hud.finish(level); K.beep(900, 0.25);
+        K.show("第 " + level + " 關完成！", "用了 " + moves + " 步", "下一關", function () { level++; newLevel(); });
+      }
+    });
+    K.$("reset").onclick = function () { on = startState.slice(); moves = 0; render(); };
+    newLevel();
+  </script>
+</body>
+</html>

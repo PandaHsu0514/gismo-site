@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>反應力測試</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  #zone { width: min(100%, 480px); height: min(60vh, 420px); margin: 0 auto; border-radius: 16px; display: grid; place-items: center; cursor: pointer;
+    font: 900 clamp(24px, 7vw, 40px) "Noto Serif TC", serif; color: var(--bg); background: var(--blue); transition: background .05s; padding: 20px; }
+  #zone small { display: block; font: 400 16px system-ui, sans-serif; margin-top: 8px; opacity: .9; }
+  #zone.wait { background: var(--accent); } #zone.go { background: var(--accent2); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>第 <b id="round">0</b> / 5 次</span><span>本次平均 <b id="score">—</b></span><span>最佳平均 <b id="best">—</b></span></div>
+    <div id="zone"><div>點這裡開始<small>變綠色的瞬間馬上點</small></div></div>
+    <p class="help">測五次取平均，單位是毫秒（越小越快）。一般人大約 250 毫秒</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var hud = K.hud("reaction-best", { low: true, fmt: function (n) { return n + " ms"; } }), z = K.$("zone");
+    var state = "idle", t0, timer, times = [];
+    function say(big, small) { z.innerHTML = "<div>" + big + (small ? "<small>" + small + "</small>" : "") + "</div>"; }
+    function arm() {
+      state = "wait"; z.className = "wait"; say("等它變綠…", "還不要點！");
+      timer = setTimeout(function () { state = "go"; z.className = "go"; say("點！"); t0 = performance.now(); }, K.rand(1200, 3500));
+    }
+    z.addEventListener("pointerdown", function () {
+      if (state === "idle" || state === "result") { if (state === "idle" || times.length >= 5) times = []; K.$("round").textContent = times.length; arm(); return; }
+      if (state === "wait") { clearTimeout(timer); state = "result"; z.className = ""; say("太早了！", "點一下重測這一次"); K.beep(150, 0.2, "sawtooth"); return; }
+      if (state === "go") {
+        var ms = Math.round(performance.now() - t0); times.push(ms); K.beep(880, 0.08);
+        K.$("round").textContent = times.length; state = "result"; z.className = "";
+        if (times.length < 5) say(ms + " 毫秒", "點一下繼續");
+        else {
+          var avg = Math.round(times.reduce(function (a, b) { return a + b; }) / 5); hud.set(avg); var nb = hud.finish(avg);
+          say("平均 " + avg + " 毫秒", (nb ? "新紀錄！" : "") + "點一下再測一輪");
+        }
+      }
+    });
+  </script>
+</body>
+</html>

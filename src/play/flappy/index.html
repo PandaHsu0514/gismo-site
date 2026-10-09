@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>穿越竹林</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="360" height="540"></canvas><div class="ov" id="ov"></div></div>
+    <p class="help">點畫面或按空白鍵往上飛，穿過竹子之間的空隙</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height, GROUND = H - 40;
+    var hud = K.hud("flappy-best"), P = K.pointer(cv);
+    var bird, pipes, score, playing = false, ready = false, scroll = 0;
+    function reset() { bird = { x: 90, y: H / 2, vy: 0, r: 13 }; pipes = []; score = 0; hud.set(0); }
+    function start() { reset(); ready = true; playing = true; }
+    function flap() { if (!playing) return; ready = false; bird.vy = -330; K.beep(600, 0.06, "triangle", 0.05); }
+    P.onDown = flap;
+    addEventListener("keydown", function (e) { if (e.key === " " || e.key === "ArrowUp") flap(); });
+    function update(dt) {
+      if (ready) { bird.y = H / 2 + Math.sin(Date.now() / 200) * 6; return; }
+      bird.vy += 980 * dt; bird.y += bird.vy * dt;
+      var gap = Math.max(120, 160 - score * 1.5), speed = 140 + Math.min(score * 2, 80);
+      if (!pipes.length || pipes[pipes.length - 1].x < W - 200) pipes.push({ x: W + 20, top: K.rand(70, GROUND - gap - 70), gap: gap, passed: false });
+      pipes.forEach(function (p) { p.x -= speed * dt; });
+      pipes = pipes.filter(function (p) { return p.x > -70; });
+      pipes.forEach(function (p) {
+        if (!p.passed && p.x + 30 < bird.x) { p.passed = true; score++; hud.set(score); K.beep(880, 0.08); }
+        if (bird.x + bird.r - 3 > p.x && bird.x - bird.r + 3 < p.x + 60 && (bird.y - bird.r + 3 < p.top || bird.y + bird.r - 3 > p.top + p.gap)) die();
+      });
+      if (bird.y + bird.r > GROUND || bird.y < -40) die();
+    }
+    function die() {
+      if (!playing) return; playing = false; K.beep(150, 0.3, "sawtooth", 0.08);
+      var nb = hud.finish(score);
+      setTimeout(function () { K.show(nb ? "新紀錄！" : "撞到了", "穿過 " + score + " 組竹子", "再飛一次", start); }, 400);
+    }
+    function bamboo(x, y, h) {
+      ctx.fillStyle = K.c("accent2"); ctx.fillRect(x, y, 60, h);
+      ctx.fillStyle = K.c("bg"); ctx.globalAlpha = 0.25;
+      for (var k = y + 30; k < y + h; k += 46) ctx.fillRect(x, k, 60, 4);
+      ctx.fillRect(x + 10, y, 6, h); ctx.globalAlpha = 1;
+    }
+    function draw(dt) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = K.c("surface"); ctx.globalAlpha = 0.7;
+      for (var i = 0; i < 4; i++) { var mx = ((i * 140 - scroll * 0.3) % 560 + 560) % 560 - 100; ctx.beginPath(); ctx.moveTo(mx, GROUND); ctx.lineTo(mx + 90, GROUND - 120 - i % 2 * 50); ctx.lineTo(mx + 180, GROUND); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      if (!bird) return;
+      pipes.forEach(function (p) { bamboo(p.x, 0, p.top); bamboo(p.x, p.top + p.gap, GROUND - p.top - p.gap); });
+      ctx.fillStyle = K.c("line"); ctx.fillRect(0, GROUND, W, H - GROUND);
+      if (playing && !ready) scroll += 140 * dt;
+      ctx.fillStyle = K.c("muted"); for (var g = -(scroll % 24); g < W; g += 24) ctx.fillRect(g, GROUND + 6, 12, 3);
+      ctx.save(); ctx.translate(bird.x, bird.y); ctx.rotate(K.clamp(bird.vy / 600, -0.5, 1.2));
+      ctx.fillStyle = K.c("accent"); ctx.beginPath(); ctx.arc(0, 0, bird.r, 0, 7); ctx.fill();
+      ctx.fillStyle = K.c("bg"); ctx.beginPath(); ctx.arc(5, -4, 4, 0, 7); ctx.fill();
+      ctx.fillStyle = K.c("text"); ctx.beginPath(); ctx.arc(6, -4, 2, 0, 7); ctx.fill();
+      ctx.fillStyle = K.c("gold"); ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(20, 3); ctx.lineTo(11, 6); ctx.fill();
+      ctx.restore();
+      if (ready) { ctx.fillStyle = K.c("muted"); ctx.font = "16px sans-serif"; ctx.textAlign = "center"; ctx.fillText("點一下開始飛", W / 2, H / 2 + 60); }
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(dt); });
+    reset();
+    K.show("穿越竹林", "點一下拍一次翅膀，\n在竹林間找到空隙穿過去。", "開始", start);
+  </script>
+</body>
+</html>

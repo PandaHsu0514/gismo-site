@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>踩地雷</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  .board { gap: 2px; width: min(100%, 480px, calc(100vh - 170px)); }
+  .cell { border-radius: 3px; background: var(--line); font-size: clamp(11px, 3.2vw, 18px); }
+  .cell.open { background: var(--surface); cursor: default; }
+  .cell.boom { background: var(--accent); }
+  .controls button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+  .n1 { color: var(--blue); } .n2 { color: var(--accent2); } .n3 { color: var(--accent); } .n4 { color: var(--purple); } .n5, .n6, .n7, .n8 { color: var(--gold); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>剩下 <b id="left">0</b> 顆雷</span><span>時間 <b id="score">0</b> 秒</span><span>最快 <b id="best">—</b></span></div>
+    <div class="controls" id="levels">
+      <button type="button" data-l="0" aria-pressed="true">簡單</button><button type="button" data-l="1">中等</button><button type="button" data-l="2">困難</button>
+      <button type="button" class="ghost" id="flag">🚩 插旗模式：關</button>
+    </div>
+    <div class="stage" style="margin-top:10px"><div class="board" id="b"></div><div class="ov" id="ov" hidden></div></div>
+    <p class="help">點格子翻開；右鍵或長按插旗。數字代表周圍八格有幾顆雷</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var LEVELS = [[9, 9, 10], [12, 12, 24], [16, 16, 40]];
+    var el = K.$("b"), lv = 0, w, h, n, mines, open, flags, first, done, t0, timer, flagMode = false, hud;
+    function start() {
+      var L = LEVELS[lv]; w = L[0]; h = L[1]; n = L[2];
+      hud = K.hud("mines-best-" + lv, { low: true });
+      mines = Array(w * h).fill(false); open = Array(w * h).fill(false); flags = Array(w * h).fill(false);
+      first = true; done = false; clearInterval(timer); K.$("score").textContent = 0; K.$("left").textContent = n;
+      el.style.gridTemplateColumns = "repeat(" + w + ", 1fr)"; el.innerHTML = "";
+      for (var i = 0; i < w * h; i++) { var d = document.createElement("div"); d.className = "cell"; d.dataset.i = i; el.appendChild(d); }
+      K.hide();
+    }
+    function nb(i) { var x = i % w, y = i / w | 0, r = []; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var nx = x + dx, ny = y + dy; if ((dx || dy) && nx >= 0 && ny >= 0 && nx < w && ny < h) r.push(ny * w + nx); } return r; }
+    function count(i) { return nb(i).filter(function (j) { return mines[j]; }).length; }
+    function plant(safe) {
+      var bad = nb(safe).concat(safe), spots = [];
+      for (var i = 0; i < w * h; i++) if (bad.indexOf(i) < 0) spots.push(i);
+      K.shuffle(spots).slice(0, n).forEach(function (i) { mines[i] = true; });
+      t0 = Date.now(); timer = setInterval(function () { K.$("score").textContent = (Date.now() - t0) / 1000 | 0; }, 250);
+    }
+    function reveal(i) {
+      if (open[i] || flags[i]) return;
+      open[i] = true; var c = el.children[i]; c.classList.add("open");
+      if (mines[i]) return;
+      var k = count(i);
+      if (k) { c.textContent = k; c.className = "cell open n" + k; } else nb(i).forEach(reveal);
+    }
+    function click(i) {
+      if (done) return;
+      if (flagMode) return flag(i);
+      if (first) { first = false; plant(i); }
+      if (open[i]) { // 已翻開的數字：旗子數量對了就翻開周圍
+        var around = nb(i);
+        if (count(i) && around.filter(function (j) { return flags[j]; }).length === count(i)) around.forEach(function (j) { if (!flags[j] && !open[j]) { if (mines[j]) lose(j); else reveal(j); } });
+      } else if (flags[i]) return;
+      else if (mines[i]) return lose(i);
+      else reveal(i);
+      if (!done && open.filter(Boolean).length === w * h - n) win();
+    }
+    function flag(i) {
+      if (done || open[i]) return;
+      flags[i] = !flags[i]; el.children[i].textContent = flags[i] ? "🚩" : "";
+      K.$("left").textContent = n - flags.filter(Boolean).length;
+    }
+    function lose(i) {
+      done = true; clearInterval(timer);
+      mines.forEach(function (m, j) { if (m) { el.children[j].textContent = "💣"; el.children[j].classList.add("open"); } });
+      el.children[i].classList.add("boom"); K.beep(100, 0.4, "sawtooth", 0.08);
+      setTimeout(function () { K.show("踩到地雷了", "再小心一點！", "再玩一次", start); }, 600);
+    }
+    function win() {
+      done = true; clearInterval(timer);
+      var sec = Math.round((Date.now() - t0) / 100) / 10, nbst = hud.finish(sec);
+      K.$("score").textContent = sec;
+      K.show(nbst ? "新紀錄！" : "全部找到了！", "花了 " + sec + " 秒", "再玩一次", start);
+    }
+    var press, longDone;
+    el.addEventListener("pointerdown", function (e) {
+      var c = e.target.closest(".cell"); if (!c) return; longDone = false;
+      press = setTimeout(function () { longDone = true; flag(+c.dataset.i); if (navigator.vibrate) navigator.vibrate(30); }, 400);
+    });
+    el.addEventListener("pointerup", function (e) {
+      clearTimeout(press); var c = e.target.closest(".cell");
+      if (c && !longDone && e.button === 0) click(+c.dataset.i);
+    });
+    el.addEventListener("pointerleave", function () { clearTimeout(press); });
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); var c = e.target.closest(".cell"); if (c && !longDone) flag(+c.dataset.i); });
+    K.$("levels").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-l]"); if (!b) return;
+      lv = +b.dataset.l; document.querySelectorAll("[data-l]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); start();
+    });
+    K.$("flag").onclick = function () { flagMode = !flagMode; this.textContent = "🚩 插旗模式：" + (flagMode ? "開" : "關"); this.classList.toggle("ghost", !flagMode); };
+    start();
+  </script>
+</body>
+</html>

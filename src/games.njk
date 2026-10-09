@@ -6,8 +6,9 @@ permalink: /games/
 {% import "cards.njk" as c %}
 <section class="page-head">
   <h1>AI 遊戲</h1>
-  <p class="lead">跟 AI 一起做的小遊戲，直接在瀏覽器玩，手機也可以。</p>
+  <p class="lead">跟 AI 一起做的小遊戲，共 {{ collections.games.length }} 款。直接在瀏覽器玩，手機也可以。</p>
+  {{ c.filters("gameGrid", collections.games | uniq("category")) }}
 </section>
-<div class="grid">
+<div class="grid games" id="gameGrid">
   {% for g in collections.games %}{{ c.card(g, g.data.gameTags) }}{% endfor %}
 </div>

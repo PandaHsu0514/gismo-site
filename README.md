@@ -87,11 +87,16 @@ link: 外部連結（可選）
 ---
 title: 遊戲名稱
 description: 一句話介紹
-year: 2025
+year: 2026
+order: 28            # 列表排序，數字小的在前
 play: /play/簡稱/
-gameTags: [標籤一, 標籤二]
+icon: "🎮"           # 卡片上的圖示
+category: 動作       # 射擊 / 動作 / 益智 / 棋類 / 休閒，列表頁會自動產生篩選按鈕
+gameTags: [動作, 手機可玩]
 ---
 ```
+
+遊戲本體是一個獨立的 HTML 檔。共用的配色、分數紀錄、開始／結束畫面、觸控按鈕在 `src/play/kit/`，新遊戲引用 `../kit/kit.css` 和 `../kit/kit.js` 就能跟其他遊戲長得一樣。
 
 ## 其他
 

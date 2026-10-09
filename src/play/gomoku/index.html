@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>五子棋</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>你贏 <b id="w">0</b></span><span id="msg">你執黑先下</span><span>電腦贏 <b id="l">0</b></span></div>
+    <div class="stage"><canvas id="c" width="450" height="450" style="background: var(--gold); opacity: .95"></canvas><div class="ov" id="ov" hidden></div></div>
+    <div class="controls"><button type="button" id="new">新的一局</button><button type="button" class="ghost" id="undo">悔棋</button></div>
+    <p class="help">橫、直、斜任一方向先連成五顆就贏</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), N = 15, PAD = 22, S = (450 - PAD * 2) / (N - 1);
+    var b, hist, over, busy, last, stats = { w: 0, l: 0 };
+    try { stats = JSON.parse(localStorage.getItem("gomoku-stats")) || stats; } catch (e) {}
+    var DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    function at(x, y) { return x >= 0 && y >= 0 && x < N && y < N ? b[y][x] : -1; }
+    function line(x, y, p, dx, dy) { // 經過 (x,y) 這條線上連續幾顆、兩端是否空著
+      var n = 1, open = 0, i;
+      for (i = 1; at(x + dx * i, y + dy * i) === p; i++) n++; if (at(x + dx * i, y + dy * i) === 0) open++;
+      for (i = 1; at(x - dx * i, y - dy * i) === p; i++) n++; if (at(x - dx * i, y - dy * i) === 0) open++;
+      return [n, open];
+    }
+    function value(x, y, p) {
+      var v = 0;
+      DIRS.forEach(function (d) {
+        var r = line(x, y, p, d[0], d[1]), n = r[0], o = r[1];
+        if (n >= 5) v += 1e6;
+        else if (o === 0) return;
+        else if (n === 4) v += o === 2 ? 1e5 : 1e4;
+        else if (n === 3) v += o === 2 ? 5000 : 300;
+        else if (n === 2) v += o === 2 ? 200 : 30;
+        else v += o === 2 ? 10 : 2;
+      });
+      return v;
+    }
+    function aiMove() {
+      var best = -1, picks = [];
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+        if (b[y][x]) continue;
+        var near = false;
+        for (var dy = -2; dy <= 2 && !near; dy++) for (var dx = -2; dx <= 2; dx++) if (at(x + dx, y + dy) > 0) { near = true; break; }
+        if (!near) continue;
+        var v = value(x, y, 2) * 1.1 + value(x, y, 1);
+        if (v > best) { best = v; picks = [[x, y]]; } else if (v === best) picks.push([x, y]);
+      }
+      return picks.length ? K.pick(picks) : [7, 7];
+    }
+    function five(x, y) { var p = b[y][x]; return DIRS.some(function (d) { return line(x, y, p, d[0], d[1])[0] >= 5; }); }
+    function place(x, y, p) { b[y][x] = p; hist.push([x, y]); last = [x, y]; K.beep(p === 1 ? 300 : 240, 0.05, "triangle", 0.06); draw(); }
+    function end(msg, key) {
+      over = true; K.$("msg").textContent = msg;
+      if (key) { stats[key]++; try { localStorage.setItem("gomoku-stats", JSON.stringify(stats)); } catch (e) {} }
+      K.$("w").textContent = stats.w; K.$("l").textContent = stats.l;
+    }
+    function start() {
+      b = []; for (var i = 0; i < N; i++) b.push(Array(N).fill(0));
+      hist = []; over = false; busy = false; last = null; K.$("msg").textContent = "你執黑先下";
+      K.$("w").textContent = stats.w; K.$("l").textContent = stats.l; draw();
+    }
+    cv.addEventListener("click", function (e) {
+      if (over || busy) return;
+      var r = cv.getBoundingClientRect(), x = Math.round(((e.clientX - r.left) * 450 / r.width - PAD) / S), y = Math.round(((e.clientY - r.top) * 450 / r.height - PAD) / S);
+      if (at(x, y) !== 0) return;
+      place(x, y, 1);
+      if (five(x, y)) return end("你贏了！", "w");
+      if (hist.length === N * N) return end("和局");
+      busy = true; K.$("msg").textContent = "電腦思考中…";
+      setTimeout(function () {
+        var m = aiMove(); place(m[0], m[1], 2); busy = false;
+        if (five(m[0], m[1])) return end("電腦贏了", "l");
+        K.$("msg").textContent = "輪到你";
+      }, 250);
+    });
+    K.$("undo").onclick = function () {
+      if (busy || hist.length < 2) return;
+      for (var k = 0; k < 2; k++) { var m = hist.pop(); b[m[1]][m[0]] = 0; }
+      over = false; last = hist[hist.length - 1] || null; K.$("msg").textContent = "輪到你"; draw();
+    };
+    K.$("new").onclick = start;
+    function draw() {
+      ctx.clearRect(0, 0, 450, 450);
+      ctx.strokeStyle = "#2b2520"; ctx.lineWidth = 1;
+      for (var i = 0; i < N; i++) {
+        ctx.beginPath(); ctx.moveTo(PAD, PAD + i * S); ctx.lineTo(450 - PAD, PAD + i * S); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(PAD + i * S, PAD); ctx.lineTo(PAD + i * S, 450 - PAD); ctx.stroke();
+      }
+      ctx.fillStyle = "#2b2520";
+      [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]].forEach(function (p) { ctx.beginPath(); ctx.arc(PAD + p[0] * S, PAD + p[1] * S, 3.5, 0, 7); ctx.fill(); });
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) if (b[y][x]) {
+        ctx.fillStyle = b[y][x] === 1 ? "#1d1a17" : "#f8f4ec";
+        ctx.beginPath(); ctx.arc(PAD + x * S, PAD + y * S, S * 0.43, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#1d1a17"; ctx.stroke();
+      }
+      if (last) { ctx.fillStyle = "#b23a26"; ctx.beginPath(); ctx.arc(PAD + last[0] * S, PAD + last[1] * S, 4, 0, 7); ctx.fill(); }
+    }
+    start();
+  </script>
+</body>
+</html>

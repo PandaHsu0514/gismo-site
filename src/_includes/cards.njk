@@ -38,6 +38,7 @@
 {% macro card(item, tags) %}
 <a class="card" href="{{ item.url }}" data-tag="{{ tags[0] }}">
   {% if item.data.cover %}<img class="thumb" src="{{ item.data.cover }}" alt="" loading="lazy">
+  {% elif item.data.icon %}<div class="thumb icon"><span>{{ item.data.icon }}</span></div>
   {% else %}<div class="thumb"><span>{{ item.data.title | truncate(1, true, "") }}</span></div>{% endif %}
   <div class="body">
     <div class="tags">{% for t in tags %}{% if t %}<span class="tag">{{ t }}</span>{% endif %}{% endfor %}</div>

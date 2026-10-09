@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>黑白棋</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  .board { grid-template-columns: repeat(8, 1fr); gap: 3px; background: #2b4a3f; padding: 6px; border-radius: 10px; width: min(100%, 460px, calc(100vh - 170px)); }
+  .cell { background: #3f6b5c; border-radius: 4px; position: relative; }
+  .cell::after { content: ""; position: absolute; inset: 12%; border-radius: 50%; transition: background .25s; }
+  .cell.b::after { background: #1d1a17; box-shadow: inset 0 -3px 0 rgba(255,255,255,.08); }
+  .cell.w::after { background: #f8f4ec; box-shadow: inset 0 -3px 0 rgba(0,0,0,.15); }
+  .cell.hint::after { inset: 38%; background: rgba(255,255,255,.25); }
+  .cell.last { outline: 2px solid var(--gold); outline-offset: -2px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>⚫ 你 <b id="nb">2</b></span><span id="msg">你執黑先下</span><span>⚪ 電腦 <b id="nw">2</b></span></div>
+    <div class="stage"><div class="board" id="b"></div><div class="ov" id="ov" hidden></div></div>
+    <div class="controls"><button type="button" id="new">新的一局</button></div>
+    <p class="help">下在能夾住對方棋子的位置，被夾住的都會翻成你的顏色。結束時棋子多的贏</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var el = K.$("b"), b, turn, busy, lastMove;
+    var WEIGHT = [
+      100, -20, 10, 5, 5, 10, -20, 100, -20, -50, -2, -2, -2, -2, -50, -20, 10, -2, 1, 1, 1, 1, -2, 10, 5, -2, 1, 0, 0, 1, -2, 5,
+      5, -2, 1, 0, 0, 1, -2, 5, 10, -2, 1, 1, 1, 1, -2, 10, -20, -50, -2, -2, -2, -2, -50, -20, 100, -20, 10, 5, 5, 10, -20, 100];
+    var D = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+    for (var i = 0; i < 64; i++) { var c = document.createElement("div"); c.className = "cell"; c.dataset.i = i; el.appendChild(c); }
+    function flips(s, i, p) {
+      if (s[i]) return [];
+      var x = i % 8, y = i >> 3, out = [];
+      D.forEach(function (d) {
+        var run = [], nx = x + d[0], ny = y + d[1];
+        while (nx >= 0 && ny >= 0 && nx < 8 && ny < 8 && s[ny * 8 + nx] === -p) { run.push(ny * 8 + nx); nx += d[0]; ny += d[1]; }
+        if (run.length && nx >= 0 && ny >= 0 && nx < 8 && ny < 8 && s[ny * 8 + nx] === p) out = out.concat(run);
+      });
+      return out;
+    }
+    function moves(s, p) { var m = []; for (var i = 0; i < 64; i++) if (!s[i] && flips(s, i, p).length) m.push(i); return m; }
+    function apply(s, i, p) { var n = s.slice(); n[i] = p; flips(s, i, p).forEach(function (j) { n[j] = p; }); return n; }
+    function evaluate(s) { // 電腦是 -1
+      var v = 0; for (var i = 0; i < 64; i++) v += s[i] * -WEIGHT[i];
+      return v + (moves(s, -1).length - moves(s, 1).length) * 5;
+    }
+    function search(s, p, depth, a, bt) {
+      var ms = moves(s, p);
+      if (depth === 0) return evaluate(s);
+      if (!ms.length) { if (!moves(s, -p).length) { var diff = s.reduce(function (t, v) { return t - v; }, 0); return diff * 1000; } return search(s, -p, depth - 1, a, bt); }
+      if (p === -1) { var best = -1e9; for (var k = 0; k < ms.length; k++) { best = Math.max(best, search(apply(s, ms[k], p), 1, depth - 1, a, bt)); a = Math.max(a, best); if (a >= bt) break; } return best; }
+      var worst = 1e9; for (var j = 0; j < ms.length; j++) { worst = Math.min(worst, search(apply(s, ms[j], p), -1, depth - 1, a, bt)); bt = Math.min(bt, worst); if (a >= bt) break; } return worst;
+    }
+    function aiPick() {
+      var ms = moves(b, -1), best = -1e9, pick = ms[0], empty = b.filter(function (v) { return !v; }).length, depth = empty <= 10 ? 6 : 4;
+      ms.forEach(function (m) { var v = search(apply(b, m, -1), 1, depth - 1, -1e9, 1e9) + Math.random(); if (v > best) { best = v; pick = m; } });
+      return pick;
+    }
+    function render() {
+      var hint = turn === 1 && !busy ? moves(b, 1) : [];
+      [].forEach.call(el.children, function (c, i) { c.className = "cell" + (b[i] === 1 ? " b" : b[i] === -1 ? " w" : hint.indexOf(i) >= 0 ? " hint" : "") + (i === lastMove ? " last" : ""); });
+      K.$("nb").textContent = b.filter(function (v) { return v === 1; }).length;
+      K.$("nw").textContent = b.filter(function (v) { return v === -1; }).length;
+    }
+    function next() {
+      var mine = moves(b, 1), theirs = moves(b, -1);
+      if (!mine.length && !theirs.length) {
+        var nb = b.filter(function (v) { return v === 1; }).length, nw = b.filter(function (v) { return v === -1; }).length;
+        K.$("msg").textContent = nb > nw ? "你贏了！" : nb < nw ? "電腦贏了" : "平手"; turn = 0; render(); return;
+      }
+      if (turn === 1 && !mine.length) { K.$("msg").textContent = "你沒地方下，跳過"; turn = -1; }
+      else if (turn === -1 && !theirs.length) { K.$("msg").textContent = "電腦沒地方下，換你"; turn = 1; render(); return; }
+      if (turn === -1) {
+        busy = true; render(); if (K.$("msg").textContent.indexOf("跳過") < 0) K.$("msg").textContent = "電腦思考中…";
+        setTimeout(function () { var m = aiPick(); b = apply(b, m, -1); lastMove = m; busy = false; turn = 1; K.beep(260, 0.05, "triangle"); K.$("msg").textContent = "輪到你"; next(); }, 450);
+      } else render();
+    }
+    el.addEventListener("click", function (e) {
+      var c = e.target.closest(".cell"); if (!c || turn !== 1 || busy) return;
+      var i = +c.dataset.i; if (!flips(b, i, 1).length) return;
+      b = apply(b, i, 1); lastMove = i; turn = -1; K.beep(340, 0.05, "triangle"); next();
+    });
+    function start() { b = Array(64).fill(0); b[27] = b[36] = -1; b[28] = b[35] = 1; turn = 1; busy = false; lastMove = -1; K.$("msg").textContent = "你執黑先下"; render(); }
+    K.$("new").onclick = start;
+    start();
+  </script>
+</body>
+</html>

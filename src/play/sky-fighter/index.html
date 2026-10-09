@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>空戰英雄</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>生命 <b id="lives">3</b>・火力 <b id="power">1</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="400" height="600"></canvas><div class="ov" id="ov"></div></div>
+    <p class="help">按住畫面拖曳飛機，會自動射擊；鍵盤用方向鍵。吃到 P 加強火力</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    var hud = K.hud("sky-fighter-best"), P = K.pointer(cv);
+    var me, shots, foes, bullets, items, booms, clouds, score, lives, power, t, spawnT, fireT, inv, bossAt, playing = false, drag = null;
+
+    clouds = []; for (var i = 0; i < 8; i++) clouds.push({ x: K.rand(0, W), y: K.rand(0, H), r: K.rand(20, 50), v: K.rand(30, 60) });
+
+    function start() {
+      me = { x: W / 2, y: H - 80, w: 30, h: 30 }; shots = []; foes = []; bullets = []; items = []; booms = [];
+      score = 0; lives = 3; power = 1; t = 0; spawnT = 0; fireT = 0; inv = 2; bossAt = 60; playing = true; hud.set(0); ui();
+    }
+    function ui() { K.$("lives").textContent = lives; K.$("power").textContent = power; }
+    P.onDown = function (p) { drag = { px: p.x, py: p.y, mx: me ? me.x : 0, my: me ? me.y : 0 }; };
+    P.onUp = function () { drag = null; };
+
+    function spawn() {
+      var lvl = 1 + t / 30, r = Math.random(), x = K.rand(30, W - 30);
+      if (r < 0.5) foes.push({ type: 1, x: x, y: -20, w: 26, h: 22, hp: 1, vy: 120 + lvl * 15, pts: 10 });
+      else if (r < 0.8) foes.push({ type: 2, x: x, y: -20, w: 28, h: 24, hp: 2, vy: 90 + lvl * 10, phase: K.rand(0, 6), x0: x, pts: 20 });
+      else foes.push({ type: 3, x: x, y: -30, w: 36, h: 30, hp: 4 + (lvl | 0), vy: 60, fire: K.rand(0.5, 1.5), pts: 50 });
+    }
+    function spawnBoss() {
+      var hp = 60 + score / 40 | 0;
+      foes.push({ type: 4, x: W / 2, y: -60, w: 110, h: 60, hp: hp, max: hp, vy: 40, fire: 1, pts: 500, boss: true, t: 0 });
+    }
+    function aim(f, speed, spread) {
+      var a = Math.atan2(me.y - f.y, me.x - f.x);
+      for (var k = -spread; k <= spread; k++) bullets.push({ x: f.x, y: f.y + f.h / 2, vx: Math.cos(a + k * 0.2) * speed, vy: Math.sin(a + k * 0.2) * speed });
+    }
+    function boom(x, y, n) { for (var i = 0; i < n; i++) booms.push({ x: x, y: y, vx: K.rand(-150, 150), vy: K.rand(-150, 150), life: K.rand(0.3, 0.7) }); }
+    function hitMe() {
+      if (inv > 0) return;
+      lives--; power = Math.max(1, power - 1); ui(); boom(me.x, me.y, 30); inv = 2.5; K.beep(120, 0.3, "sawtooth", 0.08);
+      if (lives <= 0) { playing = false; var nb = hud.finish(score); setTimeout(function () { K.show(nb ? "新紀錄！" : "被擊落了", "得分 " + score, "再飛一次", start); }, 600); }
+    }
+    function box(o) { return { x: o.x - o.w / 2, y: o.y - o.h / 2, w: o.w, h: o.h }; }
+
+    function update(dt) {
+      t += dt; inv -= dt;
+      var sp = 320;
+      if (K.left()) me.x -= sp * dt; if (K.right()) me.x += sp * dt; if (K.up()) me.y -= sp * dt; if (K.down()) me.y += sp * dt;
+      if (drag && P.down) { me.x = drag.mx + (P.x - drag.px); me.y = drag.my + (P.y - drag.py); }
+      me.x = K.clamp(me.x, 16, W - 16); me.y = K.clamp(me.y, 20, H - 20);
+      // 自動射擊
+      fireT -= dt;
+      if (fireT <= 0) {
+        fireT = 0.14;
+        shots.push({ x: me.x, y: me.y - 18, vx: 0 });
+        if (power >= 2) { shots.push({ x: me.x - 10, y: me.y - 10, vx: -60 }); shots.push({ x: me.x + 10, y: me.y - 10, vx: 60 }); }
+        if (power >= 3) { shots.push({ x: me.x - 16, y: me.y, vx: -160 }); shots.push({ x: me.x + 16, y: me.y, vx: 160 }); }
+      }
+      shots.forEach(function (s) { s.y -= 620 * dt; s.x += s.vx * dt; });
+      shots = shots.filter(function (s) { return s.y > -10 && s.x > -10 && s.x < W + 10; });
+      // 敵機
+      spawnT -= dt;
+      if (spawnT <= 0) { spawn(); spawnT = Math.max(0.25, 0.9 - t / 120); }
+      if (t > bossAt && !foes.some(function (f) { return f.boss; })) { spawnBoss(); bossAt = t + 75; }
+      foes.forEach(function (f) {
+        if (f.boss) {
+          f.t += dt; if (f.y < 90) f.y += f.vy * dt; f.x = W / 2 + Math.sin(f.t * 0.8) * 120;
+          f.fire -= dt; if (f.fire <= 0) { f.fire = 0.9; aim(f, 200, 2); }
+          return;
+        }
+        f.y += f.vy * dt;
+        if (f.type === 2) { f.phase += dt * 3; f.x = f.x0 + Math.sin(f.phase) * 50; }
+        if (f.type === 3) { f.fire -= dt; if (f.fire <= 0 && f.y < H * 0.6) { f.fire = 1.6; aim(f, 180, 0); } }
+      });
+      bullets.forEach(function (b) { b.x += b.vx * dt; b.y += b.vy * dt; });
+      bullets = bullets.filter(function (b) { return b.y < H + 10 && b.y > -10 && b.x > -10 && b.x < W + 10; });
+      items.forEach(function (it) { it.y += 90 * dt; });
+      // 碰撞
+      shots.forEach(function (s) {
+        foes.forEach(function (f) {
+          if (s.dead || f.hp <= 0) return;
+          if (K.hit({ x: s.x - 2, y: s.y - 6, w: 4, h: 12 }, box(f))) {
+            s.dead = true; f.hp--; f.flash = 0.06;
+            if (f.hp <= 0) {
+              score += f.pts; hud.set(score); boom(f.x, f.y, f.boss ? 60 : 14); K.beep(f.boss ? 80 : 200, 0.15, "sawtooth", 0.05);
+              if (f.boss || Math.random() < 0.08) items.push({ x: f.x, y: f.y });
+            }
+          }
+        });
+      });
+      shots = shots.filter(function (s) { return !s.dead; });
+      foes = foes.filter(function (f) { return f.hp > 0 && f.y < H + 40; });
+      var mb = { x: me.x - 9, y: me.y - 9, w: 18, h: 18 };
+      bullets = bullets.filter(function (b) { if (K.hit(mb, { x: b.x - 3, y: b.y - 3, w: 6, h: 6 })) { hitMe(); return false; } return true; });
+      foes.forEach(function (f) { if (!f.boss && K.hit(mb, box(f))) { f.hp = 0; boom(f.x, f.y, 14); hitMe(); } });
+      foes = foes.filter(function (f) { return f.hp > 0; });
+      items = items.filter(function (it) {
+        if (K.hit(box(me), { x: it.x - 10, y: it.y - 10, w: 20, h: 20 })) { if (power < 3) power++; else { score += 100; hud.set(score); } ui(); K.beep(880, 0.15); return false; }
+        return it.y < H + 20;
+      });
+    }
+    function plane(x, y, s, color, down) {
+      ctx.save(); ctx.translate(x, y); if (down) ctx.rotate(Math.PI); ctx.scale(s, s);
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(4, -6); ctx.lineTo(16, 2); ctx.lineTo(16, 6); ctx.lineTo(4, 4); ctx.lineTo(3, 11); ctx.lineTo(8, 15);
+      ctx.lineTo(-8, 15); ctx.lineTo(-3, 11); ctx.lineTo(-4, 4); ctx.lineTo(-16, 6); ctx.lineTo(-16, 2); ctx.lineTo(-4, -6); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    function draw(dt) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = K.c("surface");
+      clouds.forEach(function (c) {
+        c.y += c.v * dt; if (c.y - c.r > H) { c.y = -c.r; c.x = K.rand(0, W); }
+        ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, 7); ctx.arc(c.x + c.r * 0.7, c.y + 6, c.r * 0.7, 0, 7); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      if (!me) return;
+      ctx.fillStyle = K.c("gold"); shots.forEach(function (s) { ctx.fillRect(s.x - 2, s.y - 6, 4, 12); });
+      foes.forEach(function (f) {
+        var col = f.flash > 0 ? K.c("text") : K.c(f.boss ? "purple" : f.type === 3 ? "blue" : f.type === 2 ? "accent2" : "muted");
+        f.flash -= dt;
+        if (f.boss) {
+          plane(f.x, f.y, 3.4, col, true);
+          ctx.fillStyle = K.c("accent"); ctx.fillRect(f.x - 50, f.y - 50, 100 * Math.max(0, f.hp) / f.max, 5);
+        } else plane(f.x, f.y, f.w / 32, col, true);
+      });
+      ctx.fillStyle = K.c("accent"); bullets.forEach(function (b) { ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, 7); ctx.fill(); });
+      items.forEach(function (it) {
+        ctx.fillStyle = K.c("gold"); ctx.beginPath(); ctx.arc(it.x, it.y, 11, 0, 7); ctx.fill();
+        ctx.fillStyle = K.c("bg"); ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("P", it.x, it.y + 1);
+      });
+      booms.forEach(function (b) { b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; ctx.globalAlpha = Math.max(0, b.life * 1.5); ctx.fillStyle = K.c("gold"); ctx.fillRect(b.x - 2, b.y - 2, 4, 4); });
+      booms = booms.filter(function (b) { return b.life > 0; }); ctx.globalAlpha = 1;
+      if (playing && !(inv > 0 && (t * 10 | 0) % 2)) plane(me.x, me.y, 1.1, K.c("accent"), false);
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(dt); });
+    K.show("空戰英雄", "拖曳飛機閃避子彈，自動開火。\n每隔一段時間會出現大魔王。", "起飛", start);
+  </script>
+</body>
+</html>

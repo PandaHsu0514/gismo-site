@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>一路往上</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>高度 <b id="score">0</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="360" height="560"></canvas><div class="ov" id="ov"></div></div>
+    <div class="pad" id="pad"></div>
+    <p class="help">← → 或按住畫面左右半邊移動。踩著平台一路往上跳，別掉下去</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    var hud = K.hud("jumper-best"), P = K.pointer(cv);
+    var me, plats, height, topY, playing = false;
+    K.pad([["◀", "ArrowLeft"], ["▶", "ArrowRight"]]);
+    function plat(y) {
+      var lvl = height / 1000, r = Math.random(), type = "n";
+      if (lvl > 0.5 && r < Math.min(0.3, lvl * 0.1)) type = "m";
+      else if (lvl > 1 && r > 1 - Math.min(0.2, lvl * 0.05)) type = "b";
+      return { x: K.rand(0, W - 60), y: y, w: 60, h: 12, type: type, vx: type === "m" ? K.pick([-1, 1]) * K.rand(40, 90) : 0, spring: type === "n" && Math.random() < 0.06, broken: false };
+    }
+    function start() {
+      height = 0; me = { x: W / 2 - 14, y: H - 100, w: 28, h: 28, vx: 0, vy: -650 };
+      plats = [{ x: W / 2 - 30, y: H - 40, w: 60, h: 12, type: "n", vx: 0 }];
+      for (var y = H - 110; y > -40; y -= K.rand(55, 85)) plats.push(plat(y));
+      topY = plats[plats.length - 1].y; playing = true; hud.set(0);
+    }
+    function update(dt) {
+      var dir = K.left() ? -1 : K.right() ? 1 : P.down ? (P.x < W / 2 ? -1 : 1) : 0;
+      me.vx += (dir * 1800 - me.vx * 6) * dt; me.x += me.vx * dt;
+      if (me.x > W) me.x -= W + me.w; if (me.x < -me.w) me.x += W + me.w;
+      me.vy += 1300 * dt; me.y += me.vy * dt;
+      plats.forEach(function (p) {
+        if (p.type === "m") { p.x += p.vx * dt; if (p.x < 0 || p.x > W - p.w) p.vx = -p.vx; }
+        if (p.broken) p.y += 300 * dt;
+        if (me.vy > 0 && !p.broken && me.x + me.w > p.x + 4 && me.x < p.x + p.w - 4 && me.y + me.h > p.y && me.y + me.h < p.y + p.h + me.vy * dt + 2) {
+          if (p.type === "b") { p.broken = true; K.beep(150, 0.1, "triangle"); return; }
+          me.vy = p.spring ? -1150 : -650; me.y = p.y - me.h; K.beep(p.spring ? 900 : 450, 0.06, "sine", 0.05);
+        }
+      });
+      // 鏡頭往上捲
+      if (me.y < H * 0.4) {
+        var d = H * 0.4 - me.y; me.y += d; height += d; hud.set(height / 10 | 0);
+        plats.forEach(function (p) { p.y += d; }); topY += d;
+      }
+      plats = plats.filter(function (p) { return p.y < H + 20; });
+      while (topY > -40) { topY -= K.rand(55, Math.min(120, 85 + height / 300)); plats.push(plat(topY)); }
+      if (me.y > H) { playing = false; var s = height / 10 | 0, nb = hud.finish(s); K.beep(120, 0.4, "sawtooth", 0.08); K.show(nb ? "新紀錄！" : "掉下去了", "爬到高度 " + s, "再跳一次", start); }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = K.c("line"); ctx.lineWidth = 1;
+      var off = (height % 32);
+      for (var y = off; y < H; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      if (!me) return;
+      plats.forEach(function (p) {
+        ctx.fillStyle = K.c(p.type === "m" ? "blue" : p.type === "b" ? "muted" : "accent2"); ctx.globalAlpha = p.broken ? 0.4 : 1;
+        ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 6); ctx.fill();
+        if (p.type === "b") { ctx.strokeStyle = K.c("bg"); ctx.beginPath(); ctx.moveTo(p.x + 28, p.y); ctx.lineTo(p.x + 32, p.y + 12); ctx.stroke(); }
+        if (p.spring) { ctx.fillStyle = K.c("gold"); ctx.fillRect(p.x + 22, p.y - 8, 16, 8); }
+        ctx.globalAlpha = 1;
+      });
+      ctx.fillStyle = K.c("accent"); ctx.beginPath(); ctx.roundRect(me.x, me.y, me.w, me.h, 9); ctx.fill();
+      ctx.fillStyle = K.c("bg"); var ex = me.vx > 30 ? 3 : me.vx < -30 ? -3 : 0;
+      ctx.beginPath(); ctx.arc(me.x + 9 + ex, me.y + 11, 3.5, 0, 7); ctx.arc(me.x + 19 + ex, me.y + 11, 3.5, 0, 7); ctx.fill();
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(); });
+    K.show("一路往上", "自動彈跳，控制左右方向就好。\n藍色平台會移動，灰色的一踩就碎。", "開始", start);
+  </script>
+</body>
+</html>

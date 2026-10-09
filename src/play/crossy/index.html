@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>過馬路</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar"><span>分數 <b id="score">0</b></span><span>第 <b id="lvl">1</b> 關・生命 <b id="lives">3</b></span><span>最高 <b id="best">0</b></span></div>
+    <div class="stage"><canvas id="c" width="360" height="520"></canvas><div class="ov" id="ov"></div></div>
+    <div class="pad" id="pad"></div>
+    <p class="help">方向鍵或滑動，一次跳一格。躲開車子，河上要踩著木頭過</p>
+  </div>
+  <script src="../kit/kit.js"></script>
+  <script>
+    var cv = K.$("c"), ctx = cv.getContext("2d"), C = 40, COLS = 9, ROWS = 13, W = cv.width, H = cv.height;
+    var hud = K.hud("crossy-best");
+    var me, lanes, score, lives, lvl, best, playing = false, deadT = 0;
+    K.pad([["◀", "ArrowLeft"], ["▲", "ArrowUp"], ["▼", "ArrowDown"], ["▶", "ArrowRight"]]);
+    // 由上而下：0 終點、1-5 河、6 安全地、7-11 馬路、12 起點
+    function build() {
+      var sp = 1 + (lvl - 1) * 0.18;
+      lanes = [];
+      for (var r = 0; r < ROWS; r++) {
+        var L = { row: r, type: r === 0 ? "goal" : r <= 5 ? "river" : r === 6 || r === 12 ? "safe" : "road", items: [] };
+        var dir = r % 2 ? 1 : -1;
+        if (L.type === "river") {
+          L.v = dir * (40 + (r * 13) % 40) * sp; var len = r % 3 === 0 ? 2 : 3, gap = len + K.ri(2, 3);
+          for (var x = K.rand(0, 2); x < COLS + 6; x += gap) L.items.push({ x: x * C, w: len * C });
+        }
+        if (L.type === "road") {
+          L.v = dir * (50 + (r * 17) % 60) * sp; var truck = r === 8 || r === 11, w = truck ? 2 : 1, g = truck ? 5 : K.ri(3, 4);
+          for (var x2 = K.rand(0, 2); x2 < COLS + 6; x2 += g) L.items.push({ x: x2 * C, w: w * C, color: K.pick(["accent", "blue", "gold", "purple"]) });
+        }
+        lanes.push(L);
+      }
+    }
+    function respawn() { me = { c: 4, r: 12, x: 4 * C }; best = 12; }
+    function start() { score = 0; lives = 3; lvl = 1; hud.set(0); build(); respawn(); playing = true; ui(); }
+    function ui() { K.$("lives").textContent = lives; K.$("lvl").textContent = lvl; }
+    function hop(dc, dr) {
+      if (!playing || deadT > 0) return;
+      var nc = me.c + dc, nr = me.r + dr;
+      if (nr < 0 || nr >= ROWS) return;
+      me.x = K.clamp(Math.round(me.x / C) * C + dc * C, 0, (COLS - 1) * C); me.r = nr; me.c = Math.round(me.x / C);
+      K.beep(520, 0.04, "square", 0.03);
+      if (nr < best) { best = nr; score += 10; hud.set(score); }
+      if (nr === 0) { score += 100 + lvl * 20; hud.set(score); lvl++; ui(); K.beep(990, 0.25); build(); respawn(); }
+    }
+    addEventListener("keydown", function (e) {
+      var d = { ArrowLeft: [-1, 0], a: [-1, 0], ArrowRight: [1, 0], d: [1, 0], ArrowUp: [0, -1], w: [0, -1], ArrowDown: [0, 1], s: [0, 1] }[e.key];
+      if (d && !e.repeat) hop(d[0], d[1]);
+    });
+    K.swipe(cv, function (d) { hop(d === "left" ? -1 : d === "right" ? 1 : 0, d === "up" ? -1 : d === "down" ? 1 : 0); });
+    cv.addEventListener("click", function () { }); // 點一下不動作，避免誤觸
+    function die() {
+      lives--; ui(); deadT = 0.8; K.beep(110, 0.3, "sawtooth", 0.08);
+      if (lives <= 0) { playing = false; var nb = hud.finish(score); setTimeout(function () { K.show(nb ? "新紀錄！" : "遊戲結束", "得分 " + score + "，到第 " + lvl + " 關", "再玩一次", start); }, 600); }
+    }
+    function update(dt) {
+      if (deadT > 0) { deadT -= dt; if (deadT <= 0) respawn(); return; }
+      var span = (COLS + 6) * C;
+      lanes.forEach(function (L) { L.items.forEach(function (it) { it.x += L.v * dt; if (it.x > W + 3 * C) it.x -= span; if (it.x < -3 * C - it.w + C) it.x += span; }); });
+      var L = lanes[me.r], mb = { x: me.x + 8, y: 0, w: C - 16, h: 1 };
+      if (L.type === "road" && L.items.some(function (it) { return mb.x < it.x + it.w && mb.x + mb.w > it.x; })) return die();
+      if (L.type === "river") {
+        var log = L.items.find(function (it) { return me.x + C / 2 > it.x && me.x + C / 2 < it.x + it.w; });
+        if (!log) return die();
+        me.x += L.v * dt; if (me.x < -C / 2 || me.x > W - C / 2) return die();
+      }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      if (!lanes) return;
+      lanes.forEach(function (L) {
+        var y = L.row * C;
+        ctx.fillStyle = K.c({ goal: "accent2", river: "blue", safe: "surface", road: "line" }[L.type]);
+        ctx.globalAlpha = L.type === "river" ? 0.35 : L.type === "goal" ? 0.5 : 1; ctx.fillRect(0, y, W, C); ctx.globalAlpha = 1;
+        if (L.type === "road") { ctx.fillStyle = K.c("bg"); for (var x = 0; x < W; x += 30) ctx.fillRect(x, y + C - 2, 14, 2); }
+        L.items.forEach(function (it) {
+          if (L.type === "river") { ctx.fillStyle = K.c("gold"); ctx.beginPath(); ctx.roundRect(it.x + 2, y + 6, it.w - 4, C - 12, 8); ctx.fill(); }
+          else {
+            ctx.fillStyle = K.c(it.color); ctx.beginPath(); ctx.roundRect(it.x + 3, y + 7, it.w - 6, C - 14, 6); ctx.fill();
+            ctx.fillStyle = K.c("bg"); ctx.globalAlpha = 0.6; ctx.fillRect(it.x + (L.v > 0 ? it.w - 14 : 8), y + 11, 6, C - 22); ctx.globalAlpha = 1;
+          }
+        });
+      });
+      ctx.fillStyle = K.c("accent2"); ctx.font = "bold 16px sans-serif"; ctx.textAlign = "center"; ctx.fillText("終點", W / 2, 26);
+      if (!me) return;
+      var cx = me.x + C / 2, cy = me.r * C + C / 2;
+      if (deadT > 0) { ctx.font = "26px sans-serif"; ctx.fillText("💥", cx, cy + 9); return; }
+      ctx.fillStyle = K.c("accent"); ctx.beginPath(); ctx.arc(cx, cy, 13, 0, 7); ctx.fill();
+      ctx.fillStyle = K.c("bg"); ctx.beginPath(); ctx.arc(cx - 5, cy - 4, 3, 0, 7); ctx.arc(cx + 5, cy - 4, 3, 0, 7); ctx.fill();
+    }
+    K.loop(function (dt) { if (playing) update(dt); draw(); });
+    lvl = 1; build();
+    K.show("過馬路", "從最下面走到最上面的終點。\n小心車子，過河要站在木頭上。", "開始", start);
+  </script>
+</body>
+</html>
