@@ -321,3 +321,4 @@ main > .grid, main > .papers { padding-bottom: 64px; }
 .ad-slot { margin: 36px 0; min-height: 100px; }
 .tag.draft { background: var(--text); color: var(--bg); }
 .draft-banner { background: #fff3cd; color: #6b4e00; border: 1px solid #e6c766; border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+.video.vertical { aspect-ratio: 9 / 16; max-width: 360px; margin-left: auto; margin-right: auto; }
