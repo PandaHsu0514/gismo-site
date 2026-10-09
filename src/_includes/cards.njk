@@ -10,6 +10,19 @@
 </li>
 {% endmacro %}
 
+{% macro feedRow(a) %}
+{%- set sec = a.url.split("/")[1] -%}
+{%- set label = { articles: a.data.kind, stories: "晚安故事", finance: "勇博開講", notes: "文獻筆記" }[sec] -%}
+<li class="entry">
+  <time datetime="{{ a.date | isoDate }}">{{ a.date | ymd }}</time>
+  <div>
+    <p class="kind sec-{{ sec }}{% if a.data.kind == '好文' %} is-share{% endif %}">{{ label }}</p>
+    <h3><a href="{{ a.url }}">{{ a.data.title }}</a></h3>
+    {% if a.data.summary %}<p class="summary">{{ a.data.summary }}</p>{% endif %}
+  </div>
+</li>
+{% endmacro %}
+
 {% macro lessonRow(l) %}
 <li class="lesson">
   <a href="{{ l.url }}">

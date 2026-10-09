@@ -6,8 +6,8 @@
 {%- set canonical = site.url + page.url -%}
 {%- set pageTitle = site.homeTitle if isHome else ((title + "｜" + site.name) if title else site.name) -%}
 {%- set desc = summary or description or (abstract | truncate(150)) or site.description -%}
-{%- set ogImage = (site.url + cover) if cover else (site.url + "/assets/og-default.png") -%}
-{%- set sectionNames = { articles: "文章", teaching: "教學分享", works: "AI 小作品", games: "AI 遊戲", papers: "學術著作" } -%}
+{%- set ogImage = (site.url + cover) if cover else ((site.url + card) if card else ((("https://i.ytimg.com/vi/" + youtube + "/hqdefault.jpg") if youtube else (site.url + "/assets/og-default.png")))) -%}
+{%- set sectionNames = { articles: "文章", stories: "晚安故事", finance: "勇博開講", notes: "文獻筆記", teaching: "教學分享", works: "AI 小作品", games: "AI 遊樂場", papers: "學術著作" } -%}
 {%- set personId = site.url + "/#person" -%}
 {%- set person = { "@type": "Person", "@id": personId, "name": site.person.name, "alternateName": site.person.alternateName, "url": site.url + "/about/", "jobTitle": site.person.jobTitle, "description": site.bio, "knowsAbout": site.person.knowsAbout, "email": "mailto:" + site.email, "sameAs": ["https://orcid.org/0009-0002-4869-3865", "https://github.com/s94215508"] } -%}
   <title>{{ pageTitle }}</title>
@@ -49,6 +49,12 @@
     {%- set main = { "@type": "ScholarlyArticle", "headline": title, "name": title, "author": authors | authorList, "datePublished": year | string, "isPartOf": { "@type": "Periodical", "name": venue | journalName }, "sameAs": ("https://doi.org/" + doi) if doi else undefined, "identifier": doi or undefined, "abstract": abstract or undefined, "url": canonical, "inLanguage": "en" } -%}
   {%- elif section == "games" -%}
     {%- set main = { "@type": "VideoGame", "name": title, "description": desc, "url": canonical, "genre": category, "gamePlatform": "Web browser", "applicationCategory": "Game", "operatingSystem": "Any", "playMode": "SinglePlayer", "isAccessibleForFree": true, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" } } -%}
+  {%- elif section == "stories" -%}
+    {%- set main = { "@type": "Book", "name": title, "description": desc, "url": canonical, "image": site.url + cover, "bookFormat": "https://schema.org/EBook", "numberOfPages": pages.length, "inLanguage": "zh-Hant-TW", "datePublished": page.date | isoDate, "genre": "兒童睡前故事", "audience": { "@type": "PeopleAudience", "suggestedMinAge": 3, "suggestedMaxAge": 8 }, "author": { "@id": personId }, "isAccessibleForFree": true, "accessMode": ["textual", "visual", "auditory"] } -%}
+  {%- elif section == "notes" -%}
+    {%- set main = { "@type": "Article", "headline": title, "description": desc, "url": canonical, "datePublished": page.date | isoDate, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "image": (site.url + card) if card else undefined, "about": { "@type": "ScholarlyArticle", "name": paperTitle, "sameAs": ("https://doi.org/" + doi) if doi else undefined, "isPartOf": { "@type": "Periodical", "name": journal | journalName } }, "keywords": topicTags } -%}
+  {%- elif section == "finance" -%}
+    {%- set main = { "@type": "Article", "headline": title, "description": desc, "url": canonical, "datePublished": page.date | isoDate, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "video": { "@type": "VideoObject", "name": title, "description": desc, "thumbnailUrl": "https://i.ytimg.com/vi/" + youtube + "/hqdefault.jpg", "uploadDate": page.date | isoDate, "embedUrl": "https://www.youtube-nocookie.com/embed/" + youtube } if youtube else undefined } -%}
   {%- elif section == "teaching" -%}
     {%- set main = { "@type": "LearningResource", "name": title, "description": desc, "url": canonical, "educationalLevel": audience, "timeRequired": duration or undefined, "datePublished": page.date | isoDate, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "isAccessibleForFree": true } -%}
   {%- else -%}

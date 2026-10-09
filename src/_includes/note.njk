@@ -1,0 +1,27 @@
+---
+layout: base.njk
+---
+<article class="reading">
+  <p class="crumb"><a href="/notes/">← 文獻筆記</a></p>
+  <header class="reading-head">
+    <p class="kind">文獻筆記・<time datetime="{{ page.date | isoDate }}">{{ page.date | ymd }}</time></p>
+    <h1>{{ title }}</h1>
+    {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
+  </header>
+  <dl class="paper-box">
+    <dt>論文</dt><dd lang="en">{{ paperTitle }}</dd>
+    <dt>作者</dt><dd>{{ authors }}{% if year %}（{{ year }}）{% endif %}</dd>
+    <dt>期刊</dt><dd>{{ journal }}</dd>
+    {% if doi %}<dt>DOI</dt><dd><a href="https://doi.org/{{ doi }}" target="_blank" rel="noopener">{{ doi }}</a></dd>{% endif %}
+    {% if topicTags %}<dt>主題</dt><dd>{% for t in topicTags %}<span class="tag">{{ t }}</span> {% endfor %}</dd>{% endif %}
+  </dl>
+  {% if card %}
+  <figure class="study-card">
+    <a href="{{ card }}" target="_blank" rel="noopener"><img src="{{ card }}" alt="{{ title }} 讀書帳圖卡" loading="lazy"></a>
+    <figcaption>讀書帳：一張圖看懂這篇（點圖放大）</figcaption>
+  </figure>
+  {% endif %}
+  <div class="prose">{{ content | safe }}</div>
+  {% include "ad.njk" %}
+  <p class="note-disclaimer">這是我的個人閱讀筆記，整理論文重點與心得，內容以原文為準。全文請由 DOI 連結至期刊閱讀。</p>
+</article>

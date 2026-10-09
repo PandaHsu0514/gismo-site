@@ -1,0 +1,18 @@
+---
+layout: base.njk
+---
+<article class="reading">
+  <p class="crumb"><a href="/finance/">← 勇博開講</a></p>
+  {% if draft %}<p class="draft-banner">這是草稿，只有你在本機預覽看得到。確認沒問題後，刪掉檔案裡的 <code>draft: true</code> 就會發布。</p>{% endif %}
+  <header class="reading-head">
+    <p class="kind">勇博開講・{{ format or ("影片" if youtube else "筆記") }}・<time datetime="{{ page.date | isoDate }}">{{ page.date | ymd }}</time></p>
+    <h1>{{ title }}</h1>
+    {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
+  </header>
+  {% if youtube %}
+  <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/{{ youtube }}" title="{{ title }}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  {% endif %}
+  <div class="prose">{{ content | safe }}</div>
+  {% include "ad.njk" %}
+  <p class="note-disclaimer">本內容僅供學習與資訊整理，不構成任何投資建議，也不推薦買賣特定標的。投資有風險，請自行判斷並以官方資料為準。</p>
+</article>

@@ -1,0 +1,23 @@
+---
+layout: base.njk
+title: 文獻筆記
+description: 每天讀一篇學術論文，整理成 12 段式長摘要與一張讀書帳圖卡，主題聚焦生成式 AI、人機共創、創意與學習。
+permalink: /notes/
+---
+{% import "cards.njk" as c %}
+<section class="page-head">
+  <h1>文獻筆記</h1>
+  <p class="lead">每天讀一篇論文，整理成重點摘要和一張讀書帳。共 {{ collections.notes.length }} 篇，主題多在生成式 AI、人機共創、創意與學習。<a href="/papers/">我自己的學術著作 →</a></p>
+</section>
+<ol class="entries list-page">
+  {%- for n in collections.notes %}
+  <li class="entry">
+    <time datetime="{{ n.date | isoDate }}">{{ n.date | ymd }}</time>
+    <div>
+      <p class="kind">{{ n.data.journal | journalName | truncate(40) }}</p>
+      <h3><a href="{{ n.url }}">{{ n.data.title }}</a></h3>
+      <p class="summary">{{ n.data.summary }}</p>
+    </div>
+  </li>
+  {%- endfor %}
+</ol>

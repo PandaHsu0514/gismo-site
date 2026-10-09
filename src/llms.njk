@@ -20,6 +20,23 @@ eleventyExcludeFromCollections: true
 - 文章整理中，列表頁：{{ site.url }}/articles/
 {%- endfor %}
 
+## 晚安故事（原創有聲繪本）
+{% for s in collections.stories %}
+- [{{ s.data.title }}]({{ site.url }}{{ s.url }})（{{ s.data.pages.length }} 頁）：{{ s.data.summary }}
+{%- endfor %}
+
+## 勇博開講（財經知識，僅供學習，非投資建議）
+{% for e in collections.finance %}
+- [{{ e.data.title }}]({{ site.url }}{{ e.url }})（{{ e.date | isoDate }}）：{{ e.data.summary }}
+{%- else %}
+- 整理中，列表頁：{{ site.url }}/finance/
+{%- endfor %}
+
+## 文獻筆記（學術論文閱讀摘要）
+{% for n in collections.notes %}
+- [{{ n.data.title }}]({{ site.url }}{{ n.url }})：{{ n.data.paperTitle }}（{{ n.data.journal | journalName }}{% if n.data.doi %}，https://doi.org/{{ n.data.doi }}{% endif %}）
+{%- endfor %}
+
 ## 教學分享
 {% for l in collections.teaching %}
 - [{{ l.data.title }}]({{ site.url }}{{ l.url }})（{{ l.data.audience }}）：{{ l.data.summary }}
@@ -32,7 +49,7 @@ eleventyExcludeFromCollections: true
 - [{{ p.data.title }}]({{ site.url }}{{ p.url }})：{{ p.data.authors }}（{{ p.data.year }}）. {{ p.data.venue }}.{% if p.data.doi %} https://doi.org/{{ p.data.doi }}{% endif %}
 {%- endfor %}
 
-## AI 遊戲（可直接在瀏覽器玩）
+## AI 遊樂場：網頁小遊戲（可直接在瀏覽器玩）
 {% for g in collections.games %}
 - [{{ g.data.title }}]({{ site.url }}{{ g.url }})（{{ g.data.category }}）：{{ g.data.description }}
 {%- endfor %}

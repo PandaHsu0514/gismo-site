@@ -3,13 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' https:; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' ws://localhost:*; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  {#- 內容安全政策：只允許本站、Google 字型與 YouTube；開啟 AdSense 後自動加入 Google 廣告網域 -#}
+  {%- set adHosts = " https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.googletagservices.com https://*.adtrafficquality.google" if site.adsense.client else "" %}
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'{{ adHosts }}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' https:; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com{{ adHosts }}; connect-src 'self' ws://localhost:*{{ adHosts }}; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 {% include "seo.njk" %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
+  {%- if site.adsense.client and not noAds %}
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense.client }}" crossorigin="anonymous"></script>
+  {%- endif %}
   <script>
     try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
@@ -22,7 +27,7 @@
     </a>
     <nav>
       {%- for item in site.nav %}
-      {%- set active = page.url.startsWith(item.url) %}
+      {%- set active = item | navActive(page.url) %}
       <a href="{{ item.url }}"{% if active %} aria-current="page"{% endif %}>{{ item.label }}</a>
       {%- endfor %}
     </nav>
@@ -41,6 +46,7 @@
       </div>
       <ul>
         <li><a href="/papers/">學術著作</a></li>
+        <li><a href="/privacy/">隱私權政策</a></li>
         {%- if site.email %}<li><a href="mailto:{{ site.email }}">Email</a></li>{% endif %}
         {%- for l in site.links %}{% if l.url %}<li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.label }}</a></li>{% endif %}{% endfor %}
       </ul>

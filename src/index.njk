@@ -4,7 +4,7 @@ layout: base.njk
 {% import "cards.njk" as c %}
 <section class="hero">
   <div class="hero-text">
-    <p class="eyebrow">{{ site.author }}的個人講古攤</p>
+    <p class="eyebrow">{{ site.person.name }}的個人講古攤</p>
     <h1>勇博<span>講古</span></h1>
     <p class="tagline">{{ site.tagline }}</p>
     <p class="hero-links">
@@ -17,9 +17,8 @@ layout: base.njk
 
 <div class="home-main">
   <section class="home-articles">
-    <div class="section-head"><h2>最近講的</h2><a href="/articles/">全部 {{ collections.articles.length }} 篇 →</a></div>
-    {% if collections.articles.length %}<ol class="entries">{% for a in collections.articles | first(6) %}{{ c.articleRow(a) }}{% endfor %}</ol>
-    {% else %}<p class="empty">第一篇文章正在寫，桌子先擺好，茶也泡上了。</p>{% endif %}
+    <div class="section-head"><h2>最近講的</h2><a href="/articles/">所有文章 →</a></div>
+    <ol class="entries">{% for a in collections.recent | first(7) %}{{ c.feedRow(a) }}{% endfor %}</ol>
   </section>
 
   <aside class="home-side">
@@ -28,6 +27,12 @@ layout: base.njk
       <p>{{ site.bio }}</p>
       <a href="/about/">更多關於我 →</a>
     </section>
+    {% if collections.finance.length %}
+    <section class="side-block">
+      <div class="section-head"><h2>勇博開講</h2><a href="/finance/">全部 →</a></div>
+      <ul class="lessons">{% for e in collections.finance | first(3) %}<li class="lesson"><a href="{{ e.url }}"><span class="lesson-meta">{{ e.date | ymd }}</span><span class="lesson-title">{{ e.data.title }}</span></a></li>{% endfor %}</ul>
+    </section>
+    {% endif %}
     {% if collections.teaching.length %}
     <section class="side-block">
       <div class="section-head"><h2>教學分享</h2><a href="/teaching/">全部 →</a></div>
@@ -37,14 +42,18 @@ layout: base.njk
   </aside>
 </div>
 
-{% if collections.works.length %}
-<section class="lab">
-  <div class="section-head"><h2>AI 小作品</h2><a href="/works/">全部 {{ collections.works.length }} 件 →</a></div>
-  <div class="grid">{% for w in collections.works | first(3) %}{{ c.card(w, [w.data.kind, w.data.year]) }}{% endfor %}</div>
+{% if collections.stories.length %}
+<section class="night-band">
+  <div class="section-head"><h2>晚安故事</h2><a href="/stories/">全部 {{ collections.stories.length }} 本 →</a></div>
+  <div class="shelf shelf-row">
+    {%- for s in collections.stories | first(5) %}
+    <a class="book" href="{{ s.url }}"><img src="{{ s.data.cover }}" alt="" loading="lazy" width="540" height="960"><span class="book-title">{{ s.data.title }}</span><span class="book-meta">{{ s.data.pages.length }} 頁・有聲</span></a>
+    {%- endfor %}
+  </div>
 </section>
 {% endif %}
 
 <section class="lab">
-  <div class="section-head"><h2>AI 遊戲</h2><a href="/games/">全部 {{ collections.games.length }} 款 →</a></div>
+  <div class="section-head"><h2>AI 遊樂場</h2><a href="/games/">全部 {{ collections.games.length }} 款遊戲 →</a></div>
   <div class="grid games">{% for g in collections.games | first(6) %}{{ c.card(g, g.data.gameTags) }}{% endfor %}</div>
 </section>

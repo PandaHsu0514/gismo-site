@@ -1,12 +1,22 @@
 ---
 layout: base.njk
-title: AI 遊戲
+title: AI 遊樂場
+description: 用 AI 做的小作品和 27 款網頁小遊戲：射擊、動作、益智、棋類、休閒，免安裝，手機也能玩。
 permalink: /games/
 ---
 {% import "cards.njk" as c %}
 <section class="page-head">
-  <h1>AI 遊戲</h1>
-  <p class="lead">跟 AI 一起做的小遊戲，共 {{ collections.games.length }} 款。直接在瀏覽器玩，手機也可以。</p>
+  <h1>AI 遊樂場</h1>
+  <p class="lead">跟 AI 一起做的小作品和小遊戲。遊戲共 {{ collections.games.length }} 款，直接在瀏覽器玩，手機也可以。</p>
+</section>
+{% if collections.works.length %}
+<section class="lab">
+  <div class="section-head"><h2>AI 小作品</h2><a href="/works/">全部 {{ collections.works.length }} 件 →</a></div>
+  <div class="grid">{% for w in collections.works | first(3) %}{{ c.card(w, [w.data.kind, w.data.year]) }}{% endfor %}</div>
+</section>
+{% endif %}
+<section class="page-head" style="padding-top:0">
+  <h2>小遊戲</h2>
   {{ c.filters("gameGrid", collections.games | uniq("category")) }}
 </section>
 <div class="grid games" id="gameGrid">

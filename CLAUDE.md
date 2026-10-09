@@ -1,6 +1,6 @@
 # gismo.com.tw 個人網站
 
-網站名稱「勇博講古」。主角是文章（原創＋好文分享，不分主題），其次是教學分享、AI 小作品、AI 遊戲；學術著作放在關於頁，不在主選單。請用繁體中文溝通。
+網站名稱「勇博講古」。選單：文章（原創＋好文分享）｜晚安故事（有聲繪本）｜勇博開講（財經，影片放 YouTube 嵌入）｜文獻筆記｜教學｜AI 遊樂場（小作品＋27 款遊戲）｜關於（含學術著作）。請用繁體中文溝通。
 
 設計：宣紙底、墨色字、朱紅印章（`.seal`），標題用 Noto Serif TC。
 
@@ -29,3 +29,9 @@
 - 給 AI 搜尋（GEO）：`/llms.txt`（自動列出全站內容）、`robots.txt` 明確允許 GPTBot、ClaudeBot、PerplexityBot 等
 - `/sitemap.xml`、`/feed.xml`（文章 Atom）自動產生；front matter 加 `noindex: true` 可排除
 - 安全：`base.njk` 有 CSP meta（GitHub Pages 不能自訂 header）；要嵌入新的外部服務（例如 YouTube 以外的影片）得改 CSP；`/play/` 遊戲頁 noindex；Dependabot 每週檢查套件
+
+## 內容來源與規則
+- 晚安故事：來源 `~/Library/Application Support/BedtimeVideo/`，只放完整版、不放樣本；影片一律上傳 YouTube 再填 `youtube` 欄位，不把 MP4 放進網站
+- 文獻筆記：來源 `~/Documents/每日文獻閱讀/文獻讀書報告/`，使用者同意全部公開；匯入時去掉內部作業說明，「你」改成第一人稱
+- 勇博開講的財經報告（來源 `~/.openclaw/workspace/finance-learning-reports/`）要使用者看過才發布：一律先用 `draft: true` 匯入
+- AdSense 尚未申請；兒童內容（晚安故事）不放廣告

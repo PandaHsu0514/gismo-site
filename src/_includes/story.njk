@@ -1,0 +1,93 @@
+---
+layout: base.njk
+---
+<article class="story" id="story" data-mode="{{ 'story' if storyAudio else 'page' }}">
+  <p class="crumb"><a href="/stories/">← 晚安故事</a></p>
+  <header class="story-head">
+    <h1>{{ title }}</h1>
+    <p class="story-meta">有聲繪本・{{ pages.length }} 頁{% if youtube %}・<a href="https://www.youtube.com/watch?v={{ youtube }}" target="_blank" rel="noopener">YouTube 影片版 ↗</a>{% endif %}</p>
+  </header>
+
+  <div class="reader">
+    <div class="stage-img" id="stageImg">
+      {%- for p in pages %}
+      <figure class="spread{% if loop.first %} on{% endif %}" data-i="{{ loop.index0 }}"{% if p.audio %} data-audio="{{ p.audio }}"{% endif %}>
+        <img src="{{ p.img }}" alt="第 {{ loop.index }} 頁插圖" {% if loop.index > 2 %}loading="lazy" {% endif %}width="540" height="960">
+      </figure>
+      {%- endfor %}
+    </div>
+    <div class="story-side">
+      <p class="story-text" id="storyText" aria-live="polite">{{ pages[0].text }}</p>
+      <div class="story-progress"><span id="pageNo">1</span> / {{ pages.length }}<div class="bar"><i id="bar"></i></div></div>
+      <div class="story-controls">
+        <button type="button" id="prev" aria-label="上一頁">◀</button>
+        <button type="button" id="play" class="primary">▶ 開始聽故事</button>
+        <button type="button" id="next" aria-label="下一頁">▶</button>
+      </div>
+      <label class="auto"><input type="checkbox" id="auto" checked> 讀完自動翻頁</label>
+    </div>
+  </div>
+
+  <details class="fulltext">
+    <summary>看整篇故事文字</summary>
+    <div class="prose">{% for p in pages %}<p>{{ p.text }}</p>{% endfor %}</div>
+  </details>
+  {% if storyAudio %}<audio id="storyAudio" src="{{ storyAudio }}" preload="none"></audio>{% endif %}
+</article>
+
+<script>
+  (function () {
+    var root = document.getElementById("story"), spreads = [].slice.call(root.querySelectorAll(".spread"));
+    var texts = {{ pages | pluck("text") | jsonld | safe }};
+    var starts = {{ (starts or []) | jsonld | safe }};
+    var i = 0, playing = false, audio = new Audio(), storyAudio = document.getElementById("storyAudio"), turnTimer;
+    var $ = function (id) { return document.getElementById(id); };
+    function show(n) {
+      i = Math.max(0, Math.min(spreads.length - 1, n));
+      spreads.forEach(function (s, k) { s.classList.toggle("on", k === i); });
+      $("storyText").textContent = texts[i]; $("pageNo").textContent = i + 1;
+      $("bar").style.width = ((i + 1) / spreads.length * 100) + "%";
+      var nx = spreads[i + 1] && spreads[i + 1].querySelector("img"); if (nx) nx.loading = "eager";
+    }
+    function setPlaying(v) { playing = v; $("play").textContent = v ? "❚❚ 暫停" : (i === spreads.length - 1 ? "↺ 再聽一次" : "▶ 繼續聽"); }
+    function playPage() {
+      clearTimeout(turnTimer);
+      if (storyAudio) { if (Math.abs(storyAudio.currentTime - starts[i]) > 1) storyAudio.currentTime = starts[i]; storyAudio.play(); return; }
+      var src = spreads[i].dataset.audio; if (!src) return;
+      audio.src = src; audio.play().catch(function () { setPlaying(false); });
+    }
+    audio.addEventListener("ended", function () {
+      if (!playing) return;
+      if (i >= spreads.length - 1) return setPlaying(false);
+      if ($("auto").checked) turnTimer = setTimeout(function () { show(i + 1); playPage(); }, 900); else setPlaying(false);
+    });
+    if (storyAudio) {
+      storyAudio.addEventListener("timeupdate", function () {
+        var k = 0; while (k + 1 < starts.length && storyAudio.currentTime >= starts[k + 1]) k++;
+        if (k !== i) { if ($("auto").checked) show(k); else { storyAudio.pause(); setPlaying(false); } }
+      });
+      storyAudio.addEventListener("ended", function () { setPlaying(false); });
+    }
+    function pause() { clearTimeout(turnTimer); audio.pause(); if (storyAudio) storyAudio.pause(); setPlaying(false); }
+    function go(n) { var was = playing; pause(); show(n); if (was) { setPlaying(true); playPage(); } }
+    $("play").onclick = function () {
+      if (playing) return pause();
+      if (i === spreads.length - 1 && $("play").textContent.indexOf("再聽") >= 0) show(0);
+      setPlaying(true); playPage();
+    };
+    $("prev").onclick = function () { go(i - 1); };
+    $("next").onclick = function () { go(i + 1); };
+    addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") go(i - 1); else if (e.key === "ArrowRight") go(i + 1);
+      else if (e.key === " " && e.target === document.body) { e.preventDefault(); $("play").click(); }
+    });
+    var sx = null, stage = $("stageImg");
+    stage.addEventListener("pointerdown", function (e) { sx = e.clientX; });
+    stage.addEventListener("pointerup", function (e) {
+      if (sx === null) return; var dx = e.clientX - sx; sx = null;
+      if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+      else { var r = stage.getBoundingClientRect(); go(i + (e.clientX > r.left + r.width / 2 ? 1 : -1)); }
+    });
+    show(0);
+  })();
+</script>

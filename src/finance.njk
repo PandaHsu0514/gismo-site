@@ -1,0 +1,28 @@
+---
+layout: base.njk
+title: 勇博開講
+description: 用說故事的方式聊財經：投資觀念、風險管理、產業與個股研究框架。影片與學習筆記，僅供學習，非投資建議。
+permalink: /finance/
+---
+<section class="page-head">
+  <h1>勇博開講</h1>
+  <p class="lead">把財經知識講成聽得懂的故事：投資觀念、風險管理、產業研究方法。</p>
+</section>
+{% if collections.finance.length %}
+<div class="grid episodes">
+  {%- for e in collections.finance %}
+  <a class="card" href="{{ e.url }}">
+    {% if e.data.youtube %}<img class="thumb" src="https://i.ytimg.com/vi/{{ e.data.youtube }}/hqdefault.jpg" alt="" loading="lazy">
+    {% else %}<div class="thumb"><span>{{ e.data.title | truncate(2, true, "") }}</span></div>{% endif %}
+    <div class="body">
+      <div class="tags">{% if e.data.draft %}<span class="tag draft">草稿・未發布</span>{% endif %}<span class="tag">{{ "影片" if e.data.youtube else "筆記" }}</span><span class="tag">{{ e.date | ymd }}</span></div>
+      <h3>{{ e.data.title }}</h3>
+      <p>{{ e.data.summary }}</p>
+    </div>
+  </a>
+  {%- endfor %}
+</div>
+{% else %}
+<p class="empty list-page">第一集正在剪輯中，敬請期待。</p>
+{% endif %}
+<p class="note-disclaimer list-page">本單元內容僅供學習與資訊整理，不構成任何投資建議。</p>

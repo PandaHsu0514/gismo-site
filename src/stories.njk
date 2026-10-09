@@ -1,0 +1,19 @@
+---
+layout: base.njk
+title: 晚安故事
+description: 給孩子睡前聽的原創有聲繪本，每一頁都有插圖和朗讀，手機上也能一頁一頁翻。
+permalink: /stories/
+---
+<section class="page-head night-head">
+  <h1>晚安故事</h1>
+  <p class="lead">睡前十分鐘的有聲繪本。按下播放，故事會一頁一頁讀給孩子聽。</p>
+</section>
+<div class="shelf">
+  {%- for s in collections.stories %}
+  <a class="book" href="{{ s.url }}">
+    <img src="{{ s.data.cover }}" alt="" loading="lazy" width="540" height="960">
+    <span class="book-title">{{ s.data.title }}</span>
+    <span class="book-meta">{{ s.data.pages.length }} 頁・有聲</span>
+  </a>
+  {%- endfor %}
+</div>

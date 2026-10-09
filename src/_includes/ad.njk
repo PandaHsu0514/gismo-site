@@ -1,0 +1,7 @@
+{#- 廣告位：site.json 的 adsense.client 與 slot 都填好、而且這頁沒有 noAds 才會出現 -#}
+{%- if site.adsense.client and site.adsense.slots.inContent and not noAds %}
+<aside class="ad-slot" aria-label="廣告">
+  <ins class="adsbygoogle" style="display:block" data-ad-client="{{ site.adsense.client }}" data-ad-slot="{{ site.adsense.slots.inContent }}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</aside>
+{%- endif %}

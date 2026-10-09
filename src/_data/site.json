@@ -2,8 +2,8 @@
   "url": "https://gismo.com.tw",
   "domain": "gismo.com.tw",
   "name": "勇博講古",
-  "homeTitle": "勇博講古｜許鴻勇的故事、文章與 AI 小作品",
-  "description": "許鴻勇（勇博）的個人網站：管理學博士的文章與好文分享、教學教案、學術著作，還有用 AI 做的小作品與網頁小遊戲。",
+  "homeTitle": "勇博講古｜許鴻勇的文章、晚安故事、財經與 AI 小遊戲",
+  "description": "許鴻勇（勇博）的個人網站：文章與好文分享、原創有聲晚安繪本、財經知識「勇博開講」、每日學術文獻筆記、教學教案，還有用 AI 做的網頁小遊戲。",
   "keywords": [
     "勇博講古",
     "許鴻勇",
@@ -33,20 +33,35 @@
       "url": "/articles/"
     },
     {
+      "label": "晚安故事",
+      "url": "/stories/"
+    },
+    {
+      "label": "勇博開講",
+      "url": "/finance/"
+    },
+    {
+      "label": "文獻筆記",
+      "url": "/notes/"
+    },
+    {
       "label": "教學",
       "url": "/teaching/"
     },
     {
-      "label": "AI 小作品",
-      "url": "/works/"
-    },
-    {
-      "label": "AI 遊戲",
-      "url": "/games/"
+      "label": "AI 遊樂場",
+      "url": "/games/",
+      "also": [
+        "/works/"
+      ]
     },
     {
       "label": "關於",
-      "url": "/about/"
+      "url": "/about/",
+      "also": [
+        "/papers/",
+        "/privacy/"
+      ]
     }
   ],
   "person": {
@@ -64,5 +79,12 @@
       "ESG",
       "教學設計"
     ]
+  },
+  "adsense": {
+    "client": "",
+    "slots": {
+      "inContent": ""
+    },
+    "_說明": "申請通過後把 ca-pub-XXXXXXXX 填進 client、廣告單元 ID 填進 slots.inContent，網站就會自動顯示廣告並產生 ads.txt"
   }
 }
