@@ -15,7 +15,7 @@
 - GitHub：`PandaHsu0514/gismo-site`（公開），gh CLI 已登入 PandaHsu0514
 - 推到 `main` → GitHub Actions 自動部署到 GitHub Pages，約 1 分鐘後在 https://gismo.com.tw 生效
 - 自訂網域已設定；不要再設 `PATH_PREFIX` repo 變數（那只在用 github.io 子路徑時需要）
-- commit／push 前先跟使用者確認
+- commit／push 前先跟使用者確認。例外：文獻筆記由每日排程自動匯入並推送（使用者已同意全自動上架）
 
 ## DNS（GoDaddy）
 - 網站：`@` A 記錄 ×4 指向 GitHub（185.199.108–111.153），`www` CNAME → pandahsu0514.github.io
@@ -36,3 +36,11 @@
 - 勇博開講的財經報告（來源 `~/.openclaw/workspace/finance-learning-reports/`）要使用者看過才發布：一律先用 `draft: true` 匯入
 - AdSense 尚未申請；兒童內容（晚安故事）不放廣告
 - gismo.com.tw 只做個人網站。使用者的 AI token 銷售業務會另外用別的網域經營，不要把販售 token、API 額度的內容放進這個網站
+
+## 文獻筆記自動上架
+- `scripts/publish-notes.sh` 每天 13:00 由 launchd 執行（`~/Library/LaunchAgents/tw.gismo.publish-notes.plist`），紀錄在 `~/Library/Logs/gismo-publish-notes.log`，完成或失敗會跳 Mac 通知
+- 流程：git pull → `scripts/import_notes.py` 匯入 Drive 新報告 → 先建置網站確認沒壞 → 只 commit `src/notes`、`src/files/notes`、Crossref 快取 → push
+- 匯入規則寫在 `import_notes.py` 開頭；中文標題與分類讀 OpenClaw 報告裡的「## 網站上架資訊」（規格寫在 Drive 的 `workspace/journal-agent-pipeline-prompt.md` Step 6）
+- 匯入只新增不覆寫，手動修改過的筆記（標題、分類）不會被蓋掉
+- 要下架某篇：刪掉 `src/notes/` 的檔案和 `src/files/notes/` 的圖，並把它的 DOI（沒有 DOI 就用英文標題）加進 `scripts/data/notes-removed.json`，否則隔天會被重新匯入
+- 停用：`launchctl bootout gui/$(id -u)/tw.gismo.publish-notes`

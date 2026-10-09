@@ -61,6 +61,9 @@ files:                   # 可省略，會變成下載按鈕
 
 `src/notes/日期-期刊.md`，讀書帳圖卡在 `src/files/notes/`。由 `~/Documents/每日文獻閱讀/文獻讀書報告/` 轉出，已去掉內部作業說明（存放路徑、去重判斷、圖片 prompt）。
 
+**自動上架**：OpenClaw 寫進 Google Drive `workspace/journal-reading-reports/` 的新報告，每天 13:00 自動匯入並發布（`scripts/publish-notes.sh`）。
+手動執行：`./scripts/publish-notes.sh`；只看會匯入哪些、不寫檔：`python3 scripts/import_notes.py --dry-run`。
+
 ### 勇博開講（財經）
 
 ```yaml
