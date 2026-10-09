@@ -28,9 +28,15 @@ jobs:
         env:
           # 用自訂網域時留空；暫用 github.io/gismo-site/ 時設成 /gismo-site/
           PATH_PREFIX: ${{ vars.PATH_PREFIX }}
-      - uses: actions/upload-pages-artifact@v4
+      # 跟 actions/upload-pages-artifact@v4 做的事一樣，但保留 .well-known（官方版本會把點開頭的資料夾全部排除）
+      - name: 打包網站
+        run: tar --dereference --hard-dereference --directory _site -cvf "$RUNNER_TEMP/artifact.tar" --exclude=.git --exclude=.github .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          path: _site
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
   deploy:
     needs: build
     runs-on: ubuntu-latest
