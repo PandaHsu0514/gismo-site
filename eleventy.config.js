@@ -9,6 +9,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/files");
   eleventyConfig.addPassthroughCopy("src/play");
   eleventyConfig.addPassthroughCopy("src/CNAME");
+  eleventyConfig.addPassthroughCopy({ "src/well-known": ".well-known" });
 
   // 文章、教學依日期新到舊；論文、作品依年份新到舊，同年份再依檔名；遊戲依 order 欄位
   const byDate = (a, b) => b.date - a.date;
@@ -24,6 +25,14 @@ export default function (eleventyConfig) {
   // 2026-10-01 → 2026.10.01
   eleventyConfig.addFilter("ymd", (d) => new Date(d).toISOString().slice(0, 10).replaceAll("-", "."));
   eleventyConfig.addFilter("isoDate", (d) => new Date(d).toISOString().slice(0, 10));
+  eleventyConfig.addFilter("isoDateTime", (d) => new Date(d).toISOString());
+
+  // SEO／結構化資料用
+  // 轉成 JSON-LD；把 < 換掉，避免內容裡的字串提早結束 <script>
+  eleventyConfig.addFilter("jsonld", (obj) => JSON.stringify(obj).replace(/</g, "\\u003c"));
+  eleventyConfig.addFilter("authorList", (s) => (s || "").split(/,\s*/).filter(Boolean).map((name) => ({ "@type": "Person", name })));
+  eleventyConfig.addFilter("journalName", (s) => (s || "").split(",")[0].trim());
+  eleventyConfig.addFilter("xmlEscape", (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
 
   return {
     dir: { input: "src", output: "_site" },

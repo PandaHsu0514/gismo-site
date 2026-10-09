@@ -1,0 +1,38 @@
+---
+permalink: /llms.txt
+eleventyExcludeFromCollections: true
+---
+# {{ site.name }}
+
+> {{ site.description }}
+
+作者：{{ site.person.name }}（{{ site.person.alternateName | join("、") }}）。{{ site.bio }}
+網站語言：繁體中文（台灣）。聯絡：{{ site.email }}。ORCID：https://orcid.org/0009-0002-4869-3865
+
+- [關於作者]({{ site.url }}/about/)：自我介紹、經歷與學術著作
+- [網站地圖]({{ site.url }}/sitemap.xml)
+- [文章 RSS]({{ site.url }}/feed.xml)
+
+## 文章
+{% for a in collections.articles %}
+- [{{ a.data.title }}]({{ site.url }}{{ a.url }})（{{ a.date | isoDate }}，{{ a.data.kind }}）：{{ a.data.summary }}
+{%- else %}
+- 文章整理中，列表頁：{{ site.url }}/articles/
+{%- endfor %}
+
+## 教學分享
+{% for l in collections.teaching %}
+- [{{ l.data.title }}]({{ site.url }}{{ l.url }})（{{ l.data.audience }}）：{{ l.data.summary }}
+{%- else %}
+- 教案整理中，列表頁：{{ site.url }}/teaching/
+{%- endfor %}
+
+## 學術著作
+{% for p in collections.papers %}
+- [{{ p.data.title }}]({{ site.url }}{{ p.url }})：{{ p.data.authors }}（{{ p.data.year }}）. {{ p.data.venue }}.{% if p.data.doi %} https://doi.org/{{ p.data.doi }}{% endif %}
+{%- endfor %}
+
+## AI 遊戲（可直接在瀏覽器玩）
+{% for g in collections.games %}
+- [{{ g.data.title }}]({{ site.url }}{{ g.url }})（{{ g.data.category }}）：{{ g.data.description }}
+{%- endfor %}

@@ -1,0 +1,11 @@
+# 自動檢查套件與 GitHub Actions 的安全更新，有問題會開 PR 通知
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

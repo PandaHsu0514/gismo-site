@@ -1,0 +1,61 @@
+{#- SEO 與 GEO（給 AI 搜尋引擎）用的 meta 與結構化資料 -#}
+{%- set segs = page.url.split("/") -%}
+{%- set section = segs[1] -%}
+{%- set isDetail = segs.length > 3 -%}
+{%- set isHome = page.url == "/" -%}
+{%- set canonical = site.url + page.url -%}
+{%- set pageTitle = site.homeTitle if isHome else ((title + "｜" + site.name) if title else site.name) -%}
+{%- set desc = summary or description or (abstract | truncate(150)) or site.description -%}
+{%- set ogImage = (site.url + cover) if cover else (site.url + "/assets/og-default.png") -%}
+{%- set sectionNames = { articles: "文章", teaching: "教學分享", works: "AI 小作品", games: "AI 遊戲", papers: "學術著作" } -%}
+{%- set personId = site.url + "/#person" -%}
+{%- set person = { "@type": "Person", "@id": personId, "name": site.person.name, "alternateName": site.person.alternateName, "url": site.url + "/about/", "jobTitle": site.person.jobTitle, "description": site.bio, "knowsAbout": site.person.knowsAbout, "email": "mailto:" + site.email, "sameAs": ["https://orcid.org/0009-0002-4869-3865", "https://github.com/s94215508"] } -%}
+  <title>{{ pageTitle }}</title>
+  <meta name="description" content="{{ desc }}">
+  <meta name="author" content="{{ site.person.name }}">
+  <link rel="canonical" href="{{ canonical }}">
+  <meta name="robots" content="{{ 'noindex' if noindex else 'index, follow, max-image-preview:large' }}">
+  <meta property="og:site_name" content="{{ site.name }}">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:type" content="{{ 'article' if (section == 'articles' and isDetail) else 'website' }}">
+  <meta property="og:title" content="{{ title or site.homeTitle }}">
+  <meta property="og:description" content="{{ desc }}">
+  <meta property="og:url" content="{{ canonical }}">
+  <meta property="og:image" content="{{ ogImage }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {%- if section == "articles" and isDetail %}
+  <meta property="article:published_time" content="{{ page.date | isoDate }}">
+  <meta property="article:author" content="{{ site.url }}/about/">
+  {%- endif %}
+  <link rel="alternate" type="application/atom+xml" title="{{ site.name }}・文章" href="/feed.xml">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <meta name="theme-color" content="#f5efe3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1b1815" media="(prefers-color-scheme: dark)">
+{#- 結構化資料（schema.org JSON-LD），讓 Google 與 AI 搜尋清楚知道「這頁是什麼、誰寫的」 -#}
+{%- set graph = [] -%}
+{%- if isHome -%}
+  {%- set graph = [{ "@type": "WebSite", "@id": site.url + "/#website", "url": site.url + "/", "name": site.name, "description": site.description, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "publisher": { "@id": personId } }, person] -%}
+{%- elif section == "about" -%}
+  {%- set graph = [{ "@type": "ProfilePage", "url": canonical, "name": pageTitle, "inLanguage": "zh-Hant-TW", "mainEntity": { "@id": personId } }, person] -%}
+{%- elif isDetail -%}
+  {%- set crumbs = { "@type": "BreadcrumbList", "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": site.name, "item": site.url + "/" },
+      { "@type": "ListItem", "position": 2, "name": sectionNames[section], "item": site.url + "/" + section + "/" },
+      { "@type": "ListItem", "position": 3, "name": title, "item": canonical } ] } -%}
+  {%- if section == "articles" -%}
+    {%- set main = { "@type": "BlogPosting", "headline": title, "description": desc, "url": canonical, "mainEntityOfPage": canonical, "datePublished": page.date | isoDate, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "publisher": { "@id": personId }, "image": ogImage, "isBasedOn": sourceUrl or undefined, "genre": kind } -%}
+  {%- elif section == "papers" -%}
+    {%- set main = { "@type": "ScholarlyArticle", "headline": title, "name": title, "author": authors | authorList, "datePublished": year | string, "isPartOf": { "@type": "Periodical", "name": venue | journalName }, "sameAs": ("https://doi.org/" + doi) if doi else undefined, "identifier": doi or undefined, "abstract": abstract or undefined, "url": canonical, "inLanguage": "en" } -%}
+  {%- elif section == "games" -%}
+    {%- set main = { "@type": "VideoGame", "name": title, "description": desc, "url": canonical, "genre": category, "gamePlatform": "Web browser", "applicationCategory": "Game", "operatingSystem": "Any", "playMode": "SinglePlayer", "isAccessibleForFree": true, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" } } -%}
+  {%- elif section == "teaching" -%}
+    {%- set main = { "@type": "LearningResource", "name": title, "description": desc, "url": canonical, "educationalLevel": audience, "timeRequired": duration or undefined, "datePublished": page.date | isoDate, "inLanguage": "zh-Hant-TW", "author": { "@id": personId }, "isAccessibleForFree": true } -%}
+  {%- else -%}
+    {%- set main = { "@type": "CreativeWork", "name": title, "description": desc, "url": canonical, "author": { "@id": personId } } -%}
+  {%- endif -%}
+  {%- set graph = [main, crumbs, person] -%}
+{%- else -%}
+  {%- set graph = [{ "@type": "CollectionPage", "name": pageTitle, "description": desc, "url": canonical, "inLanguage": "zh-Hant-TW", "isPartOf": { "@id": site.url + "/#website" }, "author": { "@id": personId } }, person] -%}
+{%- endif %}
+  <script type="application/ld+json">{{ { "@context": "https://schema.org", "@graph": graph } | jsonld | safe }}</script>

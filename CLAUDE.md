@@ -23,3 +23,9 @@
 - 使用者目前沒在用 @gismo.com.tw 信箱，正在考慮要不要用
 - Claude Code 的自動模式不允許代改 DNS；需要改時請使用者自己在 GoDaddy 操作，再幫忙用 dig 驗證
 - 網域自動續約是關閉的，2027-02-23 到期
+
+## SEO／GEO／安全
+- 每頁的 title、description、canonical、Open Graph、schema.org JSON-LD 都在 `src/_includes/seo.njk` 自動產生（依網址判斷是文章、論文、遊戲或教案）；新內容只要 front matter 有 title 和 summary／description 就好
+- 給 AI 搜尋（GEO）：`/llms.txt`（自動列出全站內容）、`robots.txt` 明確允許 GPTBot、ClaudeBot、PerplexityBot 等
+- `/sitemap.xml`、`/feed.xml`（文章 Atom）自動產生；front matter 加 `noindex: true` 可排除
+- 安全：`base.njk` 有 CSP meta（GitHub Pages 不能自訂 header）；要嵌入新的外部服務（例如 YouTube 以外的影片）得改 CSP；`/play/` 遊戲頁 noindex；Dependabot 每週檢查套件

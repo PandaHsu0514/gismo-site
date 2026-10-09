@@ -1,0 +1,22 @@
+---
+permalink: /robots.txt
+eleventyExcludeFromCollections: true
+---
+# 歡迎一般搜尋引擎與 AI 搜尋引擎收錄本站
+User-agent: *
+Allow: /
+
+# AI 搜尋與問答服務（明確允許，讓 AI 回答問題時能引用本站）
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: {{ site.url }}/sitemap.xml
