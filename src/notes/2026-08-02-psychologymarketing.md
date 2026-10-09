@@ -15,7 +15,8 @@
   "消費者說服",
   "廣告可信度"
  ],
- "card": "/files/notes/2026-08-02-psychologymarketing.jpg"
+ "card": "/files/notes/2026-08-02-psychologymarketing.jpg",
+ "category": "行銷"
 }
 ---
 

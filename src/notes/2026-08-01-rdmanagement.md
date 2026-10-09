@@ -15,7 +15,8 @@
   "GenAI × R&D",
   "AI 素養"
  ],
- "card": "/files/notes/2026-08-01-rdmanagement.jpg"
+ "card": "/files/notes/2026-08-01-rdmanagement.jpg",
+ "category": "管理"
 }
 ---
 

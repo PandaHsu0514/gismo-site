@@ -31,6 +31,12 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter("uniq", (items, key) => [...new Set(items.map((i) => i.data[key]).filter(Boolean))]);
   eleventyConfig.addFilter("first", (items, n) => items.slice(0, n));
   eleventyConfig.addFilter("navActive", (item, url) => [item.url, ...(item.also || [])].some((u) => url.startsWith(u)));
+  // 文獻筆記各分類的篇數，依篇數多到少
+  eleventyConfig.addFilter("catCounts", (items) => {
+    const c = {};
+    items.forEach((i) => i.data.category && (c[i.data.category] = (c[i.data.category] || 0) + 1));
+    return Object.entries(c).sort((a, b) => b[1] - a[1]);
+  });
   eleventyConfig.addFilter("pluck", (items, key) => items.map((i) => i[key]));
   // 所有文章類集合的主題標籤，依出現次數排序
   eleventyConfig.addFilter("tagCounts", (items, key) => {

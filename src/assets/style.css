@@ -322,3 +322,6 @@ main > .grid, main > .papers { padding-bottom: 64px; }
 .tag.draft { background: var(--text); color: var(--bg); }
 .draft-banner { background: #fff3cd; color: #6b4e00; border: 1px solid #e6c766; border-radius: 8px; padding: 10px 14px; font-size: 14px; }
 .video.vertical { aspect-ratio: 9 / 16; max-width: 360px; margin-left: auto; margin-right: auto; }
+.paged .over { display: none; }
+.more-wrap { text-align: center; padding-bottom: 48px; }
+.reading h1.en-title { font-family: "Noto Serif TC", Georgia, serif; font-size: clamp(24px, 3.4vw, 32px); font-weight: 600; }

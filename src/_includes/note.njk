@@ -5,15 +5,16 @@ layout: base.njk
   <p class="crumb"><a href="/notes/">← 文獻筆記</a></p>
   <header class="reading-head">
     <p class="kind">文獻筆記・<time datetime="{{ page.date | isoDate }}">{{ page.date | ymd }}</time></p>
-    <h1>{{ title }}</h1>
+    <h1{% if title == paperTitle %} lang="en" class="en-title"{% endif %}>{{ title }}</h1>
     {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
   </header>
   <dl class="paper-box">
-    <dt>論文</dt><dd lang="en">{{ paperTitle }}</dd>
+    {% if paperTitle != title %}<dt>論文</dt><dd lang="en">{{ paperTitle }}</dd>{% endif %}
     <dt>作者</dt><dd>{{ authors }}{% if year %}（{{ year }}）{% endif %}</dd>
     <dt>期刊</dt><dd>{{ journal }}</dd>
     {% if doi %}<dt>DOI</dt><dd><a href="https://doi.org/{{ doi }}" target="_blank" rel="noopener">{{ doi }}</a></dd>{% endif %}
-    {% if topicTags %}<dt>主題</dt><dd>{% for t in topicTags %}<span class="tag">{{ t }}</span> {% endfor %}</dd>{% endif %}
+    {% if preprint %}<dt>全文</dt><dd><a href="{{ preprint }}" target="_blank" rel="noopener">{{ preprint }}</a></dd>{% endif %}
+    {% if category %}<dt>分類</dt><dd><a class="tag" href="/notes/">{{ category }}</a>{% for t in topicTags %} <span class="tag">{{ t }}</span>{% endfor %}</dd>{% endif %}
   </dl>
   {% if card %}
   <figure class="study-card">

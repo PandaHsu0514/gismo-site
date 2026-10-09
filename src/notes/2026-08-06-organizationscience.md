@@ -15,7 +15,8 @@
   "AI × 創新機制",
   "跨職能團隊"
  ],
- "card": "/files/notes/2026-08-06-organizationscience.jpg"
+ "card": "/files/notes/2026-08-06-organizationscience.jpg",
+ "category": "管理"
 }
 ---
 

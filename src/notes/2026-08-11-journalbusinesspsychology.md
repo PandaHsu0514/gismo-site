@@ -15,7 +15,8 @@
   "組織創新",
   "認知偏誤"
  ],
- "card": "/files/notes/2026-08-11-journalbusinesspsychology.jpg"
+ "card": "/files/notes/2026-08-11-journalbusinesspsychology.jpg",
+ "category": "管理"
 }
 ---
 

@@ -32,7 +32,7 @@
 
 ## 內容來源與規則
 - 晚安故事：來源 `~/Library/Application Support/BedtimeVideo/`，只放完整版、不放樣本；「雲杉林裡小貘的靜靜風箏」「星霧果園裡小鸚鵡的晚安果籃」使用者認為品質不好，不要放；影片一律上傳 YouTube 再填 `youtube` 欄位，不把 MP4 放進網站
-- 文獻筆記：來源 `~/Documents/每日文獻閱讀/文獻讀書報告/`，使用者同意全部公開；匯入時去掉內部作業說明，「你」改成第一人稱
+- 文獻筆記：來源 `~/Documents/每日文獻閱讀/文獻讀書報告/`，以及 Google Drive（panda@esad.cc）`我的雲端硬碟/workspace/journal-reading-reports`、`journal-reading-reports 1`（本機路徑 `~/Library/CloudStorage/GoogleDrive-panda@esad.cc/`）。使用者同意全部公開；同一篇論文只留最完整的一份；不放使用者自己論文的筆記；匯入時去掉內部作業說明（選題理由、PDF 路徑等），「你」改成第一人稱；每篇要有中文標題（`title`），英文原題放 `paperTitle`；`category` 用 教育／管理／行銷／觀光／AI 應用／研究方法／理論
 - 勇博開講的財經報告（來源 `~/.openclaw/workspace/finance-learning-reports/`）要使用者看過才發布：一律先用 `draft: true` 匯入
 - AdSense 尚未申請；兒童內容（晚安故事）不放廣告
 - gismo.com.tw 只做個人網站。使用者的 AI token 銷售業務會另外用別的網域經營，不要把販售 token、API 額度的內容放進這個網站

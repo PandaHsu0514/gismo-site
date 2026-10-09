@@ -15,7 +15,8 @@
   "消費者信任",
   "身分揭露"
  ],
- "card": "/files/notes/2026-08-03-journalmarketingcommunications.jpg"
+ "card": "/files/notes/2026-08-03-journalmarketingcommunications.jpg",
+ "category": "行銷"
 }
 ---
 

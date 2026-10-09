@@ -15,7 +15,8 @@
   "資訊系統研究方法",
   "文獻回顧與理論建構"
  ],
- "card": "/files/notes/2026-08-01-electronicmarkets.jpg"
+ "card": "/files/notes/2026-08-01-electronicmarkets.jpg",
+ "category": "研究方法"
 }
 ---
 

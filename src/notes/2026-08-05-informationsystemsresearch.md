@@ -15,7 +15,8 @@
   "創新機制",
   "共同創意"
  ],
- "card": "/files/notes/2026-08-05-informationsystemsresearch.jpg"
+ "card": "/files/notes/2026-08-05-informationsystemsresearch.jpg",
+ "category": "AI 應用"
 }
 ---
 

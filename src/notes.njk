@@ -1,23 +1,42 @@
 ---
 layout: base.njk
 title: 文獻筆記
-description: 每天讀一篇學術論文，整理成 12 段式長摘要與一張讀書帳圖卡，主題聚焦生成式 AI、人機共創、創意與學習。
+description: 每天讀一篇學術論文，整理成 12 段式長摘要與讀書帳圖卡。主題涵蓋生成式 AI、人機協作、管理、教育、行銷與觀光。
 permalink: /notes/
 ---
-{% import "cards.njk" as c %}
+{%- set cats = collections.notes | catCounts %}
 <section class="page-head">
   <h1>文獻筆記</h1>
-  <p class="lead">每天讀一篇論文，整理成重點摘要和一張讀書帳。共 {{ collections.notes.length }} 篇，主題多在生成式 AI、人機共創、創意與學習。<a href="/papers/">我自己的學術著作 →</a></p>
+  <p class="lead">每天讀一篇論文，整理成重點摘要和一張讀書帳。目前共 {{ collections.notes.length }} 篇，多半圍繞生成式 AI 如何改變工作、學習與消費。<a href="/papers/">我自己的學術著作 →</a></p>
+  <div class="filters" data-filter-group="noteList">
+    <button type="button" data-value="" aria-pressed="true">全部 {{ collections.notes.length }}</button>
+    {%- for c in cats %}<button type="button" data-value="{{ c[0] }}" aria-pressed="false">{{ c[0] }} {{ c[1] }}</button>{% endfor %}
+  </div>
 </section>
-<ol class="entries list-page">
+<ol class="entries list-page paged" id="noteList">
   {%- for n in collections.notes %}
-  <li class="entry">
+  <li class="entry" data-tag="{{ n.data.category }}">
     <time datetime="{{ n.date | isoDate }}">{{ n.date | ymd }}</time>
     <div>
-      <p class="kind">{{ n.data.journal | journalName | truncate(40) }}</p>
+      <p class="kind">{{ n.data.category }}・{{ n.data.journal | journalName | truncate(48) }}</p>
       <h3><a href="{{ n.url }}">{{ n.data.title }}</a></h3>
       <p class="summary">{{ n.data.summary }}</p>
     </div>
   </li>
   {%- endfor %}
 </ol>
+<p class="list-page more-wrap"><button type="button" class="btn ghost" id="more">顯示更多</button></p>
+<script>
+  // 一次先顯示 20 篇；篩選時重新計算
+  (function () {
+    var list = document.getElementById("noteList"), more = document.getElementById("more"), shown = 20;
+    function apply() {
+      var vis = [].filter.call(list.children, function (li) { return !li.hidden; }), k = 0;
+      vis.forEach(function (li) { li.classList.toggle("over", ++k > shown); });
+      more.parentNode.hidden = vis.length <= shown;
+    }
+    more.onclick = function () { shown += 30; apply(); };
+    document.querySelector("[data-filter-group=noteList]").addEventListener("click", function () { shown = 20; setTimeout(apply, 0); });
+    apply();
+  })();
+</script>

@@ -15,7 +15,8 @@
   "AI × 任務績效",
   "工作設計"
  ],
- "card": "/files/notes/2026-08-15-scientificreports.jpg"
+ "card": "/files/notes/2026-08-15-scientificreports.jpg",
+ "category": "AI 應用"
 }
 ---
 

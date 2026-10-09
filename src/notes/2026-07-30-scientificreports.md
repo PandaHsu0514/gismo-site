@@ -15,7 +15,8 @@
   "AI × 創新",
   "創造力"
  ],
- "card": "/files/notes/2026-07-30-scientificreports.jpg"
+ "card": "/files/notes/2026-07-30-scientificreports.jpg",
+ "category": "AI 應用"
 }
 ---
 
