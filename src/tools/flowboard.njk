@@ -1,0 +1,40 @@
+---
+layout: base.njk
+title: 流程繪板
+description: 免安裝的網頁版流程圖編輯器。方框、判斷菱形、輸入輸出、文件、箭頭與線條都有，拖曳就能連線，可自動排版並匯出 PNG、SVG、JSON。
+permalink: /tools/flowboard/
+icon: "🔀"
+order: 2
+toolTags: [繪圖, 免費]
+---
+<article class="detail wide">
+  <p class="crumb"><a href="/tools/">← AI 小工具</a></p>
+  <header class="reading-head">
+    <h1>流程繪板</h1>
+    <p class="lead">在瀏覽器裡畫流程圖。拖曳圖形邊上的小圓點就能拉出箭頭，雙擊可以改文字，畫完匯出成 PNG 或 SVG 放進簡報、報告。</p>
+  </header>
+
+  <div class="app-frame"><iframe src="/apps/flowboard/" title="流程繪板"></iframe></div>
+  <p><a href="/apps/flowboard/" target="_blank" rel="noopener">全螢幕開啟 ↗</a>　手機上建議用全螢幕開啟。</p>
+
+  <section class="prose">
+    <h2>怎麼畫</h2>
+    <ol>
+      <li>左側選一種圖形，在畫布上點一下，或拖曳決定大小。</li>
+      <li>滑到圖形上，拖曳邊緣的小圓點連到另一個圖形，就會產生箭頭；移動圖形時箭頭會跟著走。</li>
+      <li>雙擊圖形或箭頭輸入文字，按 Enter 完成（Shift＋Enter 換行）。</li>
+      <li>選取後可以在右側換顏色、形狀、字級，箭頭可以改成直線或虛線、單向或雙向。</li>
+      <li>圖畫亂了，按上方「自動排版」會依箭頭方向由上而下排整齊。</li>
+    </ol>
+    <h2>圖形代表什麼</h2>
+    <ul>
+      <li><strong>圓角框</strong>：開始、結束</li>
+      <li><strong>方框</strong>：一個處理步驟</li>
+      <li><strong>菱形</strong>：判斷，通常會分出「是／否」兩條路</li>
+      <li><strong>平行四邊形</strong>：輸入或輸出資料</li>
+      <li><strong>波浪底框</strong>：文件、報表</li>
+    </ul>
+    <h2>資料存在哪裡</h2>
+    <p>畫的內容只存在你自己的瀏覽器，不會上傳到任何伺服器。換電腦或清除瀏覽資料前，記得用「匯出 / 匯入」存成 JSON 檔，之後可以再匯入繼續編輯。</p>
+  </section>
+</article>

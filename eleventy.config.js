@@ -8,6 +8,9 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/assets");
   eleventyConfig.addPassthroughCopy("src/files");
   eleventyConfig.addPassthroughCopy("src/play");
+  // 全螢幕的小工具本體（介紹頁在 src/tools/）
+  eleventyConfig.addPassthroughCopy("src/apps");
+  eleventyConfig.ignores.add("src/apps/**");
   eleventyConfig.addPassthroughCopy("src/CNAME");
   eleventyConfig.addPassthroughCopy({ "src/well-known": ".well-known" });
 
