@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="robots" content="noindex">
-<meta name="description" content="免安裝的網頁版 Markdown 閱讀器：拖曳或貼上就能閱讀，自動目錄、表格、程式碼上色、數學公式、待辦清單，可邊寫邊看並匯出 HTML、PDF。">
+<meta name="description" content="免安裝的網頁版 Markdown 閱讀器：拖曳或貼上就能閱讀，自動目錄、表格、程式碼上色、數學公式、流程圖、待辦清單，可邊寫邊看並匯出 HTML、PDF。">
 <link rel="icon" href="/assets/favicon.svg">
 <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <title>Markdown 閱讀器｜勇博講古</title>
@@ -158,6 +158,11 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
 .md td+td,.md th+th{border-left:1px solid var(--line)}
 .md details{border:1px solid var(--line);border-radius:10px;padding:.5em 1em}
 .md summary{cursor:pointer;color:var(--muted)}
+.md .diagram{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0 0 1.1em}
+.md .diagram-body{padding:20px 16px;overflow:auto;text-align:center;background:var(--paper);line-height:1.4}
+.md .diagram-body svg{max-width:100%;height:auto}
+.md .diagram-body.wait{color:var(--muted);font-size:.85em}
+.md .diagram-error{text-align:left;color:var(--accent);font-size:.82em;white-space:pre-wrap;font-family:var(--font-mono)}
 .md .math-block{margin:0 0 1.1em;overflow-x:auto;overflow-y:hidden;padding:.3em 0;text-align:center}
 .md .math-inline .katex{font-size:1.05em}
 .md .katex-error{color:var(--accent)}
@@ -467,6 +472,12 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
       var d = document.createElement("div"); d.className = "math-block"; d.dataset.tex = code.textContent.trim();
       code.parentNode.replaceWith(d);
     });
+    // ```mermaid 區塊 → 流程圖
+    out.querySelectorAll("pre > code.language-mermaid").forEach(function (code) {
+      var d = document.createElement("div"); d.className = "diagram"; d.dataset.mmd = code.textContent.trim();
+      d.innerHTML = '<div class="codehead"><span>圖表</span><span><button type="button" data-svg>下載 SVG</button><button type="button" data-copy>複製原始碼</button></span></div><div class="diagram-body wait">繪製中…</div>';
+      code.parentNode.replaceWith(d);
+    });
     out.querySelectorAll("a[href]").forEach(function (a) {
       if (/^(https?:|mailto:)/i.test(a.getAttribute("href"))) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
     });
@@ -502,9 +513,62 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
       });
       else wait.push(loadLib("katex", "vendor/katex/katex.min.js", "vendor/katex/katex.min.css"));
     }
-    if (wait.length) Promise.all(wait).then(function () { if (window.hljs) hljs.configure({ ignoreUnescapedHTML: true }); render(); }, function () { toast("程式碼上色或公式元件載入失敗，請檢查網路後重新整理"); });
+    var diagrams = out.querySelectorAll("[data-mmd]");
+    if (diagrams.length) {
+      if (window.mermaid) drawDiagrams(diagrams);
+      else wait.push(loadLib("mermaid", "vendor/mermaid.min.js"));
+    }
+    if (wait.length) Promise.all(wait).then(function () { if (window.hljs) hljs.configure({ ignoreUnescapedHTML: true }); render(); }, function () { toast("程式碼上色、公式或流程圖元件載入失敗，請檢查網路後重新整理"); });
     renderToc(); updateStats(); spy(); progress();
   }
+
+  // ---------- 流程圖（mermaid） ----------
+  // 配色跟著網站的深淺色；畫好的圖依「配色＋原始碼」快取，編輯時沒改到的圖不會重畫閃爍
+  var mmdTheme = "", mmdCache = new Map(), mmdSeq = 0;
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function setupMermaid() {
+    var v = { paper: cssVar("--paper"), ink: cssVar("--ink"), accent: cssVar("--accent"), soft: cssVar("--accent-soft"), line: cssVar("--line"), panel: cssVar("--panel"), muted: cssVar("--muted") };
+    var key = JSON.stringify(v);
+    if (key === mmdTheme) return;
+    mmdTheme = key;
+    var cfg = {
+      startOnLoad: false, securityLevel: "strict", suppressErrorRendering: true, theme: "base",
+      themeVariables: {
+        fontFamily: cssVar("--font-ui"), fontSize: "15px", background: v.paper,
+        primaryColor: v.soft, primaryBorderColor: v.accent, primaryTextColor: v.ink,
+        secondaryColor: v.panel, secondaryBorderColor: v.muted, secondaryTextColor: v.ink,
+        tertiaryColor: v.paper, tertiaryBorderColor: v.line, tertiaryTextColor: v.ink,
+        lineColor: v.muted, textColor: v.ink, mainBkg: v.soft, nodeBorder: v.accent,
+        clusterBkg: v.panel, clusterBorder: v.line, edgeLabelBackground: v.paper, titleColor: v.ink,
+        actorBkg: v.soft, actorBorder: v.accent, actorTextColor: v.ink, signalColor: v.ink, signalTextColor: v.ink,
+        noteBkgColor: v.panel, noteBorderColor: v.line, noteTextColor: v.ink,
+        pieStrokeColor: v.paper, pieOuterStrokeColor: v.line, pieSectionTextColor: v.paper, pieTitleTextColor: v.ink, pieLegendTextColor: v.ink
+      }
+    };
+    // 圓餅圖等需要多種顏色時，沿用程式碼上色那組（深淺色各有一組）
+    ["--accent", "--hl-string", "--hl-number", "--hl-title", "--hl-attr", "--hl-builtin", "--muted", "--hl-keyword"].forEach(function (n, i) {
+      cfg.themeVariables["pie" + (i + 1)] = cfg.themeVariables["cScale" + i] = cssVar(n);
+    });
+    mermaid.initialize(cfg);
+  }
+  function drawDiagrams(list) {
+    setupMermaid();
+    list.forEach(function (el) {
+      var body = el.querySelector(".diagram-body"), key = mmdTheme + "\n" + el.dataset.mmd, hit = mmdCache.get(key);
+      if (hit) { body.className = "diagram-body"; body.innerHTML = hit; return; }
+      var id = "mmd-" + (++mmdSeq);
+      mermaid.render(id, el.dataset.mmd).then(function (r) {
+        if (mmdCache.size > 60) mmdCache.clear();
+        mmdCache.set(key, r.svg);
+        if (body.isConnected) { body.className = "diagram-body"; body.innerHTML = r.svg; }
+      }, function (err) {
+        var junk = document.getElementById("d" + id); if (junk) junk.remove();
+        if (body.isConnected) { body.className = "diagram-body diagram-error"; body.textContent = "圖表語法有誤：" + String((err && err.message) || err).split("\n").slice(0, 6).join("\n"); }
+      });
+    });
+  }
+  function themeChanged() { if (cur && window.mermaid && out.querySelector("[data-mmd]")) render(); }
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeChanged); } catch (e) {}
 
   // ---------- 目錄與閱讀進度 ----------
   var heads = [];
@@ -613,7 +677,7 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
   }
   async function exportHTML() {
     var clone = out.cloneNode(true);
-    clone.querySelectorAll(".codehead button").forEach(function (b) { b.remove(); });
+    clone.querySelectorAll(".codehead button,.codehead span:empty").forEach(function (b) { b.remove(); });
     var imgs = Array.from(clone.querySelectorAll('img[src^="blob:"]'));
     for (var i = 0; i < imgs.length; i++) { try { imgs[i].src = await blobToDataURL(imgs[i].src); } catch (e) {} }
     var css = document.querySelector("style").textContent;
@@ -648,6 +712,10 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
     "| 功能 | 快捷鍵 | 說明 |", "| --- | :---: | --- |", "| 開啟檔案 | ⌘ O | 可多選 |", "| 切換編輯 | ⌘ E | 左邊原文、右邊預覽 |", "| 列印／PDF | ⌘ P | 只會印出文章本身 |", "",
     "## 程式碼", "",
     "```python", "def greet(name):", "    return f\"哈囉，{name}！\"", "", "print(greet(\"勇博\"))", "```", "",
+    "## 流程圖", "",
+    "用 mermaid 語法寫流程圖，程式碼區塊標上 `mermaid` 就會畫出來：", "",
+    "```mermaid", "flowchart LR", "  A[開啟 .md 檔] --> B{有流程圖嗎？}", "  B -- 有 --> C[自動畫出來]", "  B -- 沒有 --> D[照常閱讀]", "  C --> E[下載 SVG 放進簡報]", "```", "",
+    "也支援時序圖、甘特圖、圓餅圖、心智圖等，語法請參考 [mermaid 官網](https://mermaid.js.org/)。", "",
     "## 數學公式", "",
     "行內公式用一個錢字號：圓面積 $A = \\pi r^2$，迴歸式 $y_i = \\beta_0 + \\beta_1 x_i + \\varepsilon_i$。", "",
     "獨立一行用兩個錢字號：", "",
@@ -682,6 +750,7 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
       if (seg.dataset.pref === "theme") {
         if (b.dataset.v) document.documentElement.dataset.theme = b.dataset.v; else delete document.documentElement.dataset.theme;
         try { b.dataset.v ? localStorage.setItem("theme", b.dataset.v) : localStorage.removeItem("theme"); } catch (err) {}
+        applyPrefs(); return themeChanged();
       } else { prefs[seg.dataset.pref] = b.dataset.v; savePrefs(); }
       applyPrefs();
     });
@@ -720,10 +789,16 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
 
   // 文章內的點擊：複製程式碼、站內錨點、連到其他已開啟的 .md
   out.addEventListener("click", function (e) {
+    var svgBtn = e.target.closest("[data-svg]");
+    if (svgBtn) {
+      var svg = svgBtn.closest(".diagram").querySelector("svg");
+      if (!svg) return toast("圖表還沒畫好");
+      return download(stem() + "-圖表.svg", new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" }));
+    }
     var copy = e.target.closest("[data-copy]");
     if (copy) {
-      var code = copy.closest(".codeblock").querySelector("code");
-      navigator.clipboard.writeText(code.textContent).then(function () { copy.textContent = "已複製 ✓"; setTimeout(function () { copy.textContent = "複製"; }, 1500); });
+      var dg = copy.closest(".diagram");
+      navigator.clipboard.writeText(dg ? dg.dataset.mmd : copy.closest(".codeblock").querySelector("code").textContent).then(function () { var was = copy.dataset.label || (copy.dataset.label = copy.textContent); copy.textContent = "已複製 ✓"; setTimeout(function () { copy.textContent = was; }, 1500); });
       return;
     }
     var a = e.target.closest("a[href]"); if (!a) return;
