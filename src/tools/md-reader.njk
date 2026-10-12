@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: Markdown 閱讀器
-description: 免安裝的網頁版 Markdown 閱讀器。拖曳或貼上就能閱讀，自動產生目錄，支援表格、程式碼、待辦清單，可以邊寫邊看，匯出 HTML 或存成 PDF。
+description: 免安裝的網頁版 Markdown 閱讀器。拖曳或貼上就能閱讀，自動產生目錄，支援表格、程式碼上色、數學公式、待辦清單，可以邊寫邊看，匯出 HTML 或存成 PDF。
 permalink: /tools/md-reader/
 icon: "📖"
 order: 3
@@ -29,6 +29,10 @@ toolTags: [閱讀, 寫作, 免費]
     </ol>
     <h2>支援的語法</h2>
     <p>標題、粗體斜體、清單、引用、連結、圖片、表格、程式碼區塊、待辦清單（<code>- [ ]</code>）、刪除線，以及檔案開頭的 YAML front matter（會整理成「文件資訊」表格）。</p>
+    <ul>
+      <li><strong>程式碼上色</strong>：程式碼區塊標上語言（例如 <code>```python</code>）就會自動上色，支援 Python、R、JavaScript、SQL、Bash 等三十多種常見語言。</li>
+      <li><strong>數學公式</strong>：用 LaTeX 寫法，行內公式包在 <code>$…$</code>，獨立一行用 <code>$$…$$</code>，也支援 <code>\(…\)</code>、<code>\[…\]</code> 和 GitHub 的 <code>```math</code> 區塊。寫成「$5 到 $10」的價格不會被誤認成公式。</li>
+    </ul>
     <h2>資料存在哪裡</h2>
     <p>開啟的文件只存在你自己的瀏覽器，不會上傳到任何伺服器，下次打開會停在上次讀的文件。換電腦或清除瀏覽資料前，記得用「下載 Markdown」備份編輯過的內容。</p>
   </section>

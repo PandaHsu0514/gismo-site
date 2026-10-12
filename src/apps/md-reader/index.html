@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="robots" content="noindex">
-<meta name="description" content="免安裝的網頁版 Markdown 閱讀器：拖曳或貼上就能閱讀，自動目錄、表格、程式碼、待辦清單，可邊寫邊看並匯出 HTML、PDF。">
+<meta name="description" content="免安裝的網頁版 Markdown 閱讀器：拖曳或貼上就能閱讀，自動目錄、表格、程式碼上色、數學公式、待辦清單，可邊寫邊看並匯出 HTML、PDF。">
 <link rel="icon" href="/assets/favicon.svg">
 <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <title>Markdown 閱讀器｜勇博講古</title>
@@ -17,6 +17,7 @@
 :root{
   --bg:#f5efe3; --paper:#fbf7ef; --panel:#f8f3e9; --line:#e2d7c3; --ink:#2b2520; --muted:#776b5d;
   --accent:#b23a26; --accent-soft:#f3dfd6; --code-bg:#f1e9da; --mark:#f6e3a6; --seal-text:#fbf3e8;
+  --hl-comment:#8c7f70; --hl-keyword:#a3341f; --hl-string:#3f6b5c; --hl-number:#9a5b13; --hl-title:#2f5d8a; --hl-attr:#7a4f9a; --hl-builtin:#8a4b2a;
   --font-display:"Noto Serif TC","Songti TC",serif;
   --font-ui:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -24,10 +25,12 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#1b1815; --paper:#211d19; --panel:#24201c; --line:#3a332c; --ink:#ece3d4; --muted:#a69888;
-  --accent:#e0775f; --accent-soft:#3a2520; --code-bg:#2b2621; --mark:#5a4a1e; --seal-text:#1b1815; color-scheme:dark}}
+  --accent:#e0775f; --accent-soft:#3a2520; --code-bg:#2b2621; --mark:#5a4a1e; --seal-text:#1b1815;
+  --hl-comment:#8f8272; --hl-keyword:#ec8a72; --hl-string:#8cc0aa; --hl-number:#d9a35b; --hl-title:#8db3dd; --hl-attr:#c2a0d6; --hl-builtin:#dfb48a; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#1b1815; --paper:#211d19; --panel:#24201c; --line:#3a332c; --ink:#ece3d4; --muted:#a69888;
-  --accent:#e0775f; --accent-soft:#3a2520; --code-bg:#2b2621; --mark:#5a4a1e; --seal-text:#1b1815; color-scheme:dark}
+  --accent:#e0775f; --accent-soft:#3a2520; --code-bg:#2b2621; --mark:#5a4a1e; --seal-text:#1b1815;
+  --hl-comment:#8f8272; --hl-keyword:#ec8a72; --hl-string:#8cc0aa; --hl-number:#d9a35b; --hl-title:#8db3dd; --hl-attr:#c2a0d6; --hl-builtin:#dfb48a; color-scheme:dark}
 
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -155,6 +158,18 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
 .md td+td,.md th+th{border-left:1px solid var(--line)}
 .md details{border:1px solid var(--line);border-radius:10px;padding:.5em 1em}
 .md summary{cursor:pointer;color:var(--muted)}
+.md .math-block{margin:0 0 1.1em;overflow-x:auto;overflow-y:hidden;padding:.3em 0;text-align:center}
+.md .math-inline .katex{font-size:1.05em}
+.md .katex-error{color:var(--accent)}
+.md .hljs-comment,.md .hljs-quote{color:var(--hl-comment);font-style:italic}
+.md .hljs-keyword,.md .hljs-selector-tag,.md .hljs-meta .hljs-keyword,.md .hljs-doctag,.md .hljs-section{color:var(--hl-keyword)}
+.md .hljs-string,.md .hljs-regexp,.md .hljs-addition,.md .hljs-meta .hljs-string{color:var(--hl-string)}
+.md .hljs-number,.md .hljs-literal,.md .hljs-symbol,.md .hljs-bullet,.md .hljs-variable.constant_{color:var(--hl-number)}
+.md .hljs-title,.md .hljs-title.function_,.md .hljs-title.class_,.md .hljs-name{color:var(--hl-title)}
+.md .hljs-attr,.md .hljs-attribute,.md .hljs-property,.md .hljs-selector-class,.md .hljs-selector-id,.md .hljs-template-variable,.md .hljs-variable{color:var(--hl-attr)}
+.md .hljs-built_in,.md .hljs-type,.md .hljs-params,.md .hljs-meta{color:var(--hl-builtin)}
+.md .hljs-deletion{color:var(--hl-keyword)}
+.md .hljs-emphasis{font-style:italic}.md .hljs-strong{font-weight:700}
 .md .fm{font-size:.82em;background:var(--panel)}
 .md .fm table{margin:.6em 0 .3em}
 .md .fm th{width:1%;color:var(--muted);font-weight:500}
@@ -280,6 +295,43 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
   var images = new Map(); // 跟 .md 一起開啟的圖片：小寫檔名 → blob 網址（不保存）
 
   marked.use({ gfm: true });
+
+  // 數學公式：$…$、\(…\) 是行內，$$…$$、\[…\] 是獨立一行；先留下記號，排版後再交給 KaTeX
+  marked.use({ extensions: [
+    { name: "mathBlock", level: "block",
+      start: function (s) { var i = s.search(/\$\$|\\\[/); return i < 0 ? undefined : i; },
+      tokenizer: function (s) {
+        var m = s.match(/^\$\$([\s\S]+?)\$\$[ \t]*(?:\n|$)/) || s.match(/^\\\[([\s\S]+?)\\\][ \t]*(?:\n|$)/);
+        if (m) return { type: "mathBlock", raw: m[0], text: m[1].trim() };
+      },
+      renderer: function (t) { return '<div class="math-block" data-tex="' + esc(t.text) + '"></div>'; } },
+    { name: "mathInline", level: "inline",
+      start: function (s) { var i = s.search(/\$|\\\(/); return i < 0 ? undefined : i; },
+      // 結尾的 $ 前面不能是空白、後面不能接數字，避免把「$5 到 $10」當成公式
+      tokenizer: function (s) {
+        var m = s.match(/^\$\$([^$]+?)\$\$/) || s.match(/^\$(?!\s)((?:\\.|[^\\$\n])+?)(?<!\s)\$(?!\d)/) || s.match(/^\\\(([\s\S]+?)\\\)/);
+        if (m) return { type: "mathInline", raw: m[0], text: m[1] };
+      },
+      renderer: function (t) { return '<span class="math-inline" data-tex="' + esc(t.text) + '"></span>'; } }
+  ] });
+
+  // 程式碼上色（highlight.js）和公式（KaTeX）用到才載入
+  var libs = {};
+  function loadLib(name, js, css) {
+    if (!libs[name]) libs[name] = new Promise(function (ok, fail) {
+      if (css) { var l = document.createElement("link"); l.rel = "stylesheet"; l.href = css; document.head.appendChild(l); }
+      var s = document.createElement("script"); s.src = js; s.onload = ok;
+      s.onerror = function () { delete libs[name]; fail(); };
+      document.head.appendChild(s);
+    });
+    return libs[name];
+  }
+  // 標題的純文字（公式用原始 TeX 表示），給目錄和錨點用
+  function plain(el) {
+    var c = el.cloneNode(true);
+    c.querySelectorAll("[data-tex]").forEach(function (m) { m.textContent = m.dataset.tex; });
+    return c.textContent.trim();
+  }
 
   // ---------- 小工具 ----------
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -409,7 +461,12 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
     out.innerHTML = html;
 
     var slug = slugger();
-    out.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(function (h) { h.id = slug(h.textContent); });
+    out.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(function (h) { h.dataset.title = plain(h); h.id = slug(h.dataset.title); });
+    // GitHub 的 ```math 區塊也當成公式
+    out.querySelectorAll("pre > code.language-math").forEach(function (code) {
+      var d = document.createElement("div"); d.className = "math-block"; d.dataset.tex = code.textContent.trim();
+      code.parentNode.replaceWith(d);
+    });
     out.querySelectorAll("a[href]").forEach(function (a) {
       if (/^(https?:|mailto:)/i.test(a.getAttribute("href"))) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
     });
@@ -431,6 +488,21 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
       if (t.parentElement.classList.contains("table-wrap")) return;
       var w = document.createElement("div"); w.className = "table-wrap"; t.replaceWith(w); w.appendChild(t);
     });
+    var codes = Array.from(out.querySelectorAll("pre > code[class*=language-]")), maths = out.querySelectorAll("[data-tex]"), wait = [];
+    if (codes.length) {
+      if (window.hljs) codes.forEach(function (c) {
+        var lang = c.className.match(/language-(\S+)/)[1];
+        if (hljs.getLanguage(lang)) hljs.highlightElement(c);
+      });
+      else wait.push(loadLib("hljs", "vendor/highlight.min.js"));
+    }
+    if (maths.length) {
+      if (window.katex) maths.forEach(function (m) {
+        katex.render(m.dataset.tex, m, { displayMode: m.classList.contains("math-block"), throwOnError: false, output: "htmlAndMathml" });
+      });
+      else wait.push(loadLib("katex", "vendor/katex/katex.min.js", "vendor/katex/katex.min.css"));
+    }
+    if (wait.length) Promise.all(wait).then(function () { if (window.hljs) hljs.configure({ ignoreUnescapedHTML: true }); render(); }, function () { toast("程式碼上色或公式元件載入失敗，請檢查網路後重新整理"); });
     renderToc(); updateStats(); spy(); progress();
   }
 
@@ -443,7 +515,7 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
     if (!heads.length) { toc.innerHTML = '<p class="empty-note">這份文件沒有標題（# 開頭的行）。</p>'; return; }
     var top = Math.min.apply(null, heads.map(function (h) { return +h.tagName[1]; }));
     toc.innerHTML = heads.map(function (h) {
-      return '<a href="#' + esc(h.id) + '" class="l' + (+h.tagName[1] - top + 1) + '">' + esc(h.textContent) + "</a>";
+      return '<a href="#' + esc(h.id) + '" class="l' + (+h.tagName[1] - top + 1) + '">' + esc(h.dataset.title) + "</a>";
     }).join("");
   }
   function scrollToId(id) {
@@ -549,6 +621,7 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
     var html = '<!doctype html>\n<html lang="zh-Hant" style="' + esc(vars) + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
       "<title>" + esc(stem()) + "</title>" +
       '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">' +
+      (clone.querySelector(".katex") ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">' : "") +
       "<style>" + css + "body{overflow:auto;height:auto}.paper{padding:48px 20px}</style></head><body><div class=\"paper\"><article class=\"md\">" +
       clone.innerHTML + "</article></div></body></html>";
     download(stem() + ".html", new Blob([html], { type: "text/html;charset=utf-8" }));
@@ -575,6 +648,11 @@ kbd{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border:1px solid
     "| 功能 | 快捷鍵 | 說明 |", "| --- | :---: | --- |", "| 開啟檔案 | ⌘ O | 可多選 |", "| 切換編輯 | ⌘ E | 左邊原文、右邊預覽 |", "| 列印／PDF | ⌘ P | 只會印出文章本身 |", "",
     "## 程式碼", "",
     "```python", "def greet(name):", "    return f\"哈囉，{name}！\"", "", "print(greet(\"勇博\"))", "```", "",
+    "## 數學公式", "",
+    "行內公式用一個錢字號：圓面積 $A = \\pi r^2$，迴歸式 $y_i = \\beta_0 + \\beta_1 x_i + \\varepsilon_i$。", "",
+    "獨立一行用兩個錢字號：", "",
+    "$$", "\\bar{x} = \\frac{1}{n}\\sum_{i=1}^{n} x_i, \\qquad s^2 = \\frac{1}{n-1}\\sum_{i=1}^{n}(x_i-\\bar{x})^2", "$$", "",
+    "價格寫成 $5 到 $10 不會被誤認成公式。", "",
     "## 待辦清單", "",
     "- [x] 開啟一份 Markdown 文件", "- [x] 調整成喜歡的字級", "- [ ] 匯出成 PDF 分享給朋友", "",
     "## 其他", "",
