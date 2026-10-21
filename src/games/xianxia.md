@@ -5,8 +5,8 @@ year: 2026
 order: 28
 play: /play/xianxia/
 icon: "🧘"
-category: 模擬
-gameTags: [模擬, RPG, 手機可玩]
+category: MUD
+gameTags: [MUD, RPG, 手機可玩]
 ---
 按「出生」投胎：出身、性別、名字、資質、靈根都是隨機的。十歲那年，四路人馬同時找上門，你選跟誰走：
 
