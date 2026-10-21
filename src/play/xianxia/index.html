@@ -1,0 +1,1044 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>修仙路上你和我</title>
+  <link rel="stylesheet" href="../kit/kit.css">
+<style>
+  body { display: block; height: auto; min-height: 100%; user-select: text; -webkit-user-select: text; }
+  .wrap { margin: 0 auto; text-align: left; padding: 16px 16px 110px; }
+  h1 { font: 900 clamp(40px, 12vw, 68px)/1.1 "Noto Serif TC", serif; margin: 8px 0 14px; letter-spacing: -.01em; }
+  h1 em { font-style: normal; color: var(--accent); }
+  h2 { font: 800 20px "Noto Serif TC", serif; margin: 0 0 4px; }
+  .tag { color: var(--accent2); font-size: 13px; font-family: ui-monospace, monospace; }
+  .lead { font-size: 17px; line-height: 1.8; margin: 0 0 20px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 0 0 16px; }
+  .panel .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .bars { display: grid; grid-template-columns: minmax(0, 1fr) minmax(70px, 42%) 52px; gap: 8px 10px; align-items: center; font-size: 14px; }
+  .bars .t { height: 8px; border-radius: 4px; background: var(--board); overflow: hidden; }
+  .bars .t i { display: block; height: 100%; background: var(--accent2); }
+  .bars .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .paths div { border-left: 4px solid var(--c); padding: 4px 10px; font-size: 14px; color: var(--muted); }
+  .paths b { color: var(--c); font: 900 18px "Noto Serif TC", serif; margin-right: 4px; }
+  .acts { font-size: 14px; color: var(--muted); margin: 0; padding-left: 20px; line-height: 1.8; }
+  .acts b { color: var(--text); }
+  .past { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  .past li { padding: 6px 0; border-top: 1px dashed var(--line); }
+  .past li:first-child { border-top: 0; }
+  .muted { color: var(--muted); }
+  .foot { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 92%, transparent); border-top: 1px solid var(--line); backdrop-filter: blur(6px); }
+  .foot .in { max-width: 528px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+  .foot .row { display: flex; gap: 8px; }
+  .foot button { flex: 1; border-radius: 10px; padding: 13px 10px; font-size: 16px; font-weight: 700; }
+  .foot button.small { flex: 0 0 auto; font-size: 15px; padding: 13px 16px; }
+  .foot button.sec { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+  .foot button.main { background: var(--accent2); }
+  .foot button.brk { background: var(--gold); color: var(--bg); }
+  .foot button.choice { background: var(--surface); color: var(--text); border: 1px solid var(--line); font-weight: 500; font-size: 15px; text-align: left; padding: 11px 14px; }
+  .foot button.choice:hover { border-color: var(--accent); }
+  .foot button:disabled { color: var(--muted); background: var(--surface); border: 1px dashed var(--line); cursor: not-allowed; }
+  .foot .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .foot .grid2 button { font-size: 15px; padding: 12px 8px; }
+  .foe { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+  .foe b { font-family: "Noto Serif TC", serif; }
+  .foe .t { height: 8px; background: var(--board); border-radius: 4px; overflow: hidden; }
+  .foe .t i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+  .foe span:last-child { font-variant-numeric: tabular-nums; color: var(--muted); }
+  /* 角色卡 */
+  .who { position: sticky; top: 0; z-index: 2; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+  .who .top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .who .nm { font: 900 22px "Noto Serif TC", serif; }
+  .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; color: var(--bg); background: var(--c, var(--muted)); }
+  .who .meta { font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
+  .meter { display: grid; grid-template-columns: 30px 1fr auto 30px 1fr auto; gap: 4px 8px; align-items: center; font-size: 13px; }
+  .meter .t { height: 6px; background: var(--board); border-radius: 3px; overflow: hidden; }
+  .meter .t i { display: block; height: 100%; background: var(--c, var(--accent)); transition: width .25s; }
+  .meter .v { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; font-size: 12px; }
+  .stats { display: flex; gap: 4px 12px; flex-wrap: wrap; font-size: 13px; margin-top: 6px; color: var(--muted); }
+  .stats b { color: var(--text); }
+  .quest { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--board); font-size: 13px; display: grid; gap: 4px; }
+  .quest .qt { font-weight: 700; color: var(--accent2); }
+  .quest .qt span { font-weight: 400; color: var(--muted); }
+  .quest .qr { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; }
+  .quest .qr .t { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+  .quest .qr .t i { display: block; height: 100%; background: var(--accent2); }
+  .quest .qr .v { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+  .quest .qh { color: var(--text); }
+  .quest.ok { outline: 2px solid var(--accent2); }
+  details.more { margin-top: 4px; font-size: 13px; }
+  details.more summary { cursor: pointer; color: var(--accent2); }
+  /* 人生紀錄 */
+  .log { list-style: none; margin: 0; padding: 0; }
+  .log li { display: grid; grid-template-columns: 58px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); line-height: 1.7; }
+  .log li .a { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; padding-top: 1px; }
+  .log li p { margin: 0; }
+  .log li p + p { margin-top: 4px; }
+  .log .pick { color: var(--accent2); font-size: 14px; }
+  .log .up { color: var(--accent); font-weight: 700; }
+  .log .bad { color: var(--purple); }
+  .log .hit { color: var(--muted); font-size: 14px; }
+  .log .fight { color: var(--accent); font-weight: 700; font-size: 14px; }
+  .log .ch { font: 900 19px "Noto Serif TC", serif; color: var(--accent); letter-spacing: .08em; padding: 6px 0 2px; }
+  .log li.new { animation: fade .35s; }
+  @keyframes fade { from { opacity: .3; transform: translateY(6px); } }
+  @media (prefers-reduced-motion: reduce) { .log li.new { animation: none; } }
+  .end { text-align: center; padding: 22px 16px; }
+  .end h2 { font-size: 28px; margin-bottom: 8px; }
+  .end .big { font: 900 34px "Noto Serif TC", serif; color: var(--accent); margin: 6px 0; }
+  .end ul { text-align: left; font-size: 14px; line-height: 1.8; padding-left: 20px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="home">
+    <p class="tag">修仙 RPG</p>
+    <h1>修仙路上<em>你和我</em></h1>
+    <p class="lead">澄國一隅，每天都有嬰兒呱呱墜地，你是其中一個。出身、靈根都由不得你；十歲那年，你會被送進青嵐門，從此不修仙也不行。佛、道、儒、魔要走哪條路，一路上跟誰同行、跟誰為敵，由你決定。</p>
+    <div class="panel">
+      <h2>如果你此刻出生</h2>
+      <p class="sub">出身的機率（遊戲設定）</p>
+      <div class="bars" id="oBars"></div>
+    </div>
+    <div class="panel">
+      <h2>靈根</h2>
+      <p class="sub">一般人家的機率；生在修仙家族的話，帶靈根的機率高很多。沒有靈根練不了道家功法；想修魔，就得用血肉逆煉靈根。</p>
+      <div class="bars" id="rBars"></div>
+    </div>
+    <div class="panel">
+      <h2>四條路</h2>
+      <p class="sub">在柳大夫的藏書閣裡，你會翻到四部功法。</p>
+      <div class="paths">
+        <div style="--c:var(--gold)"><b>佛</b>氣血厚、防禦高，絕技會回血；功德越多，衝關越穩。</div>
+        <div style="--c:var(--blue)"><b>道</b>法力最多，絕技傷害最高；要有靈根才能練。</div>
+        <div style="--c:var(--accent2)"><b>儒</b>攻守平均，絕技有機會震住敵人；還能下山考科舉。</div>
+        <div style="--c:var(--purple)"><b>魔</b>攻擊最高，絕技吸血；煞氣越重修得越快，也越容易走火入魔。</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>怎麼玩</h2>
+      <ul class="acts">
+        <li><b>閉關修煉</b>：累積修為，回滿氣血、法力，但歲月流逝。</li>
+        <li><b>外出歷練</b>：遇妖獸、秘境、仇家與故人，有危險也有機緣。</li>
+        <li><b>坊市</b>：用靈石買丹藥、法寶、護具。</li>
+        <li><b>主線</b>：跟著主線劇情走，從青嵐門一路到靈界。</li>
+        <li>修為滿了就能<b>衝關</b>。壽元用完、戰死、衝關失敗，這一生就結束了。</li>
+      </ul>
+    </div>
+    <div class="panel" id="pastBox" hidden>
+      <h2>你的前世</h2>
+      <p class="sub">只存在這台裝置的瀏覽器裡。來世偶爾會夢見。</p>
+      <ul class="past" id="past"></ul>
+    </div>
+  </section>
+
+  <section id="game" hidden>
+    <div class="who" id="who"></div>
+    <ol class="log" id="log"></ol>
+    <div class="panel end" id="end" hidden></div>
+  </section>
+</div>
+<div class="foot"><div class="in" id="foot"></div></div>
+
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var $ = K.$, R = K.ri, pick = K.pick, clamp = K.clamp;
+  function P(p) { return Math.random() < p; }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // ---------- 設定 ----------
+  var ORIGINS = [
+    { n: "鄉間佃農之家", p: .42, d: "家裡租地耕種，一年到頭難得吃上幾頓肉。", st: { gen: 1 } },
+    { n: "鎮上小販之家", p: .20, d: "父母在鎮上擺攤，日子緊巴巴，但很熱鬧。", st: { yuan: 1 } },
+    { n: "山中獵戶之家", p: .08, d: "父親是獵戶，你在山林裡長大。", st: { gen: 2 } },
+    { n: "書香門第", p: .07, d: "家中藏書滿架，祖上出過舉人。", st: { wu: 2 }, aff: "ru" },
+    { n: "鏢局武師之家", p: .06, d: "父親走鏢多年，家裡天天有人在練拳。", st: { gen: 1, xin: 1 } },
+    { n: "富商之家", p: .06, d: "家裡做綢緞生意，衣食無憂。", st: { yuan: 1 }, stone: 30 },
+    { n: "官宦之家", p: .035, d: "父親在州府做官，家教嚴格。", st: { wu: 1 }, aff: "ru", stone: 20 },
+    { n: "被古寺收養的棄嬰", p: .03, d: "你被放在山門前，是寺裡的老和尚把你抱進去的。", st: { xin: 2 }, aff: "fo" },
+    { n: "修仙小家族的旁支", p: .03, d: "家族裡出過幾位修士，只是你這一房早已沒落。", boost: 3, stone: 10 },
+    { n: "修仙世家嫡系", p: .012, d: "家族世代修仙，你一出生就被寄予厚望。", boost: 6, stone: 60, st: { wu: 1 } },
+    { n: "魔道修士的遺孤", p: .003, d: "你的父母是魔道中人，在一場追殺中雙雙殞命。", boost: 4, st: { gen: 1 }, aff: "mo" }
+  ];
+  var ROOT = [
+    { n: "無靈根", p: .35, m: 0 },
+    { n: "偽靈根（四、五靈根）", p: .385, m: .5 },
+    { n: "三靈根", p: .17, m: .8 },
+    { n: "雙靈根", p: .07, m: 1.25 },
+    { n: "天靈根", p: .02, m: 2.1 },
+    { n: "異靈根（風、雷、冰）", p: .005, m: 2.4 }
+  ];
+  // f：氣血、攻擊、防禦、法力的倍率；sk：絕技倍率
+  var PATH = {
+    fo: { n: "佛", res: "功德", c: "gold", spd: .7, f: [1.3, .9, 1.4, .9], sk: 1.5, lv: ["凡人", "持戒", "禪定", "明心", "見性", "舍利", "金身", "羅漢", "菩薩", "佛陀"], skill: ["金剛護體", "伏魔掌", "大日佛光", "萬佛朝宗"] },
+    dao: { n: "道", res: "道心", c: "blue", spd: 1.1, f: [1, 1, 1, 1.35], sk: 2.3, lv: ["凡人", "練氣", "築基", "結丹", "元嬰", "化神", "煉虛", "合體", "大乘", "渡劫"], skill: ["火彈術", "青霜劍訣", "掌心雷", "萬劍歸宗"] },
+    ru: { n: "儒", res: "浩然氣", c: "accent2", spd: .85, f: [1.1, 1.05, 1.1, 1.15], sk: 1.8, lv: ["凡人", "養氣", "明理", "文心", "立命", "浩然", "大儒", "半聖", "亞聖", "聖人"], skill: ["浩然一劍", "言出法隨", "文心照膽", "聖人一怒"] },
+    mo: { n: "魔", res: "煞氣", c: "purple", spd: 1.4, f: [.95, 1.3, .9, 1], sk: 2, lv: ["凡人", "煉血", "凝煞", "魔丹", "魔嬰", "化魔", "天魔", "魔尊", "魔帝", "魔祖"], skill: ["血影刀", "噬魂魔爪", "血神遁", "天魔解體"] }
+  };
+  var DAO = PATH.dao.lv;
+  var NEED = [2, 12, 50, 140, 320, 600, 1000, 1500, 2200, 3000];  // 每一層要累積的修為（約等於中等資質要修的年數）
+  var STEP = [1, 2, 3, 6, 10, 18, 25, 35, 50, 70];                 // 閉關一次過幾年
+  var LIFE = [0, 100, 200, 400, 800, 1500, 2500, 4000, 6000, 9000];
+  var BC = [1, .35, .32, .27, .22, .24, .2, .17, .14, .14];        // 往上一層的基本成功率
+  var M = [1, 1, 2.2, 4.5, 10, 22, 48, 100, 210, 450];             // 各境界的強度倍率（氣血、攻擊、敵人都照這個放大）
+  var PILL = { 2: "築基丹", 3: "結丹靈物", 4: "凝嬰靈果", 5: "化神靈液", 6: "煉虛靈髓", 7: "合體仙露", 8: "大乘道果", 9: "渡劫寶甲" };
+  var WEAPON = ["", "下品飛劍", "中品飛劍", "上品飛劍", "古寶飛劍", "通天靈寶", "靈界仙劍", "玄天之刃", "大乘劍胎", "仙器殘片"];
+  var ARMOR = ["", "青布法衣", "玄鐵軟甲", "金絲法袍", "古寶寶甲", "通天寶衣", "靈界戰甲", "玄天寶衣", "大乘法相", "仙衣殘片"];
+  var REACH = [1, .4, .08, .01, .0012, 1.5e-4, 2e-5, 4e-6, 8e-7, 1.5e-7, 2e-8];
+  var SUR = "韓李王張劉陳楊趙黃周吳徐孫胡朱高林何郭馬羅梁宋鄭謝唐馮董蕭程曹袁鄧許傅沈曾彭呂蘇盧蔣蔡賈丁魏薛葉余潘杜戴夏鍾汪田任姜范方石姚譚廖鄒熊金陸孔白崔康毛邱秦江史顧侯邵孟龍萬段雷錢湯尹黎易常武喬賀賴文".split("");
+  var SUR2 = ["南宮", "歐陽", "慕容", "司馬", "上官", "諸葛", "令狐", "東方"];
+  var GM = "立平安遠明青雲山風志文武德林峰毅誠宇晨浩然子辰鐵石凡塵玄松鶴川海陽岳衡天行舟".split("");
+  var GF = "婉雪月霜寧嫣瑤萱琳薇芸若清柔蓉靈玉秀蘭紫菱巧倩蝶音霞璃夢晴".split("");
+  var ST = { gen: "根骨", wu: "悟性", xin: "心性", yuan: "機緣" };
+  var CN = "一二三四五六七八九十";
+
+  var s = null, shown = 0;
+  var SAVE = "xianxia-rpg1", PAST = "xianxia-past";
+  function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  function wpick(list, w) {
+    var sum = 0, i; for (i = 0; i < list.length; i++) sum += w(list[i]);
+    var r = Math.random() * sum;
+    for (i = 0; i < list.length; i++) { r -= w(list[i]); if (r <= 0) return list[i]; }
+    return list[list.length - 1];
+  }
+  function gname(sex) { return (P(.06) ? pick(SUR2) : pick(SUR)) + pick(sex === "男" ? GM : GF) + (P(.6) ? pick(sex === "男" ? GM : GF) : ""); }
+  function lvName(lv) {
+    if (!s.path || lv === 0) return "凡人";
+    var n = PATH[s.path].lv[lv];
+    return s.path === "dao" ? n : n + "（約當" + DAO[lv] + "）";
+  }
+  function short(lv) { return s.path ? PATH[s.path].lv[Math.min(lv, 9)] : "凡人"; }
+  function hasRoot() { return ROOT[s.root].m > 0; }
+  function is(p) { return s.path === p; }
+  function age(a, b) { return s.age >= a && (b === undefined || s.age <= b); }
+  function st(k, v) { s.st[k] = clamp(s.st[k] + v, 0, 10); return ST[k] + (v > 0 ? "+" : "") + v; }
+  function chk(base, keys) { var c = base; (keys || []).forEach(function (k) { c += (s.st[k] - 5) * .05; }); return P(clamp(c, .05, .95)); }
+  function big(t) { s.big.push({ a: s.age, t: T(t) }); }
+  function die(t) { s.dead = T(t); }
+  function addExp(f) { if (s.path) s.exp = Math.min(NEED[s.lv], s.exp + NEED[s.lv] * f * .6); }
+  function hurt(f) { s.life -= Math.max(1, Math.round(LIFE[Math.max(1, s.lv)] * f)); }
+  function gain(k) { if (!PILL[k]) { addExp(.2); return "上古靈物"; } s.pill[k] = (s.pill[k] || 0) + 1; return PILL[k]; }
+  function item(k, n) { s.items[k] = (s.items[k] || 0) + (n || 1); }
+  function ta(sex) { return sex === "女" ? "她" : "他"; }
+  // 文字裡的人物代號：{友}{敵}{師}{侶}{徒}{門}，以及代名詞 {友他}{敵他}{侶他}
+  function T(x) {
+    if (typeof x !== "string") return x;
+    var n = s.npc;
+    return x.replace(/\{(友他|敵他|侶他|友|敵|師|侶|徒|門)\}/g, function (m, k) {
+      return { 友: n.fr, 敵: n.rv, 師: n.ms || "師父", 侶: n.pt || "道侶", 徒: n.dc || "徒弟", 門: s.own || s.sect || "宗門",
+        友他: ta(n.frSex), 敵他: ta(n.rvSex), 侶他: ta(n.ptSex) }[k];
+    });
+  }
+  function chapter(t) { s.chap = (s.chap || 1) + 1; return { c: "ch", t: "卷" + (s.chap <= 10 ? CN[s.chap - 1] : "十" + CN[s.chap - 11]) + "　" + t }; }
+
+  // ---------- 角色數值 ----------
+  function stat() {
+    var g = s.st, m = M[s.lv], f = s.path ? PATH[s.path].f : [1, 1, 1, 1], w = s.gear.w, a = s.gear.a;
+    return {
+      hp: Math.round((60 + g.gen * 8) * m * f[0]) + (a ? a.def * 3 : 0),
+      atk: Math.round((8 + g.gen * 1.5 + g.wu * .5) * m * f[1]) + (w ? w.atk : 0),
+      def: Math.round((3 + g.gen * .5) * m * .6 * f[2]) + (a ? a.def : 0),
+      mp: Math.round((20 + g.wu * 4) * m * f[3])
+    };
+  }
+  function full() { var t = stat(); s.hp = t.hp; s.mp = t.mp; }
+  function skill() { var a = PATH[s.path].skill; return a[s.lv <= 2 ? 0 : s.lv <= 4 ? 1 : s.lv <= 6 ? 2 : 3]; }
+  function rootM() { return ROOT[s.root].m || (s.forged ? .45 : 0); }
+  function rate() {
+    var r = rootM(), p = s.path, g = s.st, b;
+    if (p === "dao" || p === "mo") b = r * (.6 + g.wu * .08);
+    else if (p === "fo") b = (.55 + r * .35) * (.6 + g.xin * .08);
+    else b = (.55 + r * .35) * (.6 + (g.wu + g.xin) * .04);
+    b *= PATH[p].spd;
+    if (p === "mo") b *= 1 + Math.min(s.res, 30) * .02;
+    if (s.bottle) b *= 1.6;
+    return b;
+  }
+  function chance(pill) {
+    var c = BC[s.lv] + (s.st.xin - 5) * .03 + (s.st.wu - 5) * .02 + s.wait * .06;
+    c += is("mo") ? .05 : Math.min(s.res * .005, .12);
+    if (pill) c += .3;
+    return clamp(c, .05, .95);
+  }
+  function setLife() { s.life = Math.max(s.life, Math.round(LIFE[s.lv] * (.9 + s.st.gen * .02))); }
+
+  // ---------- 戰鬥 ----------
+  // o：boss 不能逃、輸了就死；deadly 輸了有機會死；win 贏了接著跑的劇情；after 不論輸贏（沒死）都會跑
+  function fight(n, mult, o) {
+    o = o || {};
+    var m = M[Math.max(1, o.tier || s.lv)];
+    var f = { n: T(n), hp: Math.round(110 * m * mult * K.rand(.9, 1.1)), atk: Math.round(16 * m * mult), def: Math.round(3 * m * mult),
+      boss: o.boss ? 1 : 0, deadly: o.deadly ? 1 : 0, win: o.win || "", after: o.after || "", die: o.die || "", dieT: o.dieT || "", loot: Math.round(8 * m * mult) };
+    f.max = f.hp;
+    s.pending = { id: "fight", f: f };
+    return { c: "fight", t: "【戰鬥】" + f.n + (f.boss ? "（不能逃）" : "") };
+  }
+  function fightOpts() {
+    var f = s.pending.f, t = stat(), cost = Math.ceil(t.mp * .3), o = [];
+    function op(label, k, dis) { o.push({ q: 1, t: label, dis: dis, r: function () { return turn(f, k); } }); }
+    op("攻擊", "atk");
+    op("施展「" + skill() + "」（法力 " + cost + "）", "sk", s.mp < cost);
+    if (s.items.heal) op("服用回春丹（剩 " + s.items.heal + "）", "heal");
+    if (s.items.mana) op("服用回元丹（剩 " + s.items.mana + "）", "mana");
+    if (s.gear.w && !f.usedT) op("祭出「" + s.gear.w.n + "」（每場一次）", "tr");
+    if (!f.boss) op("逃跑", "run");
+    return o;
+  }
+  function turn(f, k) {
+    var t = stat(), out = "", d, cost = Math.ceil(t.mp * .3), stun = false;
+    function dmg(x) { return Math.max(1, Math.round(x * K.rand(.85, 1.15) - f.def * .5)); }
+    if (k === "atk") { d = dmg(t.atk); if (P(.03 + s.st.yuan * .015)) { d = Math.round(d * 1.8); out += "暴擊！"; } f.hp -= d; out += "你出手攻擊，造成 " + d + " 點傷害。"; }
+    else if (k === "sk") {
+      s.mp -= cost; d = dmg(t.atk * PATH[s.path].sk); f.hp -= d; out += "你施展「" + skill() + "」，造成 " + d + " 點傷害。";
+      if (is("fo")) { var h = Math.round(t.hp * .2); s.hp = Math.min(t.hp, s.hp + h); out += "佛光護體，回復 " + h + " 氣血。"; }
+      if (is("ru") && P(.5)) { stun = true; out += f.n + "被浩然正氣震住，動彈不得。"; }
+      if (is("mo")) { var h2 = Math.round(d * .5); s.hp = Math.min(t.hp, s.hp + h2); out += "你吸取血氣，回復 " + h2 + " 氣血。"; }
+    }
+    else if (k === "heal") { s.items.heal--; var h3 = Math.round(t.hp * .5); s.hp = Math.min(t.hp, s.hp + h3); out += "你服下回春丹，回復 " + h3 + " 氣血。"; }
+    else if (k === "mana") { s.items.mana--; s.mp = t.mp; out += "你服下回元丹，法力全滿。"; }
+    else if (k === "tr") { f.usedT = 1; d = dmg(t.atk * 2.8); f.hp -= d; out += "你祭出「" + s.gear.w.n + "」，造成 " + d + " 點傷害。"; }
+    else if (k === "run") { if (chk(.45, ["yuan"])) return endFight(f, "run", out + "你找到空隙，脫身逃走了。"); out += "你想逃，卻被攔了下來。"; }
+    if (f.hp <= 0) return endFight(f, "win", out);
+    if (!stun) { var e = Math.max(1, Math.round(f.atk * K.rand(.85, 1.15) - t.def * .5)); s.hp -= e; out += f.n + "反擊，你受到 " + e + " 點傷害。"; }
+    if (s.hp <= 0) return endFight(f, "lose", out);
+    s.pending = { id: "fight", f: f };
+    return { c: "hit", t: out };
+  }
+  function endFight(f, res, out) {
+    var r = [{ c: "hit", t: out }];
+    s.pending = null;
+    if (res === "win") {
+      s.stone += f.loot; addExp(f.boss ? .15 : .04);
+      r.push({ c: "up", t: "你擊敗了" + f.n + "，得到 " + f.loot + " 塊靈石。" });
+      if (f.win) r.push(CB[f.win]());
+    } else if (res === "lose") {
+      if (f.boss || (f.deadly && P(.25))) { die(f.die || "敗於" + f.n + "之手"); r.push({ c: "bad", t: f.dieT || "你倒在血泊裡，再也沒有站起來。" }); return r; }
+      s.hp = 1; hurt(.04); r.push({ c: "bad", t: "你被打成重傷，拚死逃了出來，損了些壽元。" });
+    }
+    if (f.after && !s.dead && !s.pending) r.push(CB[f.after]());
+    return r;
+  }
+
+  // ---------- 入門 ----------
+  function join(path, how) {
+    s.path = path; s.lv = 1; s.exp = 0; s.sect = "青嵐門";
+    s.res = path === "fo" && ORIGINS[s.origin].aff === "fo" ? 3 : 1;
+    s.npc.ms = "柳大夫";
+    var out = [];
+    if (how === "forged") { s.forged = 1; s.st.gen = clamp(s.st.gen - 2, 0, 10);
+      out.push("你沒有靈根，只能照殘卷上的法子，用自己的精血逆煉經脈。七天七夜，你痛得昏死又醒來，最後體內真的生出了一絲魔氣。（根骨-2）"); }
+    else out.push({ fo: "你翻開《金剛經》殘卷，一字一句地讀。讀到第三天，你發現自己的呼吸跟著經文起伏，心裡一片安靜。", dao: "你照柳大夫給的口訣吐納，第七天夜裡，丹田裡第一次有了一絲涼意。柳大夫知道後，笑得很開心。", ru: "你每天清晨朗讀《浩然正氣訣》，讀到第十遍時，胸口忽然升起一股熱氣。", mo: "你偷偷練起《血煞魔功》。每練一次，眼睛就紅一分。" }[path]);
+    if (path !== "dao") out.push("柳大夫發現你練的不是他給的口訣，臉色沉了一下，卻什麼也沒說。");
+    setLife(); full(); item("heal", 2);
+    if (s.fr) out.push("{友}託人帶來一封信，信上只有一句話：「發達了，別忘了我。」");
+    out.push({ c: "up", t: "你踏上" + PATH[path].n + "修之路，入門第一層「" + PATH[path].lv[1] + "」。學會絕技「" + skill() + "」。" });
+    big("踏上" + PATH[path].n + "修之路");
+    return out;
+  }
+
+  // ---------- 劇情回呼（戰鬥贏了、或不論輸贏之後接著跑的內容）----------
+  var CB = {
+    wolf: function () { s.stone += 15; return "天亮時，黑風寨退了。石驚鴻拍著你的肩膀：「好兄弟，命是你救的。」"; },
+    modoc: function () {
+      s.msGone = 1; s.npc.ms = ""; item("heal", 3); s.stone += 40; big("反殺柳大夫");
+      return "柳大夫倒下前，眼神裡竟有一絲解脫。你在他的遺物裡找到一些靈石、三顆回春丹，還有一張紙條，上面寫著「雲台谷」。";
+    },
+    blood1: function () { addExp(.15); s.pending = { id: "nangong" }; return "你斬殺妖獸，深入禁地，採到了一大把靈草。正要離開，前方傳來打鬥聲。"; },
+    ngwin: function () { s.res += 3; gain(2); gain(2); s.ng = 1; big("赤霧秘境救下蘇綺雲"); return "被救的女修自稱是碧月宮的蘇綺雲。她看了你一眼，把自己的靈草也分給你：「這份人情，我記下了。」出了禁地，宗門賜你兩顆築基丹。"; },
+    ngafter: function () { if (!s.ng) { gain(2); return "你帶著靈草出了禁地，宗門賜你一顆築基丹。"; } return ""; },
+    bamboo: function () { var a = Math.round(8 * M[s.lv + 1]); s.gear.w = { n: "千竹雷影劍", atk: a }; big("煉成千竹雷影劍"); return { c: "up", t: "你砍下紫電竹，花了三年煉成一套飛劍：「千竹雷影劍」（攻擊 +" + a + "）。劍上帶著細細的紫電。" }; },
+    invwin: function () { s.res += 2; return "你殺退了來犯的修士，但澄國的大勢已去。"; },
+    flee: function () {
+      s.region = "萬島海"; s.sect = ""; big("經古傳送陣逃往萬島海");
+      return [chapter("萬島海"), "澄國六宗的山門一個接一個陷落。你和幾個同門找到一座古傳送陣，拚著陣法崩潰的危險傳送出去。睜開眼時，四面都是看不到邊的海。"];
+    },
+    swxg: function () { s.stone += 80; s.res += 2; big("在潮音閣麾下立功"); return "你在潮音閣麾下屢立戰功，被賜了一座小靈島。"; },
+    swnx: function () { s.stone += 60; addExp(.2); big("在怒濤盟立功"); return "怒濤盟攻下了好幾座潮音閣的島嶼，你分到不少好處。"; },
+    dan: function () { gain(3); return "你剖開妖獸，取出一顆千年妖丹。這就是結丹要用的靈物。"; },
+    xt1: function () { s.pending = { id: "xutian2" }; return "你擊碎守殿傀儡，闖到大殿深處。前方光芒大盛，殿中的至寶就在眼前，幾個元嬰老怪的分身也趕到了。"; },
+    xtwin: function () { var d = Math.round(4 * M[s.lv + 1]); s.gear.a = { n: "沉淵古殿古寶寶甲", def: d }; gain(4); big("沉淵古殿奪寶"); return { c: "up", t: "你搶在老怪們之前，奪下一件古寶寶甲（防禦 +" + d + "），還順手收走一份「凝嬰靈果」。" }; },
+    zmwin: function () { addExp(.5); big("葬魔淵斬古魔"); return "古魔化為一縷黑煙散去。谷底留著一位上古修士的傳承，你全收了下來。"; },
+    kwwin: function () { gain(5); big("鎮岳山重新封印魔頭"); return "你把魔頭殘魂重新封回山腹。封印裡飄出一團靈光，是一份「化神靈液」。"; },
+    tywin: function () { s.stone += 200; big("天塹城擊退魔族先鋒"); return "你在城頭上斬了魔族先鋒，天塹城的守將親自替你斟了一杯酒。"; },
+    mjwin: function () { gain(8); addExp(.3); big("斬殺魔族大將"); return "魔族大將倒下，魔潮退去。人族各城為你立了碑。"; },
+    beast: function () { if (P(.3)) { item("heal"); return "你從妖獸巢穴裡撿到一顆回春丹。"; } return ""; },
+    ruin: function () { var g = gain(s.lv + 1); addExp(.2); big("在秘境中得到" + g); return "傀儡後面是一具枯骨，旁邊的儲物袋裡有一份「" + g + "」和幾卷功法心得。"; },
+    rv2w: function () { s.stone += 20 * s.lv; return "{敵}負傷遁走，臨走前狠狠瞪了你一眼：「這筆帳，我記下了。」"; },
+    rv2a: function () { s.rival = 3; return ""; },
+    rv3w: function () { s.rival = 9; s.res += 3; addExp(.3); big("斬殺宿敵{敵}"); return "最後一劍落下時，{敵}忽然笑了：「當年那個饅頭……其實挺好吃的。」"; },
+    fodemon: function () { s.res += 2; return "你以佛光將狐妖鎮在山下，為鄉民除去一害。（功德+2）"; },
+    fofeed: function () { s.res += 6; big("降伏吃人魔頭"); return "你把魔頭鎮在城外的塔下。城裡的人跪了一地。（功德+6）"; },
+    ruevil: function () { s.res += 2; return "魔修被你打跑了。圍觀的百姓都說，原來讀書人也這麼能打。（浩然氣+2）"; },
+    modev: function () { addExp(.35); s.res += 3; return "你吞噬了師兄的精元。魔道就是如此。（煞氣+3）"; },
+    molord: function () { s.res += 10; s.stone += 200; big("登上魔主之位"); return [chapter("魔主"), "你踩著五宗宗主的法寶登上血骨山頂。從此，南嶺魔道唯你馬首是瞻。（煞氣+10）"]; },
+    molord0: function () { s.npc.ms = ""; s.res += 5; s.stone += 80; var g = gain(s.lv + 1); big("弒師，奪取師父的一切"); return "老魔臨死前反而笑了：「好，這才是我教出來的徒弟。」你從他的洞府裡搜出一份「" + g + "」。（煞氣+5）"; },
+    sectatk: function () { s.res += 2; s.stone += 50 * s.lv; big("一人退敵，保住{門}"); return "你一人一劍立在山門前，來犯的人沒有一個走得了。"; },
+    expose: function () { return "你處理掉了屍體，沒有人知道發生了什麼。（" + st("xin", -1) + "）"; }
+  };
+
+  // ---------- 主線 ----------
+  // lv：需要的境界；ex：該境界的修為比例；age：年齡；rg：所在地
+  function pathOpts() {
+    var root = hasRoot(), o = [];
+    o.push(root ? { k: "dao", t: "練柳大夫給的無名口訣（道）" } : { dis: 1, t: "練柳大夫給的無名口訣（道）：沒有靈根，練不出氣感" });
+    o.push({ k: "fo", t: "練《金剛經》殘卷（佛）" });
+    o.push({ k: "ru", t: "練《浩然正氣訣》殘卷（儒）" });
+    o.push(root ? { k: "mo", t: "練《血煞魔功》殘卷（魔）" } : { k: "mo", how: "forged", t: "練《血煞魔功》殘卷，以血肉逆煉靈根（魔，根骨-2）" });
+    var a = ORIGINS[s.origin].aff;
+    if (a) o.sort(function (x, y) { return (y.k === a) - (x.k === a); });
+    return o.map(function (x) { return x.dis ? x : { t: x.t, r: function () { return join(x.k, x.how); } }; });
+  }
+  var Q = [
+    { id: "q_qixuan", t: "青嵐門", lv: 0, r: function () {
+      return [chapter("青嵐門"), "家裡湊了些錢，託人把你送到青嵐門參加入門測試。測試是爬上後山的陡坡，你手腳磨破了皮，還是咬牙爬到了最後。",
+        "你被百草谷的柳大夫收為記名弟子。柳大夫交給你一卷沒有名字的口訣，要你每天練。你在他的藏書閣角落，又翻出了三本殘卷。"]; },
+      ch: pathOpts },
+    { id: "q_li", t: "結識石驚鴻", lv: 1, age: 11, r: function () { return "青嵐門裡，你結識了一個叫石驚鴻的少年。石驚鴻為了在門內出頭，偷偷吃一種傷身的藥丸，武功突飛猛進，身子卻一天天垮下去。"; },
+      ch: function () { return [
+        { t: "用柳大夫教的醫術替他調理", r: function () { s.li = 1; if (chk(.5, ["wu"])) { big("與石驚鴻結為兄弟"); return "你翻遍醫書，替石驚鴻配了一帖藥，總算保住了他的命。石驚鴻從此把你當親兄弟。（" + st("wu", 1) + "）"; } return "你的藥只能緩一緩，治不了根。石驚鴻笑著說：「沒關係，能多活幾年就賺了。」"; } },
+        { t: "勸他別再吃了", r: function () { s.li = 1; return "石驚鴻沉默了很久，說：「你不懂。我不吃，就什麼都不是。」"; } }]; } },
+    { id: "q_wolf", t: "黑風寨夜襲", lv: 1, age: 12, r: function () { return ["黑風寨趁夜突襲青嵐門，殺聲四起，火光照亮了半座山。一個滿臉刀疤的頭目朝你衝了過來。", fight("黑風寨頭目", .9, { tier: 1, win: "wolf" })]; } },
+    { id: "q_bottle", t: "後山的小玉瓶", lv: 1, r: function () {
+      s.bottle = 1; big("撿到神祕小玉瓶");
+      return "你在後山採藥時，從石縫裡撿到一只刻著雲紋的小玉瓶。每隔幾天，瓶中就會凝出幾滴綠液，澆在草藥上，草藥一夜就長成百年。你把它藏在床底下，誰也沒說。（修煉速度大增，採藥收入變多）"; } },
+    { id: "q_mo", t: "柳大夫的密室", lv: 1, age: 14, r: function () { return [chapter("柳大夫"), "柳大夫把你叫進密室，關上了門。他終於說出真相：他教你功法，是要等你練成之後，奪舍你的身體延壽。「別怪我，」他說，「我只是不想死。」"]; },
+      ch: function () { return [
+        { t: "先下手為強", r: function () { return fight("柳大夫", 1.2, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "你慢了一步。從此，那具身體換了一個主人。" }); } },
+        { t: "假意順從，等他施法時反擊", r: function () {
+          if (chk(.5, ["xin"])) return ["你閉上眼睛，等柳大夫的神魂離體的那一刻，猛然睜眼。柳大夫的神魂撞上你的識海，被彈了回去，他元氣大傷。", fight("元氣大傷的柳大夫", .9, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍" })];
+          return ["柳大夫早就看穿你的心思，冷笑一聲出手了。", fight("柳大夫", 1.4, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "他比你想的更強。從此，那具身體換了一個主人。" })]; } }]; } },
+    { id: "q_tainan", t: "雲台集", lv: 1, ex: .3, r: function () {
+      s.gear.w = s.gear.w || { n: "下品飛劍", atk: Math.round(5 * M[1]) };
+      if (is("mo")) { s.sect = "屍陰教"; s.npc.ms = pick("血陰屍鬼幽".split("")) + pick("九骨魂煞冥".split("")) + "老祖"; s.msGone = 0;
+        return [chapter("雲台集"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
+          "散會時，一個黑袍人攔住你：「你身上的魔氣，瞞不過我。」他是屍陰教的{師}。你跟著他，成了屍陰教的弟子。"]; }
+      s.sect = "紫霞宗";
+      return [chapter("紫霞宗"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
+        "小會上有人說，紫霞宗正在辦收徒大典招收弟子。你去了，" + (hasRoot() ? "憑著靈根" : "考官看你練的功法特別，破例") + "被收為紫霞宗外門弟子。"]; } },
+    { id: "q_blood", t: "赤霧秘境", lv: 1, ex: .6, r: function () {
+      return [chapter("赤霧秘境"), is("mo") ? "屍陰教要你混進澄國六宗的赤霧秘境試煉，搶奪煉製築基丹的靈草。禁地裡妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。" : "澄國六宗聯合開啟赤霧秘境。禁地裡長著煉製築基丹的靈草，但妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。"]; },
+      ch: function () { return [
+        { t: "進入禁地", r: function () { return ["你剛踏進禁地，一頭渾身是血的妖獸就撲了過來。", fight("禁地妖獸", 1.1, { win: "blood1", deadly: 1, die: "隕落赤霧秘境" })]; } },
+        { t: "不去冒險", r: function () { gain(2); return "你留在宗門苦修。宗門按例賜你一顆築基丹。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "q_lhy", t: "拜師", lv: 2, r: function () {
+      if (is("mo")) return [chapter("築基"), "你築基成功，{師}破例收你為親傳弟子，傳你屍陰教的不傳之秘。（" + st("wu", 1) + "）"];
+      s.npc.ms = "秦長風"; s.msGone = 0;
+      return [chapter("築基"), "你築基成功，被紫霞宗的結丹長老秦長風收為弟子。秦長風話不多，但很護短。" + (s.li ? "你寫信回青嵐門給石驚鴻，他回信說：「好兄弟，替我多看看天上的風景。」" : "")]; } },
+    { id: "q_bamboo", t: "紫電竹", lv: 2, ex: .3, r: function () { return "你打聽到一處山谷裡長著紫電竹，是煉製飛劍的上等材料，但谷中有一頭雷屬性的妖獸守著。"; },
+      ch: function () { return [
+        { t: "闖進山谷", r: function () { return fight("守谷雷獸", 1.5, { win: "bamboo", deadly: 1 }); } },
+        { t: "不去冒險", r: function () { return "你沒有去。後來聽說，那片竹林被一個結丹修士整片砍走了。"; } }]; } },
+    { id: "q_invade", t: "魔道入侵", lv: 2, ex: .6, r: function () { return [chapter("魔道入侵"), "幽冥五宗大舉入侵澄國，屍陰教、媚香宗的修士殺進了澄國六宗的山門。" + (is("mo") ? "你是屍陰教的人，衝在最前面。" : "紫霞宗的護山大陣，撐不了多久了。")]; },
+      ch: function () { return is("mo") ? [
+        { t: "屠戮正道", r: function () { s.res += 5; return ["你殺進紫霞宗，一個執法長老攔住了你。", fight("紫霞宗長老", 1.5, { win: "invwin", after: "flee" })]; } },
+        { t: "趁亂離開", r: function () { return CB.flee(); } }] : [
+        { t: "守住山門", r: function () { return ["一個屍陰教修士帶著一群陰魂殺到你面前。", fight("屍陰教修士", 1.5, { win: "invwin", after: "flee" })]; } },
+        { t: "跟同門一起撤退", r: function () { return CB.flee(); } }]; } },
+    { id: "q_star", t: "觀潮城", lv: 2, rg: "萬島海", r: function () { s.stone += 30; return "你在萬島海最大的城市觀潮城落腳。這裡由潮音閣管轄，四面是海，島嶼星羅棋布，妖獸比澄國多得多。"; } },
+    { id: "q_war", t: "潮音閣與怒濤盟", lv: 2, ex: .7, rg: "萬島海", r: function () { return "潮音閣與怒濤盟開戰，萬島海的修士都被迫選邊。"; },
+      ch: function () { return [
+        { t: "投入潮音閣", r: function () { return fight("怒濤盟修士", 1.5, { win: "swxg", deadly: 1, die: "戰死於萬島海大戰" }); } },
+        { t: "投入怒濤盟", r: function () { return fight("潮音閣衛士", 1.5, { win: "swnx", deadly: 1, die: "戰死於萬島海大戰" }); } },
+        { t: "誰都不幫", r: function () { return "你躲進外海的無名小島，一躲就是好幾年。"; } }]; } },
+    { id: "q_dan", t: "結丹靈物", lv: 2, ex: .9, r: function () { return "結丹需要靈物輔助。有人說外海有一頭千年妖獸，牠的妖丹正好合用。"; },
+      ch: function () { return [
+        { t: "出海獵殺", r: function () { return fight("外海千年妖獸", 1.6, { win: "dan", deadly: 1, die: "葬身外海" }); } },
+        { t: "不冒險，靠自己衝關", r: function () { return "你回到洞府，打算硬衝結丹。"; } }]; } },
+    { id: "q_xutian", t: "沉淵古殿", lv: 3, ex: .4, r: function () { return [chapter("沉淵古殿"), "沉淵古殿每隔數百年才開啟一次，殿中藏著上古至寶。消息傳開，萬島海的修士全都來了，連元嬰老怪都派出了分身。"]; },
+      ch: function () { return [
+        { t: "入殿", r: function () { return ["殿門口立著一排上古傀儡，眼裡亮起紅光。", fight("守殿傀儡", 1.6, { win: "xt1", deadly: 1, die: "隕落沉淵古殿" })]; } },
+        { t: "不去", r: function () { return "你遠遠看著漫天遁光，沒有動。後來聽說，進去的人死了大半。"; } }]; } },
+    { id: "q_back", t: "重返南嶺", lv: 4, r: function () { s.region = "南嶺"; s.sect = "白鹿宗"; big("重返南嶺，成為白鹿宗長老"); return [chapter("重返南嶺"), "離開百年，你重返南嶺。澄國早已物是人非。你以" + short(4) + "修士的身分加入白鹿宗，被奉為長老。"]; } },
+    { id: "q_zhuimo", t: "葬魔淵", lv: 4, ex: .4, r: function () { return [chapter("葬魔淵"), "葬魔淵開啟，據說谷底有上古修士留下的傳承。正魔兩道的元嬰修士都來了，谷底卻還睡著一頭古魔。"]; },
+      ch: function () { return [
+        { t: "下谷", r: function () { return fight("谷底古魔", 1.7, { boss: 1, win: "zmwin", die: "隕落葬魔淵" }); } },
+        { t: "不去", r: function () { return "你在谷口等了三個月，看著一個個修士下去，沒幾個上來。"; } }]; } },
+    { id: "q_kunwu", t: "鎮岳山", lv: 4, ex: .8, r: function () { return [chapter("鎮岳山"), "你遠赴北璃。鎮岳山的封印鬆動了，山腹裡鎮壓的魔頭殘魂正在甦醒，各大宗門的高手齊聚山下。"]; },
+      ch: function () { return [
+        { t: "進山重新封印", r: function () { return fight("魔頭殘魂", 1.8, { boss: 1, win: "kwwin", die: "隕落鎮岳山" }); } },
+        { t: "讓別人去", r: function () { return "後來聽說，鎮岳山塌了一半，死了不少元嬰修士。"; } }]; } },
+    { id: "q_node", t: "空間節點", lv: 5, ex: .5, r: function () { s.node = 1; return "人界的靈氣太稀薄了。化神修士想再進一步，只能找到空間節點，飛升靈界。你花了幾十年，終於在一處荒漠找到一個殘破的節點。（修為圓滿後就能飛升）"; } },
+    { id: "q_ty", t: "天塹城", lv: 6, rg: "靈界", r: function () { return [chapter("天塹城"), "你落腳在人族邊境的天塹城。城外就是魔族的地盤，魔族先鋒正在攻城。"]; },
+      ch: function () { return [
+        { t: "上城頭迎戰", r: function () { return fight("魔族先鋒", 1.6, { win: "tywin", deadly: 1, die: "戰死於天塹城" }); } },
+        { t: "先在城裡站穩腳跟", r: function () { s.stone += 50; return "你在城裡開了一間丹藥鋪，慢慢摸清靈界的規矩。"; } }]; } },
+    { id: "q_mojie", t: "魔族入侵", lv: 7, rg: "靈界", r: function () { return [chapter("魔族入侵"), "魔界通道全面打開，魔族大軍壓境。人族各城的大能聯手迎戰，你被推到了最前線。"]; },
+      ch: function () { return [
+        { t: "迎戰魔族大將", r: function () { return fight("魔族大將", 1.8, { boss: 1, win: "mjwin", die: "戰死於靈界抗魔之戰" }); } },
+        { t: "鎮守後方", r: function () { s.res += 2; return "你守住了後方的傳送陣，讓數十萬人族百姓撤離。"; } }]; } },
+    { id: "q_tribu", t: "天劫將至", lv: 9, ex: .5, r: function () { return [chapter("渡劫"), "你感覺到天劫將至。天上的雲一天比一天低，雷聲在雲層裡翻滾。這是最後一關了。"]; } }
+  ];
+  var QD = {
+    q_li: "門裡有個少年，似乎在做傻事。", q_wolf: "山下的黑風寨蠢蠢欲動。", q_bottle: "後山的石縫裡好像有東西在發光。",
+    q_mo: "柳大夫最近看你的眼神很奇怪。", q_tainan: "柳大夫的遺物指向雲台谷。", q_blood: "宗門要開赤霧秘境，裡面有築基用的靈草。",
+    q_lhy: "築基之後，會有長老注意到你。", q_bamboo: "煉一把真正屬於自己的飛劍。", q_invade: "幽冥五宗的大軍正在逼近。",
+    q_star: "在萬島海找個落腳的地方。", q_war: "萬島海的兩大勢力就要開戰。", q_dan: "結丹需要一份靈物。",
+    q_xutian: "沉淵古殿就要開啟了。", q_back: "是時候回南嶺看看了。", q_zhuimo: "葬魔淵底下藏著上古傳承。",
+    q_kunwu: "北璃鎮岳山的封印鬆動了。", q_node: "人界已經容不下你，得找到飛升靈界的路。", q_ty: "在靈界站穩腳跟。",
+    q_mojie: "魔族大軍壓境。", q_tribu: "最後一關：天劫。"
+  };
+  function qrow(label, v, max, txt) { return '<div class="qr"><span>' + label + '</span><span class="t"><i style="width:' + clamp(v / max * 100, 0, 100) + '%"></i></span><span class="v">' + txt + "</span></div>"; }
+  function questBox() {
+    var q = curQ();
+    if (!s.path) return "";
+    if (!q) return '<div class="quest"><div class="qt">主線　<span>都完成了</span></div><div class="qh">' + (s.exp >= NEED[s.lv] ? "修為圓滿，可以衝關。" : "閉關修煉，等修為圓滿再衝關。") + "</div></div>";
+    var ok = qReady(q), h = '<div class="quest' + (ok ? " ok" : "") + '"><div class="qt">主線：' + esc(q.t) + "　<span>" + esc(QD[q.id] || "") + "</span></div>", tip = "";
+    if (s.lv < q.lv) {
+      h += qrow("修為", s.exp, NEED[s.lv], "突破到「" + esc(short(q.lv)) + "」");
+      tip = s.exp >= NEED[s.lv] ? "修為已滿，按「衝擊」突破境界。" : "閉關修煉累積修為，滿了就能衝關突破。";
+    } else if (s.lv === q.lv && q.ex) {
+      h += qrow("修為", s.exp, NEED[s.lv] * q.ex, Math.floor(s.exp / NEED[s.lv] * 100) + "%／" + Math.round(q.ex * 100) + "%");
+      if (s.exp < NEED[s.lv] * q.ex) tip = "閉關修煉可以增加修為；外出歷練也會增加一點。";
+    }
+    if (q.age) { h += qrow("年齡", s.age, q.age, s.age + "／" + q.age + " 歲"); if (!tip && s.age < q.age) tip = "多閉關幾次，時間就會過去。"; }
+    if (q.rg && s.region !== q.rg && !tip) tip = "要先到" + q.rg + "，跟著主線走就會抵達。";
+    if (ok) tip = "條件達成！按下方「主線：" + esc(q.t) + "」出發。";
+    return h + '<div class="qh">' + tip + "</div></div>";
+  }
+  function curQ() { return Q[s.q]; }
+  function qReady(q) { return q && s.lv >= q.lv && (s.lv > q.lv || !q.ex || s.exp >= NEED[q.lv] * q.ex) && (!q.age || s.age >= q.age) && (!q.rg || s.region === q.rg); }
+  function qHint(q) {
+    var h = [];
+    if (s.lv < q.lv) h.push("先突破到「" + short(q.lv) + "」");
+    else if (s.lv === q.lv && q.ex && s.exp < NEED[q.lv] * q.ex) h.push("修為 " + Math.floor(s.exp / NEED[s.lv] * 100) + "%／需要 " + Math.round(q.ex * 100) + "%，先閉關修煉");
+    if (q.age && s.age < q.age) h.push("等到 " + q.age + " 歲");
+    if (q.rg && s.region !== q.rg) h.push("要先到" + q.rg);
+    return h.join("、");
+  }
+
+  // ---------- 隨機事件 ----------
+  // k：child 童年、explore 歷練、calm 閉關時；m 主線優先；once 一生一次
+  var EV = [
+    // ===== 童年 =====
+    { id: "friend", k: "child", m: 1, once: 1, c: function () { return age(2, 7); }, p: function () { return s.age >= 6 ? 1 : .3; },
+      r: function () { s.fr = 1; return "隔壁的{友}成了你最好的玩伴。你們一起掏鳥窩、偷摘桃子，被大人拿著掃帚滿村追。"; } },
+    { id: "bully", k: "child", m: 1, once: 1, c: function () { return age(5, 9); }, p: .3, r: function () { return "村裡的孩子王{敵}搶了你的饅頭，還把你推進水溝，一群孩子在旁邊哄笑。"; },
+      ch: function () { return [
+        { t: "爬起來撲上去打", r: function () { s.rival = 1; if (chk(.45, ["gen"])) return "你們扭打成一團，最後是{敵}先哭著跑了。從那天起，{敵}看你的眼神就不一樣了。（" + st("gen", 1) + "）"; return "你被打得鼻青臉腫。{敵}踩著你的手說：「記住，這裡我說了算。」"; } },
+        { t: "忍下來", r: function () { s.rival = 1; return "你默默爬起來回家。那天晚上，你在心裡記下了這個名字。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "test", k: "child", m: 1, once: 1, c: function () { return age(6); }, p: function () { return s.age >= 9 ? 1 : .4; },
+      r: function () {
+        s.tested = 1;
+        var t = (ORIGINS[s.origin].boost ? "家族長老" : "一位路過的仙師") + "替村裡的孩子測靈根。", r = s.root;
+        if (r === 0) return t + "輪到你時，測靈玉毫無反應：沒有靈根。旁人嘆了口氣，你還不太明白這代表什麼。";
+        big("測出" + ROOT[r].n);
+        t += ["", "測靈玉亮起四、五種顏色，又雜又暗：偽靈根。仙師說，這種資質修到老也難築基。", "測靈玉亮起三種顏色：三靈根，資質普通。", "測靈玉亮起兩種鮮明的顏色：雙靈根！仙師多看了你兩眼。", "測靈玉驟然大放光芒：天靈根！在場的人全都安靜了。", "測靈玉裡竟有雷光閃動：異靈根！這是萬中無一的資質。"][r];
+        if (s.fr) t += "{友}也測了，什麼都沒有。{友他}拍拍你的肩膀：「以後當了仙人，可要罩我。」";
+        return t;
+      } },
+    { id: "bury", k: "child", once: 1, w: 4, c: function () { return s.fr && age(5, 9); }, r: function () { s.buried = 1; return "你和{友}在河邊撿到一塊會發光的石頭，偷偷埋在老槐樹下，勾手指約好：長大以後一起挖出來。"; } },
+    { id: "dream", k: "child", once: 1, w: 3, c: function () { return s.prev && age(5); }, r: function () {
+      var p = s.prev;
+      return "你做了一個很長的夢。夢裡你叫" + p.n + "，" + (p.p ? "是個" + p.p + "修，修到了「" + p.l + "」，" : "") + p.a + " 歲那年" + p.d + "。醒來時，枕頭濕了一片。（" + st("wu", 1) + "）"; } },
+    { id: "c1", k: "child", once: 1, w: 3, c: function () { return age(0, 3); }, r: function () { return "你學會走路，第一步就撲進了泥坑。"; } },
+    { id: "c2", k: "child", once: 1, w: 2, c: function () { return age(0, 6); }, r: function () {
+      if (P(.5)) return "你發了一場高燒，三天三夜才退。大病之後，身子虛了些。（" + st("gen", -1) + "）";
+      return "你發了一場高燒，郎中都搖頭了，你卻自己退了燒。娘說你命硬。（" + st("yuan", 1) + "）"; } },
+    { id: "c3", k: "child", once: 1, w: 2, c: function () { return age(0, 8); }, r: function () { return "村裡來了貨郎，你盯著糖葫蘆看了一整個下午。"; } },
+    { id: "c4", k: "child", once: 1, w: 2, c: function () { return age(4, 9); }, r: function () { return "你跟大人上山撿柴迷了路，在山洞裡看見一雙發光的眼睛。天黑前，你被找了回來，誰也不信你說的話。"; } },
+    { id: "c5", k: "child", once: 1, w: 2, c: function () { return age(5, 9) && s.origin < 3; }, r: function () { return "你開始放牛，常常躺在草地上看雲，一看就是半天。（" + st("xin", 1) + "）"; } },
+    { id: "c7", k: "child", once: 1, w: 3, c: function () { return age(3, 9); }, r: function () { return "說書人在村口講仙人御劍千里、移山填海的故事。你聽得入迷，回家做了一整晚的夢。"; } },
+    { id: "c8", k: "child", once: 1, w: 4, c: function () { return age(4, 9) && [3, 5, 6].indexOf(s.origin) >= 0; }, r: function () { return "你開始讀書識字，先生說你一點就通。（" + st("wu", 1) + "）"; } },
+    { id: "c9", k: "child", once: 1, w: 4, c: function () { return age(5, 9) && (s.origin === 2 || s.origin === 4); }, r: function () { return "父親開始教你拉弓、紮馬步。（" + st("gen", 1) + "）"; } },
+    { id: "c10", k: "child", once: 1, w: 4, c: function () { return age(4, 9) && s.origin === 7; }, r: function () { return "你每天跟著師兄們做早課，在木魚聲裡長大。（" + st("xin", 1) + "）"; } },
+    { id: "c11", k: "child", once: 1, w: 4, c: function () { return age(4, 9) && (s.origin === 8 || s.origin === 9); }, r: function () { return "長輩讓你背誦修仙入門的口訣，你背得滾瓜爛熟，卻還不懂意思。"; } },
+    { id: "c12", k: "child", once: 1, w: 4, c: function () { return age(3, 9) && s.origin === 10; }, r: function () { return "你常在夜裡夢見一片血色的天空，醒來時手心發燙。"; } },
+    { id: "c13", k: "child", once: 1, w: 2, c: function () { return age(6, 9) && s.origin < 2; }, r: function () { return "私塾先生誇你聰明，可惜家裡付不起學費。你常趴在私塾窗外偷聽。（" + st("wu", 1) + "）"; } },
+
+    // ===== 閉關時 =====
+    { id: "insight", k: "calm", w: 4, r: function () { addExp(.15 + s.st.wu * .01); return pick(["看著一片落葉，你忽然想通了困擾多年的關竅。", "雷雨夜裡，你心有所感，修為一夜精進。", "你在瀑布下打坐九天，靈台一片清明。", "你看著螞蟻搬家看了一整天，忽然笑了出來。"]); } },
+    { id: "daoheart", k: "calm", w: 4, c: function () { return is("dao"); }, r: function () { s.res += 1; return pick(["你畫了上百張符籙，心神越磨越穩。", "你在山頂靜坐觀星，道心更加堅定。", "你讀完一部道經，對天地有了新的體會。"]) + "（道心+1）"; } },
+    { id: "fo_sutra", k: "calm", w: 4, c: function () { return is("fo"); }, r: function () { addExp(.1); s.res += 1; return pick(["你誦經百日，心中一片澄明。", "你在古寺壁畫前坐了一個月，若有所悟。", "你持戒不犯，一心向佛。"]) + "（功德+1）"; } },
+    { id: "ru_teach", k: "calm", w: 4, c: function () { return is("ru"); }, r: function () { s.res += 1; addExp(.06); return pick(["你在燈下抄書，字字端正，墨跡竟隱隱發光。", "你開館講學，來聽課的人坐滿了院子。", "你登高賦詩一首，文氣直沖雲霄。"]) + "（浩然氣+1）"; } },
+    { id: "ru_book", k: "calm", once: 1, w: 3, c: function () { return is("ru") && s.lv >= 3; }, r: function () { addExp(.3); s.res += 3; big("著書立說"); return "你花了十年寫成一部書。書成那天，天降文光，方圓百里的讀書人都抬頭看天。（浩然氣+3）"; } },
+    { id: "mo_heart", k: "calm", w: function () { return s.res / 5; }, c: function () { return is("mo") && s.res >= 15; }, r: function () {
+      if (chk(.55, ["xin"])) return "煞氣反噬，你七竅流血，硬是壓了下去。";
+      if (P(.12)) { die("煞氣反噬，走火入魔"); return "煞氣反噬，你失去神智，最終爆體而亡。"; }
+      s.res = Math.floor(s.res / 2); hurt(.05); return "煞氣反噬，你閉關數年才勉強壓住，壽元大損。"; } },
+    { id: "mo_banner", k: "calm", once: 1, w: 3, c: function () { return is("mo") && s.lv >= 3; }, r: function () { s.res += 3; addExp(.15); big("煉成萬魂幡"); return "你煉成一桿萬魂幡，幡上鬼影哀嚎不止，連你自己都不太敢看。（煞氣+3）"; } },
+    { id: "fo_relic", k: "calm", once: 1, w: 3, c: function () { return is("fo") && s.lv >= 5; }, r: function () { s.res += 5; addExp(.2); big("體內凝出舍利"); return "你體內凝出一顆舍利子，夜裡隱隱放光。（功德+5）"; } },
+    { id: "bottle2", k: "calm", once: 1, w: 3, c: function () { return s.bottle && s.lv >= 5; }, r: function () { big("得知小玉瓶就是造化玉瓶"); return "你在一本上古典籍裡讀到「造化玉瓶」三個字，手中的小玉瓶微微一震。原來這些年的機緣，都來自它。"; } },
+    { id: "mteach", k: "calm", once: 1, w: 4, c: function () { return s.done.q_lhy && s.npc.ms && !s.msGone; }, r: function () { addExp(.25); return "{師}把你叫到跟前，傳你一門壓箱底的秘術：「別說出去，這是我花了一百年才悟出來的。」（" + st("wu", 1) + "）"; } },
+    { id: "mdie", k: "calm", once: 1, w: 2, c: function () { return s.npc.ms === "秦長風" && !s.msGone && s.lv >= 3; }, r: function () { s.msGone = 1; var g = gain(s.lv + 1); big("{師}坐化"); return "你得到消息：{師}坐化了。他留了一個儲物袋給你，裡面有一份「" + g + "」和一張紙條：「好好活著。」"; } },
+    { id: "f_fly", k: "calm", once: 1, w: 2, c: function () { return s.lv === 2; }, r: function () { return "你學會了御器飛行，第一次從雲上看見澄國的山河。原來家鄉那麼小。"; } },
+    { id: "f_cave", k: "calm", once: 1, w: 2, c: function () { return s.lv === 3; }, r: function () { return "你開闢了自己的洞府，在門口種下一片靈藥園，還學著老家的樣子種了一棵槐樹。"; } },
+    { id: "f_tree", k: "calm", once: 1, w: 2, c: function () { return s.lv >= 4; }, r: function () { return "你閉了一次長關。出關時，洞府門口那棵小槐樹已經參天。"; } },
+    { id: "ptogether", k: "calm", once: 1, w: 3, c: function () { return s.partner && s.psaved && s.lv >= 4; }, r: function () { addExp(.3); return "你和{侶}閉關雙修百年，出關時，兩人都覺得修為精進了一大截。"; } },
+    { id: "quiet", k: "calm", w: 2, c: function () { return s.lv >= 5; }, r: function () { return pick(["你閉關時，外頭已滄海桑田，當年的凡人故友早已作古。", "你在城裡聽見說書人講你的故事，講得神乎其神，你聽了直搖頭。"]); } },
+
+    // ===== 歷練：人物線 =====
+    { id: "home", k: "explore", once: 1, w: 5, c: function () { return s.fr && s.lv >= 2 && age(35, 90) && s.region !== "萬島海"; }, r: function () { s.homeAge = s.age; return "你回鄉探望。{友}已經兒孫滿堂，兩鬢斑白，見了你愣了很久，才顫顫巍巍地喊出你的名字。"; },
+      ch: function () { return [
+        { t: "留下一顆延壽丹（30 靈石）", c: function () { return s.stone >= 30; }, r: function () { s.stone -= 30; s.frPill = 1; s.res += 1; return "{友}捧著丹藥，像小時候捧著那兩個饅頭一樣。"; } },
+        { t: "陪{友}喝一壺酒", r: function () { return "你們坐在老槐樹下，從天亮喝到天黑。{友}說了很多，你一直在笑。（" + st("xin", 1) + "）"; } },
+        { t: "遠遠看一眼就走", r: function () { return "你站在村口看了很久，終究沒有走進去。"; } }]; } },
+    { id: "frdie", k: "explore", once: 1, w: 6, c: function () { return s.homeAge && s.age >= s.homeAge + (s.frPill ? 30 : 10); }, r: function () {
+      big("{友}過世");
+      return s.frPill ? "{友}比同齡人多活了二十年。臨終前，{友他}讓孫子帶著一封信來找你，信上寫著：「替我看看，當神仙是什麼樣子。」" : "你得到消息：{友}過世了。你想起老槐樹下的那塊石頭，很久沒有說話。（" + st("xin", 1) + "）"; },
+      ch: function () { return s.frPill ? [
+        { t: "收{友}的孫子為徒", r: function () { s.npc.dc = s.npc.fr.charAt(0) + pick(GM); s.res += 2; big("收{友}的孫子{徒}為徒"); return "你給孩子取名{徒}，帶回洞府。孩子的眉眼，像極了當年的{友}。"; } },
+        { t: "留下一筆靈石，讓孩子過好日子", r: function () { s.stone = Math.floor(s.stone * .7); return "你留下靈石，轉身離開。凡人的日子，對孩子來說也許更好。"; } }] : []; } },
+    { id: "dig", k: "explore", once: 1, w: 4, c: function () { return s.buried && s.lv >= 2 && s.region !== "萬島海"; }, r: function () { addExp(.3); big("挖出兒時埋下的發光石頭"); return "你回到老槐樹下，挖出兒時埋下的那塊發光石頭。如今你一眼就看出來：那是一塊上品靈石，裡頭還封著一縷上古修士的神念。"; } },
+    { id: "rv1", k: "explore", once: 1, w: 6, c: function () { return s.rival === 1 && age(15); }, r: function () { s.rival = 2; return "你在坊市裡撞見了{敵}。{敵他}竟然也踏上了仙途，入了別的宗門。你們隔著人群對看了一眼，誰都沒說話。"; } },
+    { id: "rv2", k: "explore", once: 1, w: 5, c: function () { return s.rival === 2 && s.lv >= 2; }, r: function () { return "{敵}帶著兩個幫手在荒野伏擊你：「當年水溝裡的那個人，現在倒是有出息了。把儲物袋交出來。」"; },
+      ch: function () { return [
+        { t: "拚死一戰", r: function () { return fight("{敵}", 1.4, { win: "rv2w", after: "rv2a", deadly: 1, die: "被宿敵{敵}所殺" }); } },
+        { t: "交出靈石脫身", r: function () { s.stone = Math.floor(s.stone / 2); s.rival = 3; return "{敵}掂了掂靈石，冷笑著走了。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "rv3", k: "explore", once: 1, w: 5, c: function () { return s.rival === 3 && s.lv >= 4; }, r: function () { return "幾百年後，{敵}已經是名震一方的魔頭，屠了三座城。你們終於在廢墟上正面相遇。"; },
+      ch: function () { return [
+        { t: "斬殺{敵}", r: function () { return fight("魔頭{敵}", 1.7, { boss: 1, win: "rv3w", die: "死於宿敵{敵}之手", dieT: "你輸了。倒下前，你看見{敵}的臉上沒有笑。" }); } },
+        { t: "度化{敵}", c: function () { return is("fo"); }, r: function () {
+          if (chk(.4, ["xin"])) { s.rival = 9; s.res += 15; big("度化宿敵{敵}"); return "你放下禪杖，跟{敵}說了三天三夜的話。第四天清晨，{敵}跪在你面前，剃去了頭髮。（功德+15）"; }
+          hurt(.08); s.rival = 4; return "{敵}趁你說法時偷襲，重傷了你，卻沒有下殺手，轉身走了。"; } },
+        { t: "放{敵}一馬", r: function () { s.rival = 4; return "你收起法寶：「走吧。」{敵}愣了一下，消失在夜色裡。"; } }]; } },
+    { id: "rv4", k: "explore", once: 1, w: 4, c: function () { return s.rival === 4 && s.lv >= 5; }, r: function () { s.rival = 9; s.res += 3; big("{敵}捨命相救"); return "你被三位大能圍攻，眼看就要隕落，一道血光撞了進來：是{敵}。{敵他}替你擋下了致命的一擊，臨死前只說了一句：「這下，兩清了。」（" + st("xin", 1) + "）"; } },
+    { id: "partner", k: "explore", once: 1, w: 4, c: function () { return s.lv >= 2; }, r: function () {
+      s.npc.ptSex = s.sex === "男" ? "女" : "男"; s.npc.pt = gname(s.npc.ptSex);
+      return "你在一次除妖時與{侶}聯手，之後又幾度同行。{侶}問你，願不願意結為道侶。"; },
+      ch: function () { return [
+        { t: "結為道侶", r: function () { s.partner = 1; s.res += 2; big("與{侶}結為道侶"); return "你們在月下立誓：修仙路上，你和我，一起走到最後。（" + st("xin", 1) + "）"; } },
+        { t: "一心向道，婉拒", r: function () { return "{侶}沒有多說，只是轉身離開。很多年後，你偶爾還會想起那個背影。"; } }]; } },
+    { id: "ptrial", k: "explore", once: 1, w: 4, c: function () { return s.partner && s.lv >= 3; }, r: function () { return "你和{侶}一起闖蕩秘境，{侶}替你擋下一道禁制，重傷昏迷，氣息越來越弱。"; },
+      ch: function () { return [
+        { t: "分出自己一成壽元救{侶}", r: function () { s.life -= Math.round(s.life * .1); s.psaved = 1; s.res += 3; big("以壽元救回{侶}"); return "你以秘法渡出壽元。{侶}醒來時，你的鬢角多了一縷白髮。"; } },
+        { t: "四處尋找靈藥", r: function () { if (chk(.45, ["yuan"])) { s.psaved = 1; return "你翻遍三座山，終於找到靈藥，救回了{侶}。"; } s.partner = 0; big("{侶}隕落"); return "你帶著靈藥趕回來時，{侶}已經沒了氣息。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "student", k: "explore", once: 1, w: 2, c: function () { return s.lv >= 3 && !s.npc.dc; }, r: function () { s.npc.dc = gname(P(.5) ? "男" : "女"); s.res += 1; big("收{徒}為徒"); return "你收了一個叫{徒}的徒弟，資質平平，卻很肯吃苦，像極了當年的自己。"; } },
+    { id: "sectfound", k: "explore", once: 1, w: 3, c: function () { return s.lv >= 5 && !s.own && s.region !== "靈界"; }, r: function () { return "你在一處靈脈上選好了地方，想開宗立派。"; },
+      ch: function () { var cost = Math.round(30 * M[s.lv]); return [
+        { t: "開宗立派（" + cost + " 靈石）", c: function () { return s.stone >= cost; }, r: function () {
+          s.stone -= cost; s.res += 3;
+          s.own = pick("青天玄紫落雲靈虛太".split("")) + pick("陽霞霄雲嶽冥華".split("")) + { fo: "寺", dao: "宗", ru: "書院", mo: "魔宮" }[s.path];
+          big("創立{門}"); return [chapter("開宗立派"), "{門}開山那天，來拜師的人排到了山腳下。"]; } },
+        { t: "還是獨來獨往", r: function () { return "你在山頂坐了一夜，最後還是一個人走了。"; } }]; } },
+    { id: "sectatk", k: "explore", once: 1, w: 3, c: function () { return s.own; }, r: function () { return "仇家聯手攻上{門}，護山大陣被打出了裂縫，弟子們都看著你。"; },
+      ch: function () { return [
+        { t: "親自出手退敵", r: function () { return fight("來犯的仇家", 1.5, { win: "sectatk" }); } },
+        { t: "開啟大陣，固守待援", r: function () { s.stone = Math.floor(s.stone / 2); return "大陣耗光了庫房的靈石，總算撐到敵人退去。"; } }]; } },
+    { id: "seize", k: "explore", once: 1, w: .6, c: function () { return s.lv >= 2 && s.lv <= 6; }, r: function () {
+      if (chk(.8, ["xin"])) { addExp(.25); big("擊退奪舍的老魔"); return "一縷殘魂趁你打坐時鑽入識海，想奪舍你的肉身。你死守靈台，反過來把它煉化了。"; }
+      die("被老魔奪舍"); return "一縷殘魂趁你打坐時鑽入識海。你沒能守住。從此，那具身體換了一個主人。"; } },
+
+    // ===== 歷練：機緣與險境 =====
+    { id: "beast", k: "explore", w: 6, r: function () { var n = pick(["鐵背蒼狼", "赤鱗巨蟒", "雙頭火鴉", "千年玄龜", "嗜血魔猿", "六翼霜蚣"]); s.bn = n; return "趕路時，一頭" + n + "攔住了去路。"; },
+      ch: function () { return [
+        { t: "迎戰", r: function () { return fight(s.bn || "妖獸", K.rand(.8, 1.15), { deadly: 1, win: "beast", die: "葬身妖獸之口" }); } },
+        { t: "繞路避開", r: function () { if (chk(.7, ["yuan"])) return "你悄悄繞路，有驚無險。"; s.hp = Math.max(1, s.hp - Math.round(stat().hp * .2)); return "繞了遠路，還是被追上咬了一口，好不容易才甩掉。"; } }]; } },
+    { id: "ruin", k: "explore", w: 3, r: function () { return "傳聞附近有一座" + pick(["古修士洞府", "上古秘境", "沉入地底的宗門遺址"]) + "現世，各方修士蜂擁而至。"; },
+      ch: function () { return [
+        { t: "進去碰碰運氣", r: function () { return ["洞府深處，一具守護傀儡動了起來。", fight("守護傀儡", 1.3, { deadly: 1, win: "ruin", die: "死於秘境" })]; } },
+        { t: "不湊這個熱鬧", r: function () { return "後來聽說，進去的人死了大半。"; } }]; } },
+    { id: "herb", k: "explore", w: 4, r: function () { var g = Math.round(R(3, 8) * M[s.lv] * (s.bottle ? 2.5 : 1)); s.stone += g; return "你在懸崖上採到一株靈藥，賣了 " + g + " 塊靈石。" + (s.bottle ? "（用小玉瓶催熟過，年份賣得好）" : ""); } },
+    { id: "market", k: "explore", w: 3, r: function () { return "坊市角落，一個攤販在兜售一塊來路不明的殘玉，要價 " + Math.round(5 * M[s.lv]) + " 塊靈石。"; },
+      ch: function () { var cost = Math.round(5 * M[s.lv]); return [
+        { t: "買下來（" + cost + " 靈石）", c: function () { return s.stone >= cost; }, r: function () {
+          s.stone -= cost;
+          if (chk(.35, ["yuan"])) { addExp(.3); return "殘玉裡封著一段前人的修煉心得，你看了三天三夜，修為大進。"; }
+          if (P(.2)) { var g = gain(s.lv + 1); return "殘玉一捏就碎，裡面滾出一份「" + g + "」。攤販要是知道，大概會哭。"; }
+          return "回去研究了半個月，就只是一塊普通的玉。被騙了。"; } },
+        { t: "不買", r: function () { return "你搖搖頭走開了。"; } }]; } },
+    { id: "enemy", k: "explore", w: 4, c: function () { return s.enemy; }, r: function () { s.enemy = 0; return ["仇家在半路埋伏你。", fight("仇家", 1.3, { deadly: 1, die: "被仇家截殺" })]; } },
+    { id: "bcovet", k: "explore", once: 1, w: 4, c: function () { return s.bottle && s.lv >= 2; }, r: function () { return "有人察覺你賣出的靈藥年份不對，暗中跟蹤你回洞府。"; },
+      ch: function () { return [
+        { t: "殺人滅口", r: function () { return fight("跟蹤者", 1.2, { win: "expose" }); } },
+        { t: "連夜搬走", r: function () { return "你放棄了經營多年的洞府，搬到千里之外。從此賣藥只賣十年份的。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "star", k: "explore", w: 3, c: function () { return s.region === "萬島海"; }, r: function () { s.stone += Math.round(6 * M[s.lv]); return pick(["你在外海獵殺海獸，賣了不少妖丹。", "妖潮來襲，你在觀潮城的大陣裡守了三個月，領了一筆賞金。", "你在一座小島上開闢臨時洞府，每天聽著海浪聲入定。"]); } },
+    { id: "lj1", k: "explore", w: 3, c: function () { return s.region === "靈界"; }, r: function () { s.stone += Math.round(5 * M[s.lv]); return pick(["你在天塹城的城牆上戍守，抵禦魔族一波又一波的進攻。", "你與一位妖族大能交手三天，不分勝負，最後一起喝了酒。", "靈界的天空有三個太陽，你花了好幾十年才習慣。"]); } },
+    { id: "alchemy", k: "explore", w: 3, c: function () { return is("dao") && s.lv <= 8; }, r: function () { return "你攢了些材料，打算開爐煉丹。"; },
+      ch: function () { return [
+        { t: "煉製「" + PILL[s.lv + 1] + "」（較難）", r: function () {
+          if (chk(.25 + (s.bottle ? .25 : 0), ["wu"])) { gain(s.lv + 1); s.res += 1; return "爐蓋一開，丹香滿室：成了！"; }
+          return "火候失控，一爐材料全成了焦炭。"; } },
+        { t: "煉回春丹（較穩）", r: function () { if (chk(.7, ["wu"])) { item("heal", 3); return "丹成，你得到三顆回春丹。"; } return "丹藥品質不佳，只能扔了。"; } }]; } },
+
+    // ===== 歷練：佛 =====
+    { id: "fo_save", k: "explore", w: 4, c: function () { return is("fo"); }, r: function () { return "路上遇到一群逃荒的饑民，老老小小餓得走不動了。"; },
+      ch: function () { return [
+        { t: "傾囊相助", r: function () { s.stone = Math.floor(s.stone / 3); s.res += 3; return "你把身上的靈石都換成米糧。饑民跪地叩謝，你只是合十還禮。（功德+3）"; } },
+        { t: "誦一段經就走", r: function () { s.res += 1; return "你為他們誦經祈福，繼續趕路。（功德+1）"; } }]; } },
+    { id: "fo_demon", k: "explore", w: 3, c: function () { return is("fo"); }, r: function () { return "一隻害人的狐妖被你堵在山洞裡，牠跪地求饒，說家裡還有三隻小狐狸。"; },
+      ch: function () { return [
+        { t: "度化牠", r: function () {
+          if (chk(.5, ["xin"])) { s.res += 5; big("度化山中狐妖"); return "你說法三日，狐妖淚流滿面，從此帶著小狐狸守在寺外聽經。（功德+5）"; }
+          return ["狐妖假裝悔改，趁你不備撲了上來。根本沒有什麼小狐狸。", fight("狐妖", 1.1, { win: "fodemon" })]; } },
+        { t: "降伏牠", r: function () { return fight("狐妖", 1, { win: "fodemon" }); } }]; } },
+    { id: "fo_meat", k: "explore", once: 1, w: 3, c: function () { return is("fo"); }, r: function () { return "大雪封山，你和一個獵戶困在山洞裡七天。獵戶把最後一塊肉乾遞給你。"; },
+      ch: function () { return [
+        { t: "破戒吃下，活下去", r: function () { s.res = Math.max(0, s.res - 2); return "你吃了。下山後，你在佛前跪了一個月。（功德-2）"; } },
+        { t: "把肉乾讓給獵戶", r: function () { s.res += 4; if (chk(.5, ["gen"])) return "你靠著吞雪撐到雪停。獵戶下山後，把家裡的弓箭都燒了。（功德+4）"; hurt(.05); return "你撐到雪停，卻凍壞了身子，落下病根。（功德+4）"; } }]; } },
+    { id: "fo_feed", k: "explore", once: 1, w: 3, c: function () { return is("fo") && s.lv >= 3; }, r: function () { return "一頭吃人的魔頭圍住一座城，揚言要吃夠一千人才走。城裡的人都在哭。"; },
+      ch: function () { return [
+        { t: "以身飼魔", r: function () {
+          if (chk(.35, ["xin"])) { s.res += 15; addExp(.3); big("以身飼魔，感化魔頭"); return "你走到魔頭面前，盤腿坐下：「吃我吧，放了他們。」魔頭張開嘴，卻怎麼也咬不下去。三天後，牠走了，再也沒回來。（功德+15）"; }
+          if (P(.5)) { die("以身飼魔，捨身成仁"); return "魔頭吃了你。那天之後，牠再也沒吃過人。城裡的人為你蓋了一座廟。"; }
+          hurt(.1); s.res += 8; return "魔頭咬斷了你一條手臂，然後愣住了，最後轉身離開。（功德+8）"; } },
+        { t: "以佛法降魔", r: function () { return fight("吃人魔頭", 1.6, { boss: 1, win: "fofeed", die: "降魔不成，反被魔頭所噬" }); } }]; } },
+    { id: "fo_temple", k: "explore", once: 1, w: 3, c: function () { return is("fo") && s.lv >= 3; }, r: function () { s.res += 5; big("百姓為你建寺"); return "受過你恩惠的百姓集資，為你蓋了一座小寺，香火不斷。（功德+5）"; } },
+    { id: "fo_vow", k: "explore", once: 1, w: 3, c: function () { return is("fo") && s.lv >= 6; }, r: function () { return "你在佛前靜坐，心中生起一個大願。"; },
+      ch: function () { return [
+        { t: "「眾生不度，誓不成佛」", r: function () { s.res += 20; big("發下宏願：眾生不度，誓不成佛"); return "話一出口，天花亂墜，地湧金蓮。（功德+20）"; } },
+        { t: "「先度己，再度人」", r: function () { addExp(.3); return "你把心思收回自己身上，修為進展得更快了。"; } }]; } },
+
+    // ===== 歷練：儒 =====
+    { id: "ru_exam", k: "explore", w: 6, c: function () { return is("ru") && (s.exam || 0) < 4 && !s.examQuit && s.lv <= 3; }, r: function () { return "凡間朝廷開科取士，這次是「" + ["童試", "鄉試", "會試", "殿試"][s.exam || 0] + "」。老師說過，入世也是修行。"; },
+      ch: function () { var k = s.exam || 0; return [
+        { t: "下山赴考", r: function () {
+          if (chk(.7 - k * .06, ["wu"])) {
+            s.exam = k + 1; s.res += 1 + k;
+            if (k === 3) { s.office = 1; s.stone += 60; big("殿試奪魁，高中狀元"); return [chapter("金榜題名"), "金殿之上，皇帝親手點你為狀元。你騎著高頭大馬遊街，滿城的人都出來看。（浩然氣+4）"]; }
+            return ["你考上了秀才。回鄉時，鄉親們放了鞭炮。", "你中了舉人。報喜的差役敲著鑼走遍了整條街。", "你在會試中榜上有名，取得了殿試的資格。"][k];
+          }
+          return "你名落孫山。回程路上寫了一首詩，後來倒是傳唱很廣。（" + st("xin", 1) + "）"; } },
+        { t: "不考了，專心修儒", r: function () { s.examQuit = 1; addExp(.05); return "你把考卷燒了。功名只是浮雲。"; } }]; } },
+    { id: "ru_emperor", k: "explore", once: 1, w: 6, c: function () { return s.office; }, r: function () { return "新皇昏庸，寵信一個妖道，要強徵三千童男童女煉長生丹。滿朝文武，沒有一個人敢說話。"; },
+      ch: function () { return [
+        { t: "冒死直諫", r: function () {
+          s.res += 8; big("金殿直諫");
+          if (P(.15)) { die("金殿直諫，被昏君賜死"); return "你被拖出午門。行刑那天，天降大雪，滿城百姓跪在街上送你。"; }
+          s.office = 0; return "你在金殿上一口氣罵了半個時辰，罵得妖道當場現出原形。你被貶到邊疆，卻名滿天下。（浩然氣+8）"; } },
+        { t: "辭官歸隱", r: function () { s.office = 0; return "你掛冠而去。走出城門時，你回頭看了一眼，再也沒有回來。"; } }]; } },
+    { id: "ru_remon", k: "explore", once: 1, w: 3, c: function () { return is("ru"); }, r: function () { return "一位貪官強占民田，逼死了好幾戶人家，百姓敢怒不敢言。"; },
+      ch: function () { return [
+        { t: "挺身為民請命", r: function () { s.res += 5; big("為民請命"); return "你據理力爭，貪官被罷黜。一股浩然之氣從胸中升起。（浩然氣+5）"; } },
+        { t: "明哲保身", r: function () { s.res = Math.max(0, s.res - 2); return "你轉身走了，心裡卻一直不安。（浩然氣-2）"; } }]; } },
+    { id: "ru_evil", k: "explore", w: 3, c: function () { return is("ru") && s.lv >= 2; }, r: function () { return ["一名魔修在城中作亂，百姓四處逃竄。", fight("作亂的魔修", 1.2, { win: "ruevil" })]; } },
+    { id: "ru_dynasty", k: "explore", once: 1, w: 3, c: function () { return is("ru") && s.lv >= 4; }, r: function () { return "凡間王朝衰微，叛軍四起，有人打著你的名號起兵，要你出山輔佐。"; },
+      ch: function () { return [
+        { t: "出山輔佐明主", r: function () { if (chk(.5, ["wu", "yuan"])) { s.res += 8; s.stone += 100; big("輔佐新朝，開創盛世"); return "你輔佐的人登基了。新朝減稅、開倉、興學，你寫的書成了天下讀書人的必讀之書。（浩然氣+8）"; } hurt(.05); return "你看錯了人。那人登基後殺了所有功臣，你連夜逃走。"; } },
+        { t: "歸隱山林", r: function () { addExp(.2); return "你在山中結廬而居。天下大亂，與你無關。"; } }]; } },
+
+    // ===== 歷練：魔 =====
+    { id: "mo_blood", k: "explore", w: 4, c: function () { return is("mo"); }, r: function () { return "門中傳下一門血祭秘法：以凡人精血獻祭，修為可以一日千里。"; },
+      ch: function () { return [
+        { t: "血祭一座村子", r: function () { addExp(.4); s.res += 5; s.st.xin = clamp(s.st.xin - 1, 0, 10); if (P(.3)) s.enemy = 1; return "那一夜，村子裡沒有人活下來。你的修為暴漲。（煞氣+5，心性-1）"; } },
+        { t: "只取山中野獸的血", r: function () { addExp(.12); s.res += 1; return "效果差了許多，但你心裡踏實。（煞氣+1）"; } }]; } },
+    { id: "mo_betray", k: "explore", once: 1, w: 5, c: function () { return is("mo") && s.done.q_lhy && !s.msGone && s.lv >= 2; }, r: function () { return "你在{師}的密室裡發現一本冊子，上面寫著你的名字，後面標著兩個字：「血奴」。"; },
+      ch: function () { return [
+        { t: "趁{師}閉關時弒師", r: function () { s.msGone = 1; return fight("{師}", 1.5, { boss: 1, win: "molord0", die: "弒師失手，被煉成血奴", dieT: "老魔早就在等你動手。從此，你成了一具只會聽命的血奴。" }); } },
+        { t: "連夜叛逃", r: function () { s.msGone = 1; s.sect = ""; s.enemy = 1; big("叛出屍陰教"); return "你帶著幾卷功法逃了出去。屍陰教的追殺令，從此掛在你的頭上。"; } }]; } },
+    { id: "mo_devour", k: "explore", w: 2, c: function () { return is("mo") && s.lv >= 2 && s.sect; }, r: function () { return "同門師兄重傷閉關，洞府防護大開。"; },
+      ch: function () { return [
+        { t: "趁機吞噬他的修為", r: function () { return fight("重傷的師兄", .9, { win: "modev" }); } },
+        { t: "不動手", r: function () { return "你轉身離開。也許有一天，你會需要一個欠你人情的人。"; } }]; } },
+    { id: "mo_hunt", k: "explore", w: 3, c: function () { return is("mo"); }, r: function () { return ["正道修士發現了你的行蹤，聯手圍了上來。", fight("正道修士", 1.3, { deadly: 1, die: "被正道修士圍殺" })]; } },
+    { id: "mo_hehuan", k: "explore", once: 1, w: 2, c: function () { return is("mo") && s.lv >= 2; }, r: function () { return "媚香宗的一位修士找上你，提議雙修。"; },
+      ch: function () { return [
+        { t: "答應", r: function () { if (P(.6)) { addExp(.3); return "雙修之後，你的修為大進。"; } hurt(.05); return "對方採補了你的元氣，揚長而去。你虛弱了好多年。"; } },
+        { t: "拒絕", r: function () { return "你冷冷地趕走了對方。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "mo_lord", k: "explore", once: 1, w: 4, c: function () { return is("mo") && s.lv >= 5 && s.region !== "靈界"; }, r: function () { return "幽冥五宗要推舉新的魔主，五宗宗主齊聚血骨山。"; },
+      ch: function () { return [
+        { t: "爭奪魔主之位", r: function () { return fight("五宗宗主", 1.8, { boss: 1, win: "molord", die: "爭奪魔主失敗，被六宗圍殺" }); } },
+        { t: "不爭，坐山觀虎鬥", r: function () { s.stone += Math.round(10 * M[s.lv]); return "六宗殺得兩敗俱傷，你悄悄收走了不少戰利品。"; } }]; } }
+  ];
+  var EVM = {}; EV.concat(Q).forEach(function (e) { EVM[e.id] = e; });
+  EVM.nangong = { id: "nangong", r: function () { return ""; }, ch: function () { return [
+    { t: "出手相救", r: function () { return ["一位女修被兩名別派弟子圍攻，已經負傷。你衝了上去。", fight("別派弟子", 1.4, { win: "ngwin", after: "ngafter", deadly: 1, die: "隕落赤霧秘境" })]; } },
+    { t: "悄悄退走", r: function () { gain(2); return "你屏住呼吸，從另一條路出了禁地。宗門賜你一顆築基丹。"; } }]; } };
+  EVM.xutian2 = { id: "xutian2", r: function () { return ""; }, ch: function () { return [
+    { t: "跟元嬰老怪的分身搶寶", r: function () { return fight("元嬰老怪的分身", 1.9, { boss: 1, win: "xtwin", die: "隕落沉淵古殿", dieT: "老怪的分身隨手一拍，你就倒下了。" }); } },
+    { t: "見好就收", r: function () { gain(4); return "你在偏殿撿了一份「凝嬰靈果」，趁亂離開了沉淵古殿。"; } }]; } };
+
+  function fill() {
+    var L = [
+      [],
+      ["你一遍遍運轉功法，丹田裡的氣感越來越清晰。", "你打坐到天亮，腿麻得站不起來。", "你背熟了一卷符籙圖譜。"],
+      ["你在山中閉關，" + STEP[2] + "年一晃而過。", "你替宗門看守藥園，順便參悟功法。"],
+      ["你閉關打磨金丹，丹上的紋路又多了一道。", "你在靈藥園裡照料靈草。"],
+      ["你神遊太虛，元嬰出竅，遊歷千里。", "你閉了一次長關，" + STEP[4] + "年一晃而過。"],
+      ["你閉關參悟天地法則，一坐就是" + STEP[Math.min(s.lv, 9)] + "年。"]
+    ];
+    var o = (L[Math.min(s.lv, 5)] || []).slice();
+    o.push({ fo: "你為山下百姓誦經祈福，香客絡繹不絕。", dao: "你潛心修煉，心無旁騖。", ru: "你在燈下讀書，一讀就是一整夜。", mo: "你在血池中浸泡，魔功一層層運轉。" }[s.path]);
+    if (s.region === "萬島海") o.push("海風帶著腥味，你在島上的洞府裡吐納。");
+    if (s.region === "靈界") o.push("靈界的靈氣比人界濃郁百倍，你修煉得格外順暢。");
+    return pick(o);
+  }
+  function val(x) { return typeof x === "function" ? x() : x; }
+  function pickEvent(kind) {
+    var c = EV.filter(function (e) { return e.k === kind && !(e.once && s.done[e.id]) && (!e.c || e.c()); });
+    for (var i = 0; i < c.length; i++) if (c[i].m && P(val(c[i].p))) return c[i];
+    var pool = c.filter(function (e) { return !e.m; });
+    if (!pool.length) return null;
+    return wpick(pool, function (e) { return val(e.w || 1); });
+  }
+
+  // ---------- 主流程 ----------
+  function put(ent, x) {
+    if (x == null || x === "") return;
+    if (Array.isArray(x)) { x.forEach(function (y) { put(ent, y); }); return; }
+    ent.t.push(typeof x === "string" ? T(x) : { c: x.c, t: T(x.t) });
+  }
+  function birth() {
+    var o = wpick(ORIGINS.map(function (x, i) { return i; }), function (i) { return ORIGINS[i].p; });
+    var org = ORIGINS[o], boost = org.boost || 1;
+    var r = wpick(ROOT.map(function (x, i) { return i; }), function (i) { return ROOT[i].p * (i ? boost : 1); });
+    var rsum = ROOT.reduce(function (a, x, i) { return a + x.p * (i ? boost : 1); }, 0);
+    var sex = P(.5) ? "男" : "女", stt = {};
+    Object.keys(ST).forEach(function (k) { stt[k] = clamp(R(0, 3) + R(0, 3) + R(0, 4) + ((org.st || {})[k] || 0), 1, 10); });
+    var frSex = P(.5) ? "男" : "女", rvSex = P(.7) ? "男" : "女";
+    var past = load(PAST) || [];
+    s = { name: gname(sex), sex: sex, origin: o, root: r, prob: org.p * ROOT[r].p * (r ? boost : 1) / rsum, st: stt, age: 0, life: 70,
+      path: null, lv: 0, exp: 0, res: 0, wait: 0, stone: org.stone || 0, pill: {}, items: {}, gear: {}, hp: 1, mp: 0, q: 0,
+      region: "澄國", done: {}, log: [], big: [], pending: null, dead: null, chap: 1,
+      npc: { fr: gname(frSex), frSex: frSex, rv: gname(rvSex), rvSex: rvSex }, prev: past[0] || null };
+    s.log.push({ a: 0, t: [{ c: "ch", t: "卷一　" + org.n }, "你出生在" + org.n + "。" + org.d, "你是個" + (sex === "男" ? "男孩" : "女孩") + "，名叫" + s.name + "。"] });
+    shown = 0; $("log").innerHTML = ""; $("end").hidden = true;
+    $("home").hidden = true; $("game").hidden = false;
+    scrollTo(0, 0); save(); render();
+  }
+  function entry(yrs) { s.age += yrs || 0; var e = { a: s.age, t: [] }; s.log.push(e); return e; }
+  function runEv(e, ent) {
+    if (e.once) s.done[e.id] = 1;
+    put(ent, e.r());
+    if (e.ch && !s.pending && !s.dead && e.ch().length) s.pending = { id: e.id };
+  }
+  function warn(ent) { var y = STEP[s.lv]; if (!s.dead && s.life - s.age <= y * 2 && s.life > s.age) ent.t.push({ c: "bad", t: "你感覺到，壽元快要盡了。" }); }
+  function aged(ent) {
+    if (s.age < s.life) return false;
+    die("壽元耗盡，坐化");
+    put(ent, s.partner ? "壽元耗盡。你靠在{侶}的肩上，在洞府中坐化。" : "壽元耗盡，你沒能再往前一步，在洞府中坐化。");
+    return true;
+  }
+  // 童年：一年一年過，十歲進青嵐門
+  function grow() {
+    if (!s || s.dead || s.pending || s.path) return;
+    var ent = entry(1);
+    if (s.age >= 10) { s.q = 1; runEv(Q[0], ent); }
+    else { var e = pickEvent("child"); if (e && (e.m || P(.7))) runEv(e, ent); else put(ent, pick(["這一年沒什麼特別的事。", "春耕秋收，又是一年。", "下了一整個月的雨，屋頂漏了三處。", "你又長高了一截。"])); }
+    after();
+  }
+  function idle() { return s && s.path && !s.dead && !s.pending; }
+  function cultivate() {
+    if (!idle()) return;
+    var y = STEP[s.lv], ent = entry(y);
+    s.exp = Math.min(NEED[s.lv], s.exp + rate() * y * K.rand(.8, 1.2)); full();
+    if (aged(ent)) return after();
+    var e = P(.35) ? pickEvent("calm") : null;
+    if (e) runEv(e, ent); else put(ent, fill());
+    if (s.exp >= NEED[s.lv] && !s.dead) ent.t.push({ c: "up", t: "修為圓滿，可以衝關了。" });
+    warn(ent); after();
+  }
+  function explore() {
+    if (!idle()) return;
+    var y = Math.max(1, Math.round(STEP[s.lv] / 2)), ent = entry(y), t = stat();
+    s.exp = Math.min(NEED[s.lv], s.exp + rate() * y * K.rand(.3, .5));
+    s.hp = Math.min(t.hp, s.hp + Math.round(t.hp * .3)); s.mp = Math.min(t.mp, s.mp + Math.round(t.mp * .3));
+    if (aged(ent)) return after();
+    var e = pickEvent("explore");
+    if (e) runEv(e, ent); else put(ent, fill());
+    warn(ent); after();
+  }
+  function quest() { var q = curQ(); if (!idle() || !qReady(q)) return; s.q++; runEv(q, entry(0)); after(); }
+  function shop() { if (!idle()) return; entry(0).t.push("你走進坊市。"); s.pending = { id: "shop" }; after(); }
+  function brk() { if (!idle() || s.exp < NEED[s.lv]) return; entry(0); s.pending = { id: "break" }; after(); }
+
+  function shopOpts() {
+    var L = Math.max(1, s.lv), o = [];
+    function buy(label, cost, fn) { o.push({ q: 1, t: label + "（" + cost + " 靈石）", dis: s.stone < cost, r: function () { s.stone -= cost; var r = fn(); s.pending = { id: "shop" }; return r; } }); }
+    buy("回春丹：戰鬥中回復一半氣血", Math.round(4 * M[L]), function () { item("heal"); return "你買了一顆回春丹。"; });
+    buy("回元丹：戰鬥中回滿法力", Math.round(4 * M[L]), function () { item("mana"); return "你買了一顆回元丹。"; });
+    buy("聚氣丹：增加修為", Math.round(10 * M[L]), function () { addExp(.25); return "你服下聚氣丹，修為漲了一截。"; });
+    if (PILL[s.lv + 1]) buy(PILL[s.lv + 1] + "：衝關成功率 +30%", Math.round(45 * M[L]), function () { gain(s.lv + 1); return "你買下一份「" + PILL[s.lv + 1] + "」。"; });
+    var wa = Math.round(5 * M[L]);
+    if (!s.gear.w || s.gear.w.atk < wa) buy(WEAPON[L] + "：攻擊 +" + wa, Math.round(25 * M[L]), function () { s.gear.w = { n: WEAPON[L], atk: wa }; return "你換上了「" + WEAPON[L] + "」。"; });
+    var ad = Math.round(2 * M[L]);
+    if (!s.gear.a || s.gear.a.def < ad) buy(ARMOR[L] + "：防禦 +" + ad, Math.round(20 * M[L]), function () { s.gear.a = { n: ARMOR[L], def: ad }; return "你穿上了「" + ARMOR[L] + "」。"; });
+    o.push({ q: 1, t: "離開坊市", r: function () { return ""; } });
+    return o;
+  }
+  function breakOpts() {
+    var o = [], pk = s.lv + 1, has = PILL[pk] && s.pill[pk] > 0;
+    var lbl = s.lv === 9 ? "迎接天劫" : s.lv === 5 ? "穿過空間節點，飛升靈界" : "衝擊「" + short(s.lv + 1) + "」";
+    if (s.lv === 5 && !s.node) return [{ dis: 1, t: "還沒找到空間節點（先完成主線）" }, { t: "先不衝關", r: function () { return ""; } }];
+    o.push({ t: lbl + "（成功率 " + Math.round(chance(false) * 100) + "%）", r: function () { return tryBreak(false); } });
+    if (has) o.push({ t: "服下「" + PILL[pk] + "」再" + lbl + "（成功率 " + Math.round(chance(true) * 100) + "%）", r: function () { s.pill[pk]--; return tryBreak(true); } });
+    if (s.wait < 3) o.push({ t: "再沉澱一段時間（下次成功率 +6%）", r: function () { s.wait++; s.exp = NEED[s.lv] * .9; return "你按捺住衝關的念頭，繼續打磨根基。"; } });
+    o.push({ t: "先不衝關", r: function () { return ""; } });
+    return o;
+  }
+  function tryBreak(pill) {
+    var c = chance(pill), from = s.lv;
+    s.wait = 0;
+    if (P(c)) {
+      var old = skill();
+      s.lv++; s.exp = 0; setLife(); full();
+      var nsk = skill() !== old ? "學會新絕技「" + skill() + "」。" : "";
+      if (from === 9) { s.ascended = 1; die("飛升仙界"); big("渡過天劫，飛升仙界"); return { c: "up", t: "九九天劫轟然落下，你硬接了下來。雲開處，一道仙光垂落：你飛升仙界了。" + (s.partner ? "{侶}握著你的手，和你一起走進了光裡。" : "") }; }
+      if (from === 5) { s.region = "靈界"; s.sect = ""; big("飛升靈界，晉入" + short(s.lv)); return [chapter("靈界"), { c: "up", t: "你穿過殘破的空間節點，九死一生，飛升靈界，晉入「" + short(s.lv) + "」。" + nsk }]; }
+      big("晉入" + short(s.lv));
+      return { c: "up", t: "突破成功！你晉入「" + lvName(s.lv) + "」，壽元延長到 " + s.life + " 歲。" + nsk };
+    }
+    var d = from === 9 ? .75 - Math.min(s.res, 40) * .005 : .03 + from * .03 + (is("mo") ? s.res * .002 : 0);
+    if (P(d)) { die(from === 9 ? "渡劫失敗，身死道消" : "衝關失敗，" + (is("mo") ? "走火入魔" : "經脈寸斷")); return { c: "bad", t: from === 9 ? "第九道天雷落下，你化為飛灰。" : "衝關失敗，" + (is("mo") ? "魔氣倒灌" : "真氣逆行") + "，你沒能挺過來。" }; }
+    s.exp = NEED[s.lv] * K.rand(.5, .75); s.life -= Math.round(Math.max(LIFE[s.lv] * .03, 1));
+    return { c: "bad", t: "衝關失敗，修為倒退，還折損了些壽元。" };
+  }
+  function choose(o) {
+    if (o.dis || !s.pending) return;
+    var ent = s.log[s.log.length - 1];
+    if (!o.q) ent.t.push({ c: "pick", t: "→ " + T(o.t).replace(/（[^（]*）$/, "") });
+    s.pending = null;
+    put(ent, o.r());
+    after();
+  }
+  function opts() {
+    if (!s.pending) return [];
+    var id = s.pending.id;
+    if (id === "break") return breakOpts();
+    if (id === "fight") return fightOpts();
+    if (id === "shop") return shopOpts();
+    return EVM[id].ch().filter(function (o) { return !o.c || o.c(); });
+  }
+  function after() {
+    if (s.dead) finish();
+    save(); render();
+  }
+  function save() { store(SAVE, s && !s.dead ? s : null); }
+
+  function finish() {
+    var past = load(PAST) || [];
+    var top = s.ascended ? 10 : s.lv;
+    past.unshift({ n: s.name, a: s.age, p: s.path ? PATH[s.path].n : "", l: s.ascended ? "飛升仙界" : short(s.lv), d: s.dead });
+    store(PAST, past.slice(0, 20));
+    var one = 1 / (s.prob * REACH[top]);
+    var title = s.ascended ? "飛升仙界" : top <= 2 ? "仙路過客" : top === 3 ? "一方真人" : top === 4 ? "老怪級人物" : top === 5 ? "人界巔峰" : "靈界大能";
+    var e = $("end");
+    e.innerHTML = "<h2>" + esc(title) + '</h2><p class="muted">' + esc(s.name) + "，" + (s.path ? PATH[s.path].n + "修，" : "") + "享年 " + s.age + " 歲，" + esc(s.dead) + '</p><div class="big">' + fmt(one) + ' 分之一</div><p class="muted">出身、靈根加上最後的境界，大約這麼罕見（遊戲估算）</p>' +
+      (s.big.length ? "<ul>" + s.big.map(function (b) { return "<li>" + b.a + " 歲　" + esc(b.t) + "</li>"; }).join("") + "</ul>" : "");
+    e.hidden = false;
+  }
+  function fmt(n) {
+    if (n >= 1e8) return (n / 1e8).toFixed(n >= 1e9 ? 0 : 1).replace(/\.0$/, "") + " 億";
+    if (n >= 1e4) return Math.round(n / 1e4).toLocaleString() + " 萬";
+    return Math.max(1, Math.round(n)).toLocaleString();
+  }
+  function shareText() {
+    return "《修仙路上你和我》\n" + s.name + "，" + ORIGINS[s.origin].n + "出身，" + ROOT[s.root].n + "。" + (s.path ? PATH[s.path].n + "修，最高「" + (s.ascended ? "飛升仙界" : short(s.lv)) + "」，" : "") + "享年 " + s.age + " 歲，" + s.dead + "。\n" + location.href;
+  }
+
+  // ---------- 畫面 ----------
+  function bar(label, v, max, c) {
+    return "<span>" + label + '</span><span class="t"><i style="width:' + clamp(v / max * 100, 0, 100) + "%;--c:var(--" + c + ')"></i></span><span class="v">' + v + "/" + max + "</span>";
+  }
+  function render() {
+    if (!s) return;
+    var p = s.path && PATH[s.path], n = s.npc, t = stat();
+    var h = '<div class="top"><span class="nm">' + esc(s.name) + '</span><span class="muted">' + s.sex + "・" + esc(ORIGINS[s.origin].n) + "</span>" +
+      (p ? '<span class="badge" style="--c:var(--' + p.c + ')">' + p.n + "修</span>" : "") + "</div>";
+    h += '<div class="meta">境界：' + esc(s.ascended ? "飛升仙界" : lvName(s.lv)) + "　靈根：" + (s.tested ? esc(ROOT[s.root].n) + (s.forged ? "（血煉魔脈）" : "") : "尚未測過") + "　" + s.region + (s.own || s.sect ? "・" + esc(s.own || s.sect) : "") + "</div>";
+    h += '<div class="meter">' + bar("壽", s.age, s.life, "muted");
+    if (p) {
+      h += !s.ascended ? bar("修", Math.floor(s.exp / NEED[s.lv] * 100), 100, p.c) : "<span></span><span></span><span></span>";
+      h += bar("血", Math.max(0, s.hp), t.hp, "accent") + bar("法", Math.max(0, s.mp), t.mp, "blue");
+    } else h += "<span></span><span></span><span></span>";
+    h += '</div><div class="stats">';
+    if (p) h += "<span>攻擊 <b>" + t.atk + "</b></span><span>防禦 <b>" + t.def + "</b></span><span>靈石 <b>" + s.stone + "</b></span>";
+    if (p && s.items.heal) h += "<span>回春丹 <b>" + s.items.heal + "</b></span>";
+    if (p && s.items.mana) h += "<span>回元丹 <b>" + s.items.mana + "</b></span>";
+    h += "</div>";
+    var more = [];
+    Object.keys(ST).forEach(function (k) { more.push(ST[k] + " <b>" + s.st[k] + "</b>"); });
+    if (p) { more.push(p.res + " <b>" + s.res + "</b>"); more.push("絕技 <b>" + skill() + "</b>"); }
+    if (s.gear.w) more.push("法寶 <b>" + esc(s.gear.w.n) + "</b>");
+    if (s.gear.a) more.push("護具 <b>" + esc(s.gear.a.n) + "</b>");
+    Object.keys(s.pill).forEach(function (k) { if (s.pill[k] > 0) more.push(PILL[k] + " <b>" + s.pill[k] + "</b>"); });
+    if (s.bottle) more.push("<b>小玉瓶</b>");
+    if (s.fr) more.push("摯友 <b>" + esc(n.fr) + "</b>");
+    if (s.li) more.push("兄弟 <b>石驚鴻</b>");
+    if (n.ms && !s.msGone) more.push("師父 <b>" + esc(n.ms) + "</b>");
+    if (s.partner) more.push("道侶 <b>" + esc(n.pt) + "</b>");
+    if (n.dc) more.push("徒弟 <b>" + esc(n.dc) + "</b>");
+    if (s.rival && s.rival < 9) more.push("宿敵 <b>" + esc(n.rv) + "</b>");
+    h += questBox();
+    var open = $("more") && $("more").open;
+    h += '<details class="more" id="more"' + (open ? " open" : "") + '><summary>資質、法寶、人物</summary><div class="stats">' + more.map(function (x) { return "<span>" + x + "</span>"; }).join("") + "</div></details>";
+    $("who").innerHTML = h;
+
+    var log = $("log"), stick = innerHeight + scrollY >= document.body.scrollHeight - 120;
+    // 最後一筆可能因選擇、戰鬥而增加內容，重畫
+    if (shown > 0 && log.lastChild) { log.removeChild(log.lastChild); shown--; }
+    for (var i = shown; i < s.log.length; i++) {
+      var en = s.log[i], li = document.createElement("li");
+      li.className = i === s.log.length - 1 ? "new" : "";
+      li.innerHTML = '<span class="a">' + en.a + ' 歲</span><div>' + en.t.map(function (x) { return typeof x === "string" ? "<p>" + esc(x) + "</p>" : '<p class="' + x.c + '">' + esc(x.t) + "</p>"; }).join("") + "</div>";
+      log.appendChild(li);
+    }
+    shown = s.log.length;
+    foot();
+    if (stick) scrollTo(0, document.body.scrollHeight);
+  }
+  function btn(t, cls, fn, dis) { var b = document.createElement("button"); b.type = "button"; b.textContent = t; if (cls) b.className = cls; b.onclick = fn; if (dis) b.disabled = true; return b; }
+  function foot() {
+    fillFoot();
+    // 選項多時底部變高，留出同樣的空間，最新的紀錄才不會被擋住
+    document.querySelector(".wrap").style.paddingBottom = $("foot").parentNode.offsetHeight + 24 + "px";
+  }
+  function fillFoot() {
+    var f = $("foot"); f.innerHTML = "";
+    if (!s || $("game").hidden) { f.appendChild(btn("出生", "", birth)); return; }
+    if (s.dead) {
+      var row = document.createElement("div"); row.className = "row";
+      row.appendChild(btn("轉世重修", "", birth));
+      row.appendChild(btn("分享", "ghost small", function () {
+        var t = shareText(), b = this;
+        if (navigator.share) navigator.share({ text: t }).catch(function () {});
+        else if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { b.textContent = "已複製"; }, function () {});
+      }));
+      row.appendChild(btn("首頁", "ghost small", home));
+      f.appendChild(row); return;
+    }
+    if (s.pending) {
+      if (s.pending.id === "fight") {
+        var fo = s.pending.f, d = document.createElement("div"); d.className = "foe";
+        d.innerHTML = "<b>" + esc(fo.n) + '</b><span class="t"><i style="width:' + clamp(fo.hp / fo.max * 100, 0, 100) + '%"></i></span><span>' + Math.max(0, fo.hp) + "/" + fo.max + "</span>";
+        f.appendChild(d);
+        var g = document.createElement("div"); g.className = "grid2";
+        opts().forEach(function (o) { g.appendChild(btn(T(o.t), "choice", function () { choose(o); }, o.dis)); });
+        f.appendChild(g); return;
+      }
+      opts().forEach(function (o) { f.appendChild(btn(T(o.t), "choice", function () { choose(o); }, o.dis)); });
+      return;
+    }
+    if (!s.path) { f.appendChild(btn("過一年", "", grow)); return; }
+    if (s.exp >= NEED[s.lv]) f.appendChild(btn(s.lv === 9 ? "迎接天劫" : s.lv === 5 ? "飛升靈界" : "衝擊「" + short(s.lv + 1) + "」", "brk", brk));
+    var r1 = document.createElement("div"); r1.className = "row";
+    r1.appendChild(btn("閉關修煉（" + STEP[s.lv] + " 年）", "", cultivate));
+    r1.appendChild(btn("外出歷練", "sec", explore));
+    f.appendChild(r1);
+    var r2 = document.createElement("div"); r2.className = "row";
+    var q = curQ();
+    if (q) { var ok = qReady(q); r2.appendChild(btn(ok ? "主線：" + q.t : "主線：" + q.t + "（" + qHint(q) + "）", ok ? "main" : "", quest, !ok)); }
+    r2.appendChild(btn("坊市", "sec small", shop));
+    f.appendChild(r2);
+  }
+  function home() { s = null; $("game").hidden = true; $("home").hidden = false; renderHome(); foot(); scrollTo(0, 0); }
+  function bars(el, list, total) {
+    el.innerHTML = list.map(function (x) {
+      return "<span>" + esc(x.n) + '</span><span class="t"><i style="width:' + Math.max(1, x.p / total * 100) + '%"></i></span><span class="n">' + (x.p * 100).toFixed(x.p < .01 ? 1 : 0) + "%</span>";
+    }).join("");
+  }
+  function renderHome() {
+    bars($("oBars"), ORIGINS, .42); bars($("rBars"), ROOT, .385);
+    var past = load(PAST) || [];
+    $("pastBox").hidden = !past.length;
+    $("past").innerHTML = past.map(function (x) {
+      return "<li><b>" + esc(x.n) + "</b>　" + (x.p ? esc(x.p) + "修・" + esc(x.l) : "凡人") + "・" + x.a + " 歲・" + esc(x.d) + "</li>";
+    }).join("");
+  }
+
+  // 接著上次沒走完的人生
+  var saved = load(SAVE);
+  renderHome();
+  if (saved && saved.log && saved.gear && !saved.dead) { s = saved; $("home").hidden = true; $("game").hidden = false; render(); }
+  else foot();
+  window.__xx = { get s() { return s; }, opts: opts, choose: choose, birth: birth, grow: grow, cultivate: cultivate, explore: explore, quest: quest, shop: shop, brk: brk, qReady: function () { return qReady(curQ()); }, stat: stat, need: function () { return NEED[s.lv]; } };
+})();
+</script>
+</body>
+</html>
