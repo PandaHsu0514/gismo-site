@@ -87,9 +87,9 @@
 <body>
 <div class="wrap">
   <section id="home">
-    <p class="tag">修仙 RPG・改編自《凡人修仙傳》</p>
+    <p class="tag">修仙 RPG</p>
     <h1>修仙路上<em>你和我</em></h1>
-    <p class="lead">越國一隅，每天都有嬰兒呱呱墜地，你是其中一個。出身、靈根都由不得你；十歲那年，你會被送進七玄門，從此不修仙也不行。佛、道、儒、魔要走哪條路，一路上跟誰同行、跟誰為敵，由你決定。</p>
+    <p class="lead">澄國一隅，每天都有嬰兒呱呱墜地，你是其中一個。出身、靈根都由不得你；十歲那年，你會被送進青嵐門，從此不修仙也不行。佛、道、儒、魔要走哪條路，一路上跟誰同行、跟誰為敵，由你決定。</p>
     <div class="panel">
       <h2>如果你此刻出生</h2>
       <p class="sub">出身的機率（遊戲設定）</p>
@@ -102,7 +102,7 @@
     </div>
     <div class="panel">
       <h2>四條路</h2>
-      <p class="sub">在墨大夫的藏書閣裡，你會翻到四部功法。</p>
+      <p class="sub">在柳大夫的藏書閣裡，你會翻到四部功法。</p>
       <div class="paths">
         <div style="--c:var(--gold)"><b>佛</b>氣血厚、防禦高，絕技會回血；功德越多，衝關越穩。</div>
         <div style="--c:var(--blue)"><b>道</b>法力最多，絕技傷害最高；要有靈根才能練。</div>
@@ -116,7 +116,7 @@
         <li><b>閉關修煉</b>：累積修為，回滿氣血、法力，但歲月流逝。</li>
         <li><b>外出歷練</b>：遇妖獸、秘境、仇家與故人，有危險也有機緣。</li>
         <li><b>坊市</b>：用靈石買丹藥、法寶、護具。</li>
-        <li><b>主線</b>：跟著《凡人修仙傳》的劇情走，從七玄門一路到靈界。</li>
+        <li><b>主線</b>：跟著主線劇情走，從青嵐門一路到靈界。</li>
         <li>修為滿了就能<b>衝關</b>。壽元用完、戰死、衝關失敗，這一生就結束了。</li>
       </ul>
     </div>
@@ -167,7 +167,7 @@
   // f：氣血、攻擊、防禦、法力的倍率；sk：絕技倍率
   var PATH = {
     fo: { n: "佛", res: "功德", c: "gold", spd: .7, f: [1.3, .9, 1.4, .9], sk: 1.5, lv: ["凡人", "持戒", "禪定", "明心", "見性", "舍利", "金身", "羅漢", "菩薩", "佛陀"], skill: ["金剛護體", "伏魔掌", "大日佛光", "萬佛朝宗"] },
-    dao: { n: "道", res: "道心", c: "blue", spd: 1.1, f: [1, 1, 1, 1.35], sk: 2.3, lv: ["凡人", "練氣", "築基", "結丹", "元嬰", "化神", "煉虛", "合體", "大乘", "渡劫"], skill: ["火彈術", "青元劍訣", "掌心雷", "萬劍歸宗"] },
+    dao: { n: "道", res: "道心", c: "blue", spd: 1.1, f: [1, 1, 1, 1.35], sk: 2.3, lv: ["凡人", "練氣", "築基", "結丹", "元嬰", "化神", "煉虛", "合體", "大乘", "渡劫"], skill: ["火彈術", "青霜劍訣", "掌心雷", "萬劍歸宗"] },
     ru: { n: "儒", res: "浩然氣", c: "accent2", spd: .85, f: [1.1, 1.05, 1.1, 1.15], sk: 1.8, lv: ["凡人", "養氣", "明理", "文心", "立命", "浩然", "大儒", "半聖", "亞聖", "聖人"], skill: ["浩然一劍", "言出法隨", "文心照膽", "聖人一怒"] },
     mo: { n: "魔", res: "煞氣", c: "purple", spd: 1.4, f: [.95, 1.3, .9, 1], sk: 2, lv: ["凡人", "煉血", "凝煞", "魔丹", "魔嬰", "化魔", "天魔", "魔尊", "魔帝", "魔祖"], skill: ["血影刀", "噬魂魔爪", "血神遁", "天魔解體"] }
   };
@@ -319,14 +319,14 @@
 
   // ---------- 入門 ----------
   function join(path, how) {
-    s.path = path; s.lv = 1; s.exp = 0; s.sect = "七玄門";
+    s.path = path; s.lv = 1; s.exp = 0; s.sect = "青嵐門";
     s.res = path === "fo" && ORIGINS[s.origin].aff === "fo" ? 3 : 1;
-    s.npc.ms = "墨大夫";
+    s.npc.ms = "柳大夫";
     var out = [];
     if (how === "forged") { s.forged = 1; s.st.gen = clamp(s.st.gen - 2, 0, 10);
       out.push("你沒有靈根，只能照殘卷上的法子，用自己的精血逆煉經脈。七天七夜，你痛得昏死又醒來，最後體內真的生出了一絲魔氣。（根骨-2）"); }
-    else out.push({ fo: "你翻開《金剛經》殘卷，一字一句地讀。讀到第三天，你發現自己的呼吸跟著經文起伏，心裡一片安靜。", dao: "你照墨大夫給的口訣吐納，第七天夜裡，丹田裡第一次有了一絲涼意。墨大夫知道後，笑得很開心。", ru: "你每天清晨朗讀《浩然正氣訣》，讀到第十遍時，胸口忽然升起一股熱氣。", mo: "你偷偷練起《血煞魔功》。每練一次，眼睛就紅一分。" }[path]);
-    if (path !== "dao") out.push("墨大夫發現你練的不是他給的口訣，臉色沉了一下，卻什麼也沒說。");
+    else out.push({ fo: "你翻開《金剛經》殘卷，一字一句地讀。讀到第三天，你發現自己的呼吸跟著經文起伏，心裡一片安靜。", dao: "你照柳大夫給的口訣吐納，第七天夜裡，丹田裡第一次有了一絲涼意。柳大夫知道後，笑得很開心。", ru: "你每天清晨朗讀《浩然正氣訣》，讀到第十遍時，胸口忽然升起一股熱氣。", mo: "你偷偷練起《血煞魔功》。每練一次，眼睛就紅一分。" }[path]);
+    if (path !== "dao") out.push("柳大夫發現你練的不是他給的口訣，臉色沉了一下，卻什麼也沒說。");
     setLife(); full(); item("heal", 2);
     if (s.fr) out.push("{友}託人帶來一封信，信上只有一句話：「發達了，別忘了我。」");
     out.push({ c: "up", t: "你踏上" + PATH[path].n + "修之路，入門第一層「" + PATH[path].lv[1] + "」。學會絕技「" + skill() + "」。" });
@@ -336,28 +336,28 @@
 
   // ---------- 劇情回呼（戰鬥贏了、或不論輸贏之後接著跑的內容）----------
   var CB = {
-    wolf: function () { s.stone += 15; return "天亮時，野狼幫退了。厲飛雨拍著你的肩膀：「好兄弟，命是你救的。」"; },
+    wolf: function () { s.stone += 15; return "天亮時，黑風寨退了。石驚鴻拍著你的肩膀：「好兄弟，命是你救的。」"; },
     modoc: function () {
-      s.msGone = 1; s.npc.ms = ""; item("heal", 3); s.stone += 40; big("反殺墨大夫");
-      return "墨大夫倒下前，眼神裡竟有一絲解脫。你在他的遺物裡找到一些靈石、三顆回春丹，還有一張紙條，上面寫著「太南谷」。";
+      s.msGone = 1; s.npc.ms = ""; item("heal", 3); s.stone += 40; big("反殺柳大夫");
+      return "柳大夫倒下前，眼神裡竟有一絲解脫。你在他的遺物裡找到一些靈石、三顆回春丹，還有一張紙條，上面寫著「雲台谷」。";
     },
     blood1: function () { addExp(.15); s.pending = { id: "nangong" }; return "你斬殺妖獸，深入禁地，採到了一大把靈草。正要離開，前方傳來打鬥聲。"; },
-    ngwin: function () { s.res += 3; gain(2); gain(2); s.ng = 1; big("血色禁地救下南宮婉"); return "被救的女修自稱是掩月宗的南宮婉。她看了你一眼，把自己的靈草也分給你：「這份人情，我記下了。」出了禁地，宗門賜你兩顆築基丹。"; },
+    ngwin: function () { s.res += 3; gain(2); gain(2); s.ng = 1; big("赤霧秘境救下蘇綺雲"); return "被救的女修自稱是碧月宮的蘇綺雲。她看了你一眼，把自己的靈草也分給你：「這份人情，我記下了。」出了禁地，宗門賜你兩顆築基丹。"; },
     ngafter: function () { if (!s.ng) { gain(2); return "你帶著靈草出了禁地，宗門賜你一顆築基丹。"; } return ""; },
-    bamboo: function () { var a = Math.round(8 * M[s.lv + 1]); s.gear.w = { n: "青竹蜂雲劍", atk: a }; big("煉成青竹蜂雲劍"); return { c: "up", t: "你砍下金雷竹，花了三年煉成一套飛劍：「青竹蜂雲劍」（攻擊 +" + a + "）。劍上帶著細細的金雷。" }; },
-    invwin: function () { s.res += 2; return "你殺退了來犯的修士，但越國的大勢已去。"; },
+    bamboo: function () { var a = Math.round(8 * M[s.lv + 1]); s.gear.w = { n: "千竹雷影劍", atk: a }; big("煉成千竹雷影劍"); return { c: "up", t: "你砍下紫電竹，花了三年煉成一套飛劍：「千竹雷影劍」（攻擊 +" + a + "）。劍上帶著細細的紫電。" }; },
+    invwin: function () { s.res += 2; return "你殺退了來犯的修士，但澄國的大勢已去。"; },
     flee: function () {
-      s.region = "亂星海"; s.sect = ""; big("經古傳送陣逃往亂星海");
-      return [chapter("亂星海"), "越國七派的山門一個接一個陷落。你和幾個同門找到一座古傳送陣，拚著陣法崩潰的危險傳送出去。睜開眼時，四面都是看不到邊的海。"];
+      s.region = "萬島海"; s.sect = ""; big("經古傳送陣逃往萬島海");
+      return [chapter("萬島海"), "澄國六宗的山門一個接一個陷落。你和幾個同門找到一座古傳送陣，拚著陣法崩潰的危險傳送出去。睜開眼時，四面都是看不到邊的海。"];
     },
-    swxg: function () { s.stone += 80; s.res += 2; big("在星宮麾下立功"); return "你在星宮麾下屢立戰功，被賜了一座小靈島。"; },
-    swnx: function () { s.stone += 60; addExp(.2); big("在逆星盟立功"); return "逆星盟攻下了好幾座星宮的島嶼，你分到不少好處。"; },
+    swxg: function () { s.stone += 80; s.res += 2; big("在潮音閣麾下立功"); return "你在潮音閣麾下屢立戰功，被賜了一座小靈島。"; },
+    swnx: function () { s.stone += 60; addExp(.2); big("在怒濤盟立功"); return "怒濤盟攻下了好幾座潮音閣的島嶼，你分到不少好處。"; },
     dan: function () { gain(3); return "你剖開妖獸，取出一顆千年妖丹。這就是結丹要用的靈物。"; },
     xt1: function () { s.pending = { id: "xutian2" }; return "你擊碎守殿傀儡，闖到大殿深處。前方光芒大盛，殿中的至寶就在眼前，幾個元嬰老怪的分身也趕到了。"; },
-    xtwin: function () { var d = Math.round(4 * M[s.lv + 1]); s.gear.a = { n: "虛天殿古寶寶甲", def: d }; gain(4); big("虛天殿奪寶"); return { c: "up", t: "你搶在老怪們之前，奪下一件古寶寶甲（防禦 +" + d + "），還順手收走一份「凝嬰靈果」。" }; },
-    zmwin: function () { addExp(.5); big("墜魔谷斬古魔"); return "古魔化為一縷黑煙散去。谷底留著一位上古修士的傳承，你全收了下來。"; },
-    kwwin: function () { gain(5); big("昆吾山重新封印魔頭"); return "你把魔頭殘魂重新封回山腹。封印裡飄出一團靈光，是一份「化神靈液」。"; },
-    tywin: function () { s.stone += 200; big("天淵城擊退魔族先鋒"); return "你在城頭上斬了魔族先鋒，天淵城的守將親自替你斟了一杯酒。"; },
+    xtwin: function () { var d = Math.round(4 * M[s.lv + 1]); s.gear.a = { n: "沉淵古殿古寶寶甲", def: d }; gain(4); big("沉淵古殿奪寶"); return { c: "up", t: "你搶在老怪們之前，奪下一件古寶寶甲（防禦 +" + d + "），還順手收走一份「凝嬰靈果」。" }; },
+    zmwin: function () { addExp(.5); big("葬魔淵斬古魔"); return "古魔化為一縷黑煙散去。谷底留著一位上古修士的傳承，你全收了下來。"; },
+    kwwin: function () { gain(5); big("鎮岳山重新封印魔頭"); return "你把魔頭殘魂重新封回山腹。封印裡飄出一團靈光，是一份「化神靈液」。"; },
+    tywin: function () { s.stone += 200; big("天塹城擊退魔族先鋒"); return "你在城頭上斬了魔族先鋒，天塹城的守將親自替你斟了一杯酒。"; },
     mjwin: function () { gain(8); addExp(.3); big("斬殺魔族大將"); return "魔族大將倒下，魔潮退去。人族各城為你立了碑。"; },
     beast: function () { if (P(.3)) { item("heal"); return "你從妖獸巢穴裡撿到一顆回春丹。"; } return ""; },
     ruin: function () { var g = gain(s.lv + 1); addExp(.2); big("在秘境中得到" + g); return "傀儡後面是一具枯骨，旁邊的儲物袋裡有一份「" + g + "」和幾卷功法心得。"; },
@@ -368,17 +368,17 @@
     fofeed: function () { s.res += 6; big("降伏吃人魔頭"); return "你把魔頭鎮在城外的塔下。城裡的人跪了一地。（功德+6）"; },
     ruevil: function () { s.res += 2; return "魔修被你打跑了。圍觀的百姓都說，原來讀書人也這麼能打。（浩然氣+2）"; },
     modev: function () { addExp(.35); s.res += 3; return "你吞噬了師兄的精元。魔道就是如此。（煞氣+3）"; },
-    molord: function () { s.res += 10; s.stone += 200; big("登上魔主之位"); return [chapter("魔主"), "你踩著六宗宗主的法寶登上血魔山頂。從此，天南魔道唯你馬首是瞻。（煞氣+10）"]; },
+    molord: function () { s.res += 10; s.stone += 200; big("登上魔主之位"); return [chapter("魔主"), "你踩著五宗宗主的法寶登上血骨山頂。從此，南嶺魔道唯你馬首是瞻。（煞氣+10）"]; },
     molord0: function () { s.npc.ms = ""; s.res += 5; s.stone += 80; var g = gain(s.lv + 1); big("弒師，奪取師父的一切"); return "老魔臨死前反而笑了：「好，這才是我教出來的徒弟。」你從他的洞府裡搜出一份「" + g + "」。（煞氣+5）"; },
     sectatk: function () { s.res += 2; s.stone += 50 * s.lv; big("一人退敵，保住{門}"); return "你一人一劍立在山門前，來犯的人沒有一個走得了。"; },
     expose: function () { return "你處理掉了屍體，沒有人知道發生了什麼。（" + st("xin", -1) + "）"; }
   };
 
-  // ---------- 主線（跟著《凡人修仙傳》的劇情）----------
+  // ---------- 主線 ----------
   // lv：需要的境界；ex：該境界的修為比例；age：年齡；rg：所在地
   function pathOpts() {
     var root = hasRoot(), o = [];
-    o.push(root ? { k: "dao", t: "練墨大夫給的無名口訣（道）" } : { dis: 1, t: "練墨大夫給的無名口訣（道）：沒有靈根，練不出氣感" });
+    o.push(root ? { k: "dao", t: "練柳大夫給的無名口訣（道）" } : { dis: 1, t: "練柳大夫給的無名口訣（道）：沒有靈根，練不出氣感" });
     o.push({ k: "fo", t: "練《金剛經》殘卷（佛）" });
     o.push({ k: "ru", t: "練《浩然正氣訣》殘卷（儒）" });
     o.push(root ? { k: "mo", t: "練《血煞魔功》殘卷（魔）" } : { k: "mo", how: "forged", t: "練《血煞魔功》殘卷，以血肉逆煉靈根（魔，根骨-2）" });
@@ -387,78 +387,78 @@
     return o.map(function (x) { return x.dis ? x : { t: x.t, r: function () { return join(x.k, x.how); } }; });
   }
   var Q = [
-    { id: "q_qixuan", t: "七玄門", lv: 0, r: function () {
-      return [chapter("七玄門"), "家裡湊了些錢，託人把你送到七玄門參加入門測試。測試是爬上後山的陡坡，你手腳磨破了皮，還是咬牙爬到了最後。",
-        "你被神手谷的墨大夫收為記名弟子。墨大夫交給你一卷沒有名字的口訣，要你每天練。你在他的藏書閣角落，又翻出了三本殘卷。"]; },
+    { id: "q_qixuan", t: "青嵐門", lv: 0, r: function () {
+      return [chapter("青嵐門"), "家裡湊了些錢，託人把你送到青嵐門參加入門測試。測試是爬上後山的陡坡，你手腳磨破了皮，還是咬牙爬到了最後。",
+        "你被百草谷的柳大夫收為記名弟子。柳大夫交給你一卷沒有名字的口訣，要你每天練。你在他的藏書閣角落，又翻出了三本殘卷。"]; },
       ch: pathOpts },
-    { id: "q_li", t: "結識厲飛雨", lv: 1, age: 11, r: function () { return "七玄門裡，你結識了一個叫厲飛雨的少年。厲飛雨為了在門內出頭，偷偷吃一種傷身的藥丸，武功突飛猛進，身子卻一天天垮下去。"; },
+    { id: "q_li", t: "結識石驚鴻", lv: 1, age: 11, r: function () { return "青嵐門裡，你結識了一個叫石驚鴻的少年。石驚鴻為了在門內出頭，偷偷吃一種傷身的藥丸，武功突飛猛進，身子卻一天天垮下去。"; },
       ch: function () { return [
-        { t: "用墨大夫教的醫術替他調理", r: function () { s.li = 1; if (chk(.5, ["wu"])) { big("與厲飛雨結為兄弟"); return "你翻遍醫書，替厲飛雨配了一帖藥，總算保住了他的命。厲飛雨從此把你當親兄弟。（" + st("wu", 1) + "）"; } return "你的藥只能緩一緩，治不了根。厲飛雨笑著說：「沒關係，能多活幾年就賺了。」"; } },
-        { t: "勸他別再吃了", r: function () { s.li = 1; return "厲飛雨沉默了很久，說：「你不懂。我不吃，就什麼都不是。」"; } }]; } },
-    { id: "q_wolf", t: "野狼幫夜襲", lv: 1, age: 12, r: function () { return ["野狼幫趁夜突襲七玄門，殺聲四起，火光照亮了半座山。一個滿臉刀疤的頭目朝你衝了過來。", fight("野狼幫頭目", .9, { tier: 1, win: "wolf" })]; } },
-    { id: "q_bottle", t: "後山的小綠瓶", lv: 1, r: function () {
-      s.bottle = 1; big("撿到神祕小綠瓶");
-      return "你在後山採藥時，從石縫裡撿到一只布滿葉紋的小綠瓶。每隔幾天，瓶中就會凝出幾滴綠液，澆在草藥上，草藥一夜就長成百年。你把它藏在床底下，誰也沒說。（修煉速度大增，採藥收入變多）"; } },
-    { id: "q_mo", t: "墨大夫的密室", lv: 1, ex: .5, age: 14, r: function () { return [chapter("墨大夫"), "墨大夫把你叫進密室，關上了門。他終於說出真相：他教你功法，是要等你練成之後，奪舍你的身體延壽。「別怪我，」他說，「我只是不想死。」"]; },
+        { t: "用柳大夫教的醫術替他調理", r: function () { s.li = 1; if (chk(.5, ["wu"])) { big("與石驚鴻結為兄弟"); return "你翻遍醫書，替石驚鴻配了一帖藥，總算保住了他的命。石驚鴻從此把你當親兄弟。（" + st("wu", 1) + "）"; } return "你的藥只能緩一緩，治不了根。石驚鴻笑著說：「沒關係，能多活幾年就賺了。」"; } },
+        { t: "勸他別再吃了", r: function () { s.li = 1; return "石驚鴻沉默了很久，說：「你不懂。我不吃，就什麼都不是。」"; } }]; } },
+    { id: "q_wolf", t: "黑風寨夜襲", lv: 1, age: 12, r: function () { return ["黑風寨趁夜突襲青嵐門，殺聲四起，火光照亮了半座山。一個滿臉刀疤的頭目朝你衝了過來。", fight("黑風寨頭目", .9, { tier: 1, win: "wolf" })]; } },
+    { id: "q_bottle", t: "後山的小玉瓶", lv: 1, r: function () {
+      s.bottle = 1; big("撿到神祕小玉瓶");
+      return "你在後山採藥時，從石縫裡撿到一只刻著雲紋的小玉瓶。每隔幾天，瓶中就會凝出幾滴綠液，澆在草藥上，草藥一夜就長成百年。你把它藏在床底下，誰也沒說。（修煉速度大增，採藥收入變多）"; } },
+    { id: "q_mo", t: "柳大夫的密室", lv: 1, ex: .5, age: 14, r: function () { return [chapter("柳大夫"), "柳大夫把你叫進密室，關上了門。他終於說出真相：他教你功法，是要等你練成之後，奪舍你的身體延壽。「別怪我，」他說，「我只是不想死。」"]; },
       ch: function () { return [
-        { t: "先下手為強", r: function () { return fight("墨大夫", 1.2, { tier: 1, boss: 1, win: "modoc", die: "被墨大夫奪舍", dieT: "你慢了一步。從此，那具身體換了一個主人。" }); } },
+        { t: "先下手為強", r: function () { return fight("柳大夫", 1.2, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "你慢了一步。從此，那具身體換了一個主人。" }); } },
         { t: "假意順從，等他施法時反擊", r: function () {
-          if (chk(.5, ["xin"])) return ["你閉上眼睛，等墨大夫的神魂離體的那一刻，猛然睜眼。墨大夫的神魂撞上你的識海，被彈了回去，他元氣大傷。", fight("元氣大傷的墨大夫", .9, { tier: 1, boss: 1, win: "modoc", die: "被墨大夫奪舍" })];
-          return ["墨大夫早就看穿你的心思，冷笑一聲出手了。", fight("墨大夫", 1.4, { tier: 1, boss: 1, win: "modoc", die: "被墨大夫奪舍", dieT: "他比你想的更強。從此，那具身體換了一個主人。" })]; } }]; } },
-    { id: "q_tainan", t: "太南小會", lv: 1, ex: .5, r: function () {
+          if (chk(.5, ["xin"])) return ["你閉上眼睛，等柳大夫的神魂離體的那一刻，猛然睜眼。柳大夫的神魂撞上你的識海，被彈了回去，他元氣大傷。", fight("元氣大傷的柳大夫", .9, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍" })];
+          return ["柳大夫早就看穿你的心思，冷笑一聲出手了。", fight("柳大夫", 1.4, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "他比你想的更強。從此，那具身體換了一個主人。" })]; } }]; } },
+    { id: "q_tainan", t: "雲台集", lv: 1, ex: .5, r: function () {
       s.gear.w = s.gear.w || { n: "下品飛劍", atk: Math.round(5 * M[1]) };
-      if (is("mo")) { s.sect = "鬼靈門"; s.npc.ms = pick("血陰屍鬼幽".split("")) + pick("九骨魂煞冥".split("")) + "老祖"; s.msGone = 0;
-        return [chapter("太南小會"), "你照著紙條找到太南谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用墨大夫的靈石買了一把下品飛劍。",
-          "散會時，一個黑袍人攔住你：「你身上的魔氣，瞞不過我。」他是鬼靈門的{師}。你跟著他，成了鬼靈門的弟子。"]; }
-      s.sect = "黃楓谷";
-      return [chapter("黃楓谷"), "你照著紙條找到太南谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用墨大夫的靈石買了一把下品飛劍。",
-        "小會上有人說，黃楓谷正在辦升仙大會招收弟子。你去了，" + (hasRoot() ? "憑著靈根" : "考官看你練的功法特別，破例") + "被收為黃楓谷外門弟子。"]; } },
-    { id: "q_blood", t: "血色禁地", lv: 1, ex: .8, r: function () {
-      return [chapter("血色禁地"), is("mo") ? "鬼靈門要你混進越國七派的血色禁地試煉，搶奪煉製築基丹的靈草。禁地裡妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。" : "越國七派聯合開啟血色禁地。禁地裡長著煉製築基丹的靈草，但妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。"]; },
+      if (is("mo")) { s.sect = "屍陰教"; s.npc.ms = pick("血陰屍鬼幽".split("")) + pick("九骨魂煞冥".split("")) + "老祖"; s.msGone = 0;
+        return [chapter("雲台集"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
+          "散會時，一個黑袍人攔住你：「你身上的魔氣，瞞不過我。」他是屍陰教的{師}。你跟著他，成了屍陰教的弟子。"]; }
+      s.sect = "紫霞宗";
+      return [chapter("紫霞宗"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
+        "小會上有人說，紫霞宗正在辦收徒大典招收弟子。你去了，" + (hasRoot() ? "憑著靈根" : "考官看你練的功法特別，破例") + "被收為紫霞宗外門弟子。"]; } },
+    { id: "q_blood", t: "赤霧秘境", lv: 1, ex: .8, r: function () {
+      return [chapter("赤霧秘境"), is("mo") ? "屍陰教要你混進澄國六宗的赤霧秘境試煉，搶奪煉製築基丹的靈草。禁地裡妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。" : "澄國六宗聯合開啟赤霧秘境。禁地裡長著煉製築基丹的靈草，但妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。"]; },
       ch: function () { return [
-        { t: "進入禁地", r: function () { return ["你剛踏進禁地，一頭渾身是血的妖獸就撲了過來。", fight("禁地妖獸", 1.1, { win: "blood1", deadly: 1, die: "隕落血色禁地" })]; } },
+        { t: "進入禁地", r: function () { return ["你剛踏進禁地，一頭渾身是血的妖獸就撲了過來。", fight("禁地妖獸", 1.1, { win: "blood1", deadly: 1, die: "隕落赤霧秘境" })]; } },
         { t: "不去冒險", r: function () { gain(2); return "你留在宗門苦修。宗門按例賜你一顆築基丹。（" + st("xin", 1) + "）"; } }]; } },
     { id: "q_lhy", t: "拜師", lv: 2, r: function () {
-      if (is("mo")) return [chapter("築基"), "你築基成功，{師}破例收你為親傳弟子，傳你鬼靈門的不傳之秘。（" + st("wu", 1) + "）"];
-      s.npc.ms = "李化元"; s.msGone = 0;
-      return [chapter("築基"), "你築基成功，被黃楓谷的結丹長老李化元收為弟子。李化元話不多，但很護短。" + (s.li ? "你寫信回七玄門給厲飛雨，他回信說：「好兄弟，替我多看看天上的風景。」" : "")]; } },
-    { id: "q_bamboo", t: "金雷竹", lv: 2, ex: .3, r: function () { return "你打聽到一處山谷裡長著金雷竹，是煉製飛劍的上等材料，但谷中有一頭雷屬性的妖獸守著。"; },
+      if (is("mo")) return [chapter("築基"), "你築基成功，{師}破例收你為親傳弟子，傳你屍陰教的不傳之秘。（" + st("wu", 1) + "）"];
+      s.npc.ms = "秦長風"; s.msGone = 0;
+      return [chapter("築基"), "你築基成功，被紫霞宗的結丹長老秦長風收為弟子。秦長風話不多，但很護短。" + (s.li ? "你寫信回青嵐門給石驚鴻，他回信說：「好兄弟，替我多看看天上的風景。」" : "")]; } },
+    { id: "q_bamboo", t: "紫電竹", lv: 2, ex: .3, r: function () { return "你打聽到一處山谷裡長著紫電竹，是煉製飛劍的上等材料，但谷中有一頭雷屬性的妖獸守著。"; },
       ch: function () { return [
         { t: "闖進山谷", r: function () { return fight("守谷雷獸", 1.5, { win: "bamboo", deadly: 1 }); } },
         { t: "不去冒險", r: function () { return "你沒有去。後來聽說，那片竹林被一個結丹修士整片砍走了。"; } }]; } },
-    { id: "q_invade", t: "魔道入侵", lv: 2, ex: .6, r: function () { return [chapter("魔道入侵"), "魔道六宗大舉入侵越國，鬼靈門、合歡宗的修士殺進了越國七派的山門。" + (is("mo") ? "你是鬼靈門的人，衝在最前面。" : "黃楓谷的護山大陣，撐不了多久了。")]; },
+    { id: "q_invade", t: "魔道入侵", lv: 2, ex: .6, r: function () { return [chapter("魔道入侵"), "幽冥五宗大舉入侵澄國，屍陰教、媚香宗的修士殺進了澄國六宗的山門。" + (is("mo") ? "你是屍陰教的人，衝在最前面。" : "紫霞宗的護山大陣，撐不了多久了。")]; },
       ch: function () { return is("mo") ? [
-        { t: "屠戮正道", r: function () { s.res += 5; return ["你殺進黃楓谷，一個執法長老攔住了你。", fight("黃楓谷長老", 1.5, { win: "invwin", after: "flee" })]; } },
+        { t: "屠戮正道", r: function () { s.res += 5; return ["你殺進紫霞宗，一個執法長老攔住了你。", fight("紫霞宗長老", 1.5, { win: "invwin", after: "flee" })]; } },
         { t: "趁亂離開", r: function () { return CB.flee(); } }] : [
-        { t: "守住山門", r: function () { return ["一個鬼靈門修士帶著一群陰魂殺到你面前。", fight("鬼靈門修士", 1.5, { win: "invwin", after: "flee" })]; } },
+        { t: "守住山門", r: function () { return ["一個屍陰教修士帶著一群陰魂殺到你面前。", fight("屍陰教修士", 1.5, { win: "invwin", after: "flee" })]; } },
         { t: "跟同門一起撤退", r: function () { return CB.flee(); } }]; } },
-    { id: "q_star", t: "天星城", lv: 2, rg: "亂星海", r: function () { s.stone += 30; return "你在亂星海最大的城市天星城落腳。這裡由星宮管轄，四面是海，島嶼星羅棋布，妖獸比越國多得多。"; } },
-    { id: "q_war", t: "星宮與逆星盟", lv: 2, ex: .7, rg: "亂星海", r: function () { return "星宮與逆星盟開戰，亂星海的修士都被迫選邊。"; },
+    { id: "q_star", t: "觀潮城", lv: 2, rg: "萬島海", r: function () { s.stone += 30; return "你在萬島海最大的城市觀潮城落腳。這裡由潮音閣管轄，四面是海，島嶼星羅棋布，妖獸比澄國多得多。"; } },
+    { id: "q_war", t: "潮音閣與怒濤盟", lv: 2, ex: .7, rg: "萬島海", r: function () { return "潮音閣與怒濤盟開戰，萬島海的修士都被迫選邊。"; },
       ch: function () { return [
-        { t: "投入星宮", r: function () { return fight("逆星盟修士", 1.5, { win: "swxg", deadly: 1, die: "戰死於星海大戰" }); } },
-        { t: "投入逆星盟", r: function () { return fight("星宮衛士", 1.5, { win: "swnx", deadly: 1, die: "戰死於星海大戰" }); } },
+        { t: "投入潮音閣", r: function () { return fight("怒濤盟修士", 1.5, { win: "swxg", deadly: 1, die: "戰死於萬島海大戰" }); } },
+        { t: "投入怒濤盟", r: function () { return fight("潮音閣衛士", 1.5, { win: "swnx", deadly: 1, die: "戰死於萬島海大戰" }); } },
         { t: "誰都不幫", r: function () { return "你躲進外海的無名小島，一躲就是好幾年。"; } }]; } },
     { id: "q_dan", t: "結丹靈物", lv: 2, ex: .9, r: function () { return "結丹需要靈物輔助。有人說外海有一頭千年妖獸，牠的妖丹正好合用。"; },
       ch: function () { return [
         { t: "出海獵殺", r: function () { return fight("外海千年妖獸", 1.6, { win: "dan", deadly: 1, die: "葬身外海" }); } },
         { t: "不冒險，靠自己衝關", r: function () { return "你回到洞府，打算硬衝結丹。"; } }]; } },
-    { id: "q_xutian", t: "虛天殿", lv: 3, ex: .4, r: function () { return [chapter("虛天殿"), "虛天殿每隔數百年才開啟一次，殿中藏著上古至寶。消息傳開，亂星海的修士全都來了，連元嬰老怪都派出了分身。"]; },
+    { id: "q_xutian", t: "沉淵古殿", lv: 3, ex: .4, r: function () { return [chapter("沉淵古殿"), "沉淵古殿每隔數百年才開啟一次，殿中藏著上古至寶。消息傳開，萬島海的修士全都來了，連元嬰老怪都派出了分身。"]; },
       ch: function () { return [
-        { t: "入殿", r: function () { return ["殿門口立著一排上古傀儡，眼裡亮起紅光。", fight("守殿傀儡", 1.6, { win: "xt1", deadly: 1, die: "隕落虛天殿" })]; } },
+        { t: "入殿", r: function () { return ["殿門口立著一排上古傀儡，眼裡亮起紅光。", fight("守殿傀儡", 1.6, { win: "xt1", deadly: 1, die: "隕落沉淵古殿" })]; } },
         { t: "不去", r: function () { return "你遠遠看著漫天遁光，沒有動。後來聽說，進去的人死了大半。"; } }]; } },
-    { id: "q_back", t: "重返天南", lv: 4, r: function () { s.region = "天南"; s.sect = "落雲宗"; big("重返天南，成為落雲宗長老"); return [chapter("重返天南"), "離開百年，你重返天南。越國早已物是人非。你以" + short(4) + "修士的身分加入落雲宗，被奉為長老。"]; } },
-    { id: "q_zhuimo", t: "墜魔谷", lv: 4, ex: .4, r: function () { return [chapter("墜魔谷"), "墜魔谷開啟，據說谷底有上古修士留下的傳承。正魔兩道的元嬰修士都來了，谷底卻還睡著一頭古魔。"]; },
+    { id: "q_back", t: "重返南嶺", lv: 4, r: function () { s.region = "南嶺"; s.sect = "白鹿宗"; big("重返南嶺，成為白鹿宗長老"); return [chapter("重返南嶺"), "離開百年，你重返南嶺。澄國早已物是人非。你以" + short(4) + "修士的身分加入白鹿宗，被奉為長老。"]; } },
+    { id: "q_zhuimo", t: "葬魔淵", lv: 4, ex: .4, r: function () { return [chapter("葬魔淵"), "葬魔淵開啟，據說谷底有上古修士留下的傳承。正魔兩道的元嬰修士都來了，谷底卻還睡著一頭古魔。"]; },
       ch: function () { return [
-        { t: "下谷", r: function () { return fight("谷底古魔", 1.7, { boss: 1, win: "zmwin", die: "隕落墜魔谷" }); } },
+        { t: "下谷", r: function () { return fight("谷底古魔", 1.7, { boss: 1, win: "zmwin", die: "隕落葬魔淵" }); } },
         { t: "不去", r: function () { return "你在谷口等了三個月，看著一個個修士下去，沒幾個上來。"; } }]; } },
-    { id: "q_kunwu", t: "昆吾山", lv: 4, ex: .8, r: function () { return [chapter("昆吾山"), "你遠赴大晉。昆吾山的封印鬆動了，山腹裡鎮壓的魔頭殘魂正在甦醒，各大宗門的高手齊聚山下。"]; },
+    { id: "q_kunwu", t: "鎮岳山", lv: 4, ex: .8, r: function () { return [chapter("鎮岳山"), "你遠赴北璃。鎮岳山的封印鬆動了，山腹裡鎮壓的魔頭殘魂正在甦醒，各大宗門的高手齊聚山下。"]; },
       ch: function () { return [
-        { t: "進山重新封印", r: function () { return fight("魔頭殘魂", 1.8, { boss: 1, win: "kwwin", die: "隕落昆吾山" }); } },
-        { t: "讓別人去", r: function () { return "後來聽說，昆吾山塌了一半，死了不少元嬰修士。"; } }]; } },
+        { t: "進山重新封印", r: function () { return fight("魔頭殘魂", 1.8, { boss: 1, win: "kwwin", die: "隕落鎮岳山" }); } },
+        { t: "讓別人去", r: function () { return "後來聽說，鎮岳山塌了一半，死了不少元嬰修士。"; } }]; } },
     { id: "q_node", t: "空間節點", lv: 5, ex: .5, r: function () { s.node = 1; return "人界的靈氣太稀薄了。化神修士想再進一步，只能找到空間節點，飛升靈界。你花了幾十年，終於在一處荒漠找到一個殘破的節點。（修為圓滿後就能飛升）"; } },
-    { id: "q_ty", t: "天淵城", lv: 6, rg: "靈界", r: function () { return [chapter("天淵城"), "你落腳在人族邊境的天淵城。城外就是魔族的地盤，魔族先鋒正在攻城。"]; },
+    { id: "q_ty", t: "天塹城", lv: 6, rg: "靈界", r: function () { return [chapter("天塹城"), "你落腳在人族邊境的天塹城。城外就是魔族的地盤，魔族先鋒正在攻城。"]; },
       ch: function () { return [
-        { t: "上城頭迎戰", r: function () { return fight("魔族先鋒", 1.6, { win: "tywin", deadly: 1, die: "戰死於天淵城" }); } },
+        { t: "上城頭迎戰", r: function () { return fight("魔族先鋒", 1.6, { win: "tywin", deadly: 1, die: "戰死於天塹城" }); } },
         { t: "先在城裡站穩腳跟", r: function () { s.stone += 50; return "你在城裡開了一間丹藥鋪，慢慢摸清靈界的規矩。"; } }]; } },
     { id: "q_mojie", t: "魔族入侵", lv: 7, rg: "靈界", r: function () { return [chapter("魔族入侵"), "魔界通道全面打開，魔族大軍壓境。人族各城的大能聯手迎戰，你被推到了最前線。"]; },
       ch: function () { return [
@@ -527,17 +527,17 @@
       s.res = Math.floor(s.res / 2); hurt(.05); return "煞氣反噬，你閉關數年才勉強壓住，壽元大損。"; } },
     { id: "mo_banner", k: "calm", once: 1, w: 3, c: function () { return is("mo") && s.lv >= 3; }, r: function () { s.res += 3; addExp(.15); big("煉成萬魂幡"); return "你煉成一桿萬魂幡，幡上鬼影哀嚎不止，連你自己都不太敢看。（煞氣+3）"; } },
     { id: "fo_relic", k: "calm", once: 1, w: 3, c: function () { return is("fo") && s.lv >= 5; }, r: function () { s.res += 5; addExp(.2); big("體內凝出舍利"); return "你體內凝出一顆舍利子，夜裡隱隱放光。（功德+5）"; } },
-    { id: "bottle2", k: "calm", once: 1, w: 3, c: function () { return s.bottle && s.lv >= 5; }, r: function () { big("得知小綠瓶就是掌天瓶"); return "你在一本上古典籍裡讀到「掌天瓶」三個字，手中的小綠瓶微微一震。原來這些年的機緣，都來自它。"; } },
+    { id: "bottle2", k: "calm", once: 1, w: 3, c: function () { return s.bottle && s.lv >= 5; }, r: function () { big("得知小玉瓶就是造化玉瓶"); return "你在一本上古典籍裡讀到「造化玉瓶」三個字，手中的小玉瓶微微一震。原來這些年的機緣，都來自它。"; } },
     { id: "mteach", k: "calm", once: 1, w: 4, c: function () { return s.done.q_lhy && s.npc.ms && !s.msGone; }, r: function () { addExp(.25); return "{師}把你叫到跟前，傳你一門壓箱底的秘術：「別說出去，這是我花了一百年才悟出來的。」（" + st("wu", 1) + "）"; } },
-    { id: "mdie", k: "calm", once: 1, w: 2, c: function () { return s.npc.ms === "李化元" && !s.msGone && s.lv >= 3; }, r: function () { s.msGone = 1; var g = gain(s.lv + 1); big("{師}坐化"); return "你得到消息：{師}坐化了。他留了一個儲物袋給你，裡面有一份「" + g + "」和一張紙條：「好好活著。」"; } },
-    { id: "f_fly", k: "calm", once: 1, w: 2, c: function () { return s.lv === 2; }, r: function () { return "你學會了御器飛行，第一次從雲上看見越國的山河。原來家鄉那麼小。"; } },
+    { id: "mdie", k: "calm", once: 1, w: 2, c: function () { return s.npc.ms === "秦長風" && !s.msGone && s.lv >= 3; }, r: function () { s.msGone = 1; var g = gain(s.lv + 1); big("{師}坐化"); return "你得到消息：{師}坐化了。他留了一個儲物袋給你，裡面有一份「" + g + "」和一張紙條：「好好活著。」"; } },
+    { id: "f_fly", k: "calm", once: 1, w: 2, c: function () { return s.lv === 2; }, r: function () { return "你學會了御器飛行，第一次從雲上看見澄國的山河。原來家鄉那麼小。"; } },
     { id: "f_cave", k: "calm", once: 1, w: 2, c: function () { return s.lv === 3; }, r: function () { return "你開闢了自己的洞府，在門口種下一片靈藥園，還學著老家的樣子種了一棵槐樹。"; } },
     { id: "f_tree", k: "calm", once: 1, w: 2, c: function () { return s.lv >= 4; }, r: function () { return "你閉了一次長關。出關時，洞府門口那棵小槐樹已經參天。"; } },
     { id: "ptogether", k: "calm", once: 1, w: 3, c: function () { return s.partner && s.psaved && s.lv >= 4; }, r: function () { addExp(.3); return "你和{侶}閉關雙修百年，出關時，兩人都覺得修為精進了一大截。"; } },
     { id: "quiet", k: "calm", w: 2, c: function () { return s.lv >= 5; }, r: function () { return pick(["你閉關時，外頭已滄海桑田，當年的凡人故友早已作古。", "你在城裡聽見說書人講你的故事，講得神乎其神，你聽了直搖頭。"]); } },
 
     // ===== 歷練：人物線 =====
-    { id: "home", k: "explore", once: 1, w: 5, c: function () { return s.fr && s.lv >= 2 && age(35, 90) && s.region !== "亂星海"; }, r: function () { s.homeAge = s.age; return "你回鄉探望。{友}已經兒孫滿堂，兩鬢斑白，見了你愣了很久，才顫顫巍巍地喊出你的名字。"; },
+    { id: "home", k: "explore", once: 1, w: 5, c: function () { return s.fr && s.lv >= 2 && age(35, 90) && s.region !== "萬島海"; }, r: function () { s.homeAge = s.age; return "你回鄉探望。{友}已經兒孫滿堂，兩鬢斑白，見了你愣了很久，才顫顫巍巍地喊出你的名字。"; },
       ch: function () { return [
         { t: "留下一顆延壽丹（30 靈石）", c: function () { return s.stone >= 30; }, r: function () { s.stone -= 30; s.frPill = 1; s.res += 1; return "{友}捧著丹藥，像小時候捧著那兩個饅頭一樣。"; } },
         { t: "陪{友}喝一壺酒", r: function () { return "你們坐在老槐樹下，從天亮喝到天黑。{友}說了很多，你一直在笑。（" + st("xin", 1) + "）"; } },
@@ -548,7 +548,7 @@
       ch: function () { return s.frPill ? [
         { t: "收{友}的孫子為徒", r: function () { s.npc.dc = s.npc.fr.charAt(0) + pick(GM); s.res += 2; big("收{友}的孫子{徒}為徒"); return "你給孩子取名{徒}，帶回洞府。孩子的眉眼，像極了當年的{友}。"; } },
         { t: "留下一筆靈石，讓孩子過好日子", r: function () { s.stone = Math.floor(s.stone * .7); return "你留下靈石，轉身離開。凡人的日子，對孩子來說也許更好。"; } }] : []; } },
-    { id: "dig", k: "explore", once: 1, w: 4, c: function () { return s.buried && s.lv >= 2 && s.region !== "亂星海"; }, r: function () { addExp(.3); big("挖出兒時埋下的發光石頭"); return "你回到老槐樹下，挖出兒時埋下的那塊發光石頭。如今你一眼就看出來：那是一塊上品靈石，裡頭還封著一縷上古修士的神念。"; } },
+    { id: "dig", k: "explore", once: 1, w: 4, c: function () { return s.buried && s.lv >= 2 && s.region !== "萬島海"; }, r: function () { addExp(.3); big("挖出兒時埋下的發光石頭"); return "你回到老槐樹下，挖出兒時埋下的那塊發光石頭。如今你一眼就看出來：那是一塊上品靈石，裡頭還封著一縷上古修士的神念。"; } },
     { id: "rv1", k: "explore", once: 1, w: 6, c: function () { return s.rival === 1 && age(15); }, r: function () { s.rival = 2; return "你在坊市裡撞見了{敵}。{敵他}竟然也踏上了仙途，入了別的宗門。你們隔著人群對看了一眼，誰都沒說話。"; } },
     { id: "rv2", k: "explore", once: 1, w: 5, c: function () { return s.rival === 2 && s.lv >= 2; }, r: function () { return "{敵}帶著兩個幫手在荒野伏擊你：「當年水溝裡的那個人，現在倒是有出息了。把儲物袋交出來。」"; },
       ch: function () { return [
@@ -597,7 +597,7 @@
       ch: function () { return [
         { t: "進去碰碰運氣", r: function () { return ["洞府深處，一具守護傀儡動了起來。", fight("守護傀儡", 1.3, { deadly: 1, win: "ruin", die: "死於秘境" })]; } },
         { t: "不湊這個熱鬧", r: function () { return "後來聽說，進去的人死了大半。"; } }]; } },
-    { id: "herb", k: "explore", w: 4, r: function () { var g = Math.round(R(3, 8) * M[s.lv] * (s.bottle ? 2.5 : 1)); s.stone += g; return "你在懸崖上採到一株靈藥，賣了 " + g + " 塊靈石。" + (s.bottle ? "（用小綠瓶催熟過，年份賣得好）" : ""); } },
+    { id: "herb", k: "explore", w: 4, r: function () { var g = Math.round(R(3, 8) * M[s.lv] * (s.bottle ? 2.5 : 1)); s.stone += g; return "你在懸崖上採到一株靈藥，賣了 " + g + " 塊靈石。" + (s.bottle ? "（用小玉瓶催熟過，年份賣得好）" : ""); } },
     { id: "market", k: "explore", w: 3, r: function () { return "坊市角落，一個攤販在兜售一塊來路不明的殘玉，要價 " + Math.round(5 * M[s.lv]) + " 塊靈石。"; },
       ch: function () { var cost = Math.round(5 * M[s.lv]); return [
         { t: "買下來（" + cost + " 靈石）", c: function () { return s.stone >= cost; }, r: function () {
@@ -611,8 +611,8 @@
       ch: function () { return [
         { t: "殺人滅口", r: function () { return fight("跟蹤者", 1.2, { win: "expose" }); } },
         { t: "連夜搬走", r: function () { return "你放棄了經營多年的洞府，搬到千里之外。從此賣藥只賣十年份的。（" + st("xin", 1) + "）"; } }]; } },
-    { id: "star", k: "explore", w: 3, c: function () { return s.region === "亂星海"; }, r: function () { s.stone += Math.round(6 * M[s.lv]); return pick(["你在外海獵殺海獸，賣了不少妖丹。", "妖潮來襲，你在天星城的大陣裡守了三個月，領了一筆賞金。", "你在一座小島上開闢臨時洞府，每天聽著海浪聲入定。"]); } },
-    { id: "lj1", k: "explore", w: 3, c: function () { return s.region === "靈界"; }, r: function () { s.stone += Math.round(5 * M[s.lv]); return pick(["你在天淵城的城牆上戍守，抵禦魔族一波又一波的進攻。", "你與一位妖族大能交手三天，不分勝負，最後一起喝了酒。", "靈界的天空有三個太陽，你花了好幾十年才習慣。"]); } },
+    { id: "star", k: "explore", w: 3, c: function () { return s.region === "萬島海"; }, r: function () { s.stone += Math.round(6 * M[s.lv]); return pick(["你在外海獵殺海獸，賣了不少妖丹。", "妖潮來襲，你在觀潮城的大陣裡守了三個月，領了一筆賞金。", "你在一座小島上開闢臨時洞府，每天聽著海浪聲入定。"]); } },
+    { id: "lj1", k: "explore", w: 3, c: function () { return s.region === "靈界"; }, r: function () { s.stone += Math.round(5 * M[s.lv]); return pick(["你在天塹城的城牆上戍守，抵禦魔族一波又一波的進攻。", "你與一位妖族大能交手三天，不分勝負，最後一起喝了酒。", "靈界的天空有三個太陽，你花了好幾十年才習慣。"]); } },
     { id: "alchemy", k: "explore", w: 3, c: function () { return is("dao") && s.lv <= 8; }, r: function () { return "你攢了些材料，打算開爐煉丹。"; },
       ch: function () { return [
         { t: "煉製「" + PILL[s.lv + 1] + "」（較難）", r: function () {
@@ -684,28 +684,28 @@
     { id: "mo_betray", k: "explore", once: 1, w: 5, c: function () { return is("mo") && s.done.q_lhy && !s.msGone && s.lv >= 2; }, r: function () { return "你在{師}的密室裡發現一本冊子，上面寫著你的名字，後面標著兩個字：「血奴」。"; },
       ch: function () { return [
         { t: "趁{師}閉關時弒師", r: function () { s.msGone = 1; return fight("{師}", 1.5, { boss: 1, win: "molord0", die: "弒師失手，被煉成血奴", dieT: "老魔早就在等你動手。從此，你成了一具只會聽命的血奴。" }); } },
-        { t: "連夜叛逃", r: function () { s.msGone = 1; s.sect = ""; s.enemy = 1; big("叛出鬼靈門"); return "你帶著幾卷功法逃了出去。鬼靈門的追殺令，從此掛在你的頭上。"; } }]; } },
+        { t: "連夜叛逃", r: function () { s.msGone = 1; s.sect = ""; s.enemy = 1; big("叛出屍陰教"); return "你帶著幾卷功法逃了出去。屍陰教的追殺令，從此掛在你的頭上。"; } }]; } },
     { id: "mo_devour", k: "explore", w: 2, c: function () { return is("mo") && s.lv >= 2 && s.sect; }, r: function () { return "同門師兄重傷閉關，洞府防護大開。"; },
       ch: function () { return [
         { t: "趁機吞噬他的修為", r: function () { return fight("重傷的師兄", .9, { win: "modev" }); } },
         { t: "不動手", r: function () { return "你轉身離開。也許有一天，你會需要一個欠你人情的人。"; } }]; } },
     { id: "mo_hunt", k: "explore", w: 3, c: function () { return is("mo"); }, r: function () { return ["正道修士發現了你的行蹤，聯手圍了上來。", fight("正道修士", 1.3, { deadly: 1, die: "被正道修士圍殺" })]; } },
-    { id: "mo_hehuan", k: "explore", once: 1, w: 2, c: function () { return is("mo") && s.lv >= 2; }, r: function () { return "合歡宗的一位修士找上你，提議雙修。"; },
+    { id: "mo_hehuan", k: "explore", once: 1, w: 2, c: function () { return is("mo") && s.lv >= 2; }, r: function () { return "媚香宗的一位修士找上你，提議雙修。"; },
       ch: function () { return [
         { t: "答應", r: function () { if (P(.6)) { addExp(.3); return "雙修之後，你的修為大進。"; } hurt(.05); return "對方採補了你的元氣，揚長而去。你虛弱了好多年。"; } },
         { t: "拒絕", r: function () { return "你冷冷地趕走了對方。（" + st("xin", 1) + "）"; } }]; } },
-    { id: "mo_lord", k: "explore", once: 1, w: 4, c: function () { return is("mo") && s.lv >= 5 && s.region !== "靈界"; }, r: function () { return "魔道六宗要推舉新的魔主，六宗宗主齊聚血魔山。"; },
+    { id: "mo_lord", k: "explore", once: 1, w: 4, c: function () { return is("mo") && s.lv >= 5 && s.region !== "靈界"; }, r: function () { return "幽冥五宗要推舉新的魔主，五宗宗主齊聚血骨山。"; },
       ch: function () { return [
-        { t: "爭奪魔主之位", r: function () { return fight("六宗宗主", 1.8, { boss: 1, win: "molord", die: "爭奪魔主失敗，被六宗圍殺" }); } },
+        { t: "爭奪魔主之位", r: function () { return fight("五宗宗主", 1.8, { boss: 1, win: "molord", die: "爭奪魔主失敗，被六宗圍殺" }); } },
         { t: "不爭，坐山觀虎鬥", r: function () { s.stone += Math.round(10 * M[s.lv]); return "六宗殺得兩敗俱傷，你悄悄收走了不少戰利品。"; } }]; } }
   ];
   var EVM = {}; EV.concat(Q).forEach(function (e) { EVM[e.id] = e; });
   EVM.nangong = { id: "nangong", r: function () { return ""; }, ch: function () { return [
-    { t: "出手相救", r: function () { return ["一位女修被兩名別派弟子圍攻，已經負傷。你衝了上去。", fight("別派弟子", 1.4, { win: "ngwin", after: "ngafter", deadly: 1, die: "隕落血色禁地" })]; } },
+    { t: "出手相救", r: function () { return ["一位女修被兩名別派弟子圍攻，已經負傷。你衝了上去。", fight("別派弟子", 1.4, { win: "ngwin", after: "ngafter", deadly: 1, die: "隕落赤霧秘境" })]; } },
     { t: "悄悄退走", r: function () { gain(2); return "你屏住呼吸，從另一條路出了禁地。宗門賜你一顆築基丹。"; } }]; } };
   EVM.xutian2 = { id: "xutian2", r: function () { return ""; }, ch: function () { return [
-    { t: "跟元嬰老怪的分身搶寶", r: function () { return fight("元嬰老怪的分身", 1.9, { boss: 1, win: "xtwin", die: "隕落虛天殿", dieT: "老怪的分身隨手一拍，你就倒下了。" }); } },
-    { t: "見好就收", r: function () { gain(4); return "你在偏殿撿了一份「凝嬰靈果」，趁亂離開了虛天殿。"; } }]; } };
+    { t: "跟元嬰老怪的分身搶寶", r: function () { return fight("元嬰老怪的分身", 1.9, { boss: 1, win: "xtwin", die: "隕落沉淵古殿", dieT: "老怪的分身隨手一拍，你就倒下了。" }); } },
+    { t: "見好就收", r: function () { gain(4); return "你在偏殿撿了一份「凝嬰靈果」，趁亂離開了沉淵古殿。"; } }]; } };
 
   function fill() {
     var L = [
@@ -718,7 +718,7 @@
     ];
     var o = (L[Math.min(s.lv, 5)] || []).slice();
     o.push({ fo: "你為山下百姓誦經祈福，香客絡繹不絕。", dao: "你潛心修煉，心無旁騖。", ru: "你在燈下讀書，一讀就是一整夜。", mo: "你在血池中浸泡，魔功一層層運轉。" }[s.path]);
-    if (s.region === "亂星海") o.push("海風帶著腥味，你在島上的洞府裡吐納。");
+    if (s.region === "萬島海") o.push("海風帶著腥味，你在島上的洞府裡吐納。");
     if (s.region === "靈界") o.push("靈界的靈氣比人界濃郁百倍，你修煉得格外順暢。");
     return pick(o);
   }
@@ -748,7 +748,7 @@
     var past = load(PAST) || [];
     s = { name: gname(sex), sex: sex, origin: o, root: r, prob: org.p * ROOT[r].p * (r ? boost : 1) / rsum, st: stt, age: 0, life: 70,
       path: null, lv: 0, exp: 0, res: 0, wait: 0, stone: org.stone || 0, pill: {}, items: {}, gear: {}, hp: 1, mp: 0, q: 0,
-      region: "越國", done: {}, log: [], big: [], pending: null, dead: null, chap: 1,
+      region: "澄國", done: {}, log: [], big: [], pending: null, dead: null, chap: 1,
       npc: { fr: gname(frSex), frSex: frSex, rv: gname(rvSex), rvSex: rvSex }, prev: past[0] || null };
     s.log.push({ a: 0, t: [{ c: "ch", t: "卷一　" + org.n }, "你出生在" + org.n + "。" + org.d, "你是個" + (sex === "男" ? "男孩" : "女孩") + "，名叫" + s.name + "。"] });
     shown = 0; $("log").innerHTML = ""; $("end").hidden = true;
@@ -768,7 +768,7 @@
     put(ent, s.partner ? "壽元耗盡。你靠在{侶}的肩上，在洞府中坐化。" : "壽元耗盡，你沒能再往前一步，在洞府中坐化。");
     return true;
   }
-  // 童年：一年一年過，十歲進七玄門
+  // 童年：一年一年過，十歲進青嵐門
   function grow() {
     if (!s || s.dead || s.pending || s.path) return;
     var ent = entry(1);
@@ -911,9 +911,9 @@
     if (s.gear.w) more.push("法寶 <b>" + esc(s.gear.w.n) + "</b>");
     if (s.gear.a) more.push("護具 <b>" + esc(s.gear.a.n) + "</b>");
     Object.keys(s.pill).forEach(function (k) { if (s.pill[k] > 0) more.push(PILL[k] + " <b>" + s.pill[k] + "</b>"); });
-    if (s.bottle) more.push("<b>小綠瓶</b>");
+    if (s.bottle) more.push("<b>小玉瓶</b>");
     if (s.fr) more.push("摯友 <b>" + esc(n.fr) + "</b>");
-    if (s.li) more.push("兄弟 <b>厲飛雨</b>");
+    if (s.li) more.push("兄弟 <b>石驚鴻</b>");
     if (n.ms && !s.msGone) more.push("師父 <b>" + esc(n.ms) + "</b>");
     if (s.partner) more.push("道侶 <b>" + esc(n.pt) + "</b>");
     if (n.dc) more.push("徒弟 <b>" + esc(n.dc) + "</b>");
