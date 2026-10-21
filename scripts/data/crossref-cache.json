@@ -1399,5 +1399,32 @@
   "vol": "22",
   "issue": "1",
   "page": "23"
+ },
+ "10.1057/s41599-025-06253-1": {
+  "title": "Exploring trust in generative AI for higher education institutions: a systematic literature review focused on educators",
+  "authors": "Ana Lelescu, Simona Sava, Gabriela Grosseck, Laura Malita",
+  "journal": "Humanities and Social Sciences Communications",
+  "year": 2025,
+  "vol": "12",
+  "issue": "1",
+  "page": "1961"
+ },
+ "10.1007/s10758-026-09998-z": {
+  "title": "Evaluating the Effect of Generative AI-Assisted Debugging on Students’ Critical Thinking",
+  "authors": "Yazid Albadarin, Mohammed Saqr, Nicolas Pope, Markku Tukiainen",
+  "journal": "Technology, Knowledge and Learning",
+  "year": 2026,
+  "vol": null,
+  "issue": null,
+  "page": null
+ },
+ "10.1007/s10639-024-12877-8": {
+  "title": "Poietic symbiosis or algorithmic subjugation: generative AI technology in marketing communications education",
+  "authors": "Gulnara Z. Karimova, Yevgeniya D. Kim, Amir Shirkhanbeik",
+  "journal": "Education and Information Technologies",
+  "year": 2024,
+  "vol": "30",
+  "issue": "2",
+  "page": "2185-2209"
  }
 }
