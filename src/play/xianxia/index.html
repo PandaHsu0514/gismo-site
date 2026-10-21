@@ -172,7 +172,7 @@
     mo: { n: "魔", res: "煞氣", c: "purple", spd: 1.4, f: [.95, 1.3, .9, 1], sk: 2, lv: ["凡人", "煉血", "凝煞", "魔丹", "魔嬰", "化魔", "天魔", "魔尊", "魔帝", "魔祖"], skill: ["血影刀", "噬魂魔爪", "血神遁", "天魔解體"] }
   };
   var DAO = PATH.dao.lv;
-  var NEED = [2, 16, 50, 140, 320, 600, 1000, 1500, 2200, 3000];  // 每一層要累積的修為（約等於中等資質要修的年數）
+  var NEED = [2, 12, 50, 140, 320, 600, 1000, 1500, 2200, 3000];  // 每一層要累積的修為（約等於中等資質要修的年數）
   var STEP = [1, 2, 3, 6, 10, 18, 25, 35, 50, 70];                 // 閉關一次過幾年
   var LIFE = [0, 100, 200, 400, 800, 1500, 2500, 4000, 6000, 9000];
   var BC = [1, .35, .32, .27, .22, .24, .2, .17, .14, .14];        // 往上一層的基本成功率
@@ -399,13 +399,13 @@
     { id: "q_bottle", t: "後山的小玉瓶", lv: 1, r: function () {
       s.bottle = 1; big("撿到神祕小玉瓶");
       return "你在後山採藥時，從石縫裡撿到一只刻著雲紋的小玉瓶。每隔幾天，瓶中就會凝出幾滴綠液，澆在草藥上，草藥一夜就長成百年。你把它藏在床底下，誰也沒說。（修煉速度大增，採藥收入變多）"; } },
-    { id: "q_mo", t: "柳大夫的密室", lv: 1, ex: .5, age: 14, r: function () { return [chapter("柳大夫"), "柳大夫把你叫進密室，關上了門。他終於說出真相：他教你功法，是要等你練成之後，奪舍你的身體延壽。「別怪我，」他說，「我只是不想死。」"]; },
+    { id: "q_mo", t: "柳大夫的密室", lv: 1, age: 14, r: function () { return [chapter("柳大夫"), "柳大夫把你叫進密室，關上了門。他終於說出真相：他教你功法，是要等你練成之後，奪舍你的身體延壽。「別怪我，」他說，「我只是不想死。」"]; },
       ch: function () { return [
         { t: "先下手為強", r: function () { return fight("柳大夫", 1.2, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "你慢了一步。從此，那具身體換了一個主人。" }); } },
         { t: "假意順從，等他施法時反擊", r: function () {
           if (chk(.5, ["xin"])) return ["你閉上眼睛，等柳大夫的神魂離體的那一刻，猛然睜眼。柳大夫的神魂撞上你的識海，被彈了回去，他元氣大傷。", fight("元氣大傷的柳大夫", .9, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍" })];
           return ["柳大夫早就看穿你的心思，冷笑一聲出手了。", fight("柳大夫", 1.4, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "他比你想的更強。從此，那具身體換了一個主人。" })]; } }]; } },
-    { id: "q_tainan", t: "雲台集", lv: 1, ex: .5, r: function () {
+    { id: "q_tainan", t: "雲台集", lv: 1, ex: .3, r: function () {
       s.gear.w = s.gear.w || { n: "下品飛劍", atk: Math.round(5 * M[1]) };
       if (is("mo")) { s.sect = "屍陰教"; s.npc.ms = pick("血陰屍鬼幽".split("")) + pick("九骨魂煞冥".split("")) + "老祖"; s.msGone = 0;
         return [chapter("雲台集"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
@@ -413,7 +413,7 @@
       s.sect = "紫霞宗";
       return [chapter("紫霞宗"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
         "小會上有人說，紫霞宗正在辦收徒大典招收弟子。你去了，" + (hasRoot() ? "憑著靈根" : "考官看你練的功法特別，破例") + "被收為紫霞宗外門弟子。"]; } },
-    { id: "q_blood", t: "赤霧秘境", lv: 1, ex: .8, r: function () {
+    { id: "q_blood", t: "赤霧秘境", lv: 1, ex: .6, r: function () {
       return [chapter("赤霧秘境"), is("mo") ? "屍陰教要你混進澄國六宗的赤霧秘境試煉，搶奪煉製築基丹的靈草。禁地裡妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。" : "澄國六宗聯合開啟赤霧秘境。禁地裡長著煉製築基丹的靈草，但妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。"]; },
       ch: function () { return [
         { t: "進入禁地", r: function () { return ["你剛踏進禁地，一頭渾身是血的妖獸就撲了過來。", fight("禁地妖獸", 1.1, { win: "blood1", deadly: 1, die: "隕落赤霧秘境" })]; } },
@@ -470,10 +470,11 @@
   function qReady(q) { return q && s.lv >= q.lv && (s.lv > q.lv || !q.ex || s.exp >= NEED[q.lv] * q.ex) && (!q.age || s.age >= q.age) && (!q.rg || s.region === q.rg); }
   function qHint(q) {
     var h = [];
-    if (s.lv < q.lv || (s.lv === q.lv && q.ex && s.exp < NEED[q.lv] * q.ex)) h.push("「" + short(q.lv) + "」" + (q.ex ? "修為 " + Math.round(q.ex * 100) + "%" : ""));
-    if (q.age && s.age < q.age) h.push(q.age + " 歲");
-    if (q.rg && s.region !== q.rg) h.push("身在" + q.rg);
-    return "需要" + h.join("、");
+    if (s.lv < q.lv) h.push("先突破到「" + short(q.lv) + "」");
+    else if (s.lv === q.lv && q.ex && s.exp < NEED[q.lv] * q.ex) h.push("修為 " + Math.floor(s.exp / NEED[s.lv] * 100) + "%／需要 " + Math.round(q.ex * 100) + "%，先閉關修煉");
+    if (q.age && s.age < q.age) h.push("等到 " + q.age + " 歲");
+    if (q.rg && s.region !== q.rg) h.push("要先到" + q.rg);
+    return h.join("、");
   }
 
   // ---------- 隨機事件 ----------
