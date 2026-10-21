@@ -220,6 +220,14 @@
   var GF = "婉雪月霜寧嫣瑤萱琳薇芸若清柔蓉靈玉秀蘭紫菱巧倩蝶音霞璃夢晴".split("");
   var ST = { gen: "根骨", wu: "悟性", xin: "心性", yuan: "機緣" };
   var CN = "一二三四五六七八九十";
+  // 各地的妖獸：[名字, 出場描述（@ 換成名字）]
+  var BEAST = {
+    澄國: [["鐵背蒼狼", "林子裡傳來狼嚎，@從樹後撲了出來。"], ["赤鱗巨蟒", "你踩斷一根樹枝，@從草叢裡抬起了頭。"], ["雙頭火鴉", "天上掉下一團火，@尖叫著朝你俯衝。"], ["嗜血魔猿", "@蹲在山道中間，正在啃一具屍體。"], ["銀背雪狐", "雪地裡，@瞇著眼睛看你。"]],
+    萬島海: [["鬼面海蛟", "海面翻起巨浪，@從水底竄了出來。"], ["千臂海星", "礁石上，@慢慢爬向你。"], ["雷紋鯊妖", "你的船被撞了一下，@在船底繞圈。"], ["深海巨蟹", "退潮的沙灘上，@舉起了牠的大鉗子。"]],
+    南嶺: [["獨角犀妖", "大地震動，@低著頭朝你衝來。"], ["紫電貂", "一道紫光閃過，@已經咬住了你的袖子。"], ["九尾妖狐", "霧裡有人在笑，是@。"], ["噬金蟲群", "天邊飄來一團黑雲，那是@。"]],
+    靈界: [["魔族斥候", "沙丘後面閃出一道黑影，是@。"], ["三首魔蛟", "沼澤裡伸出三顆頭，是@。"], ["妖族狼騎", "遠處揚起沙塵，@朝你奔來。"], ["虛空噬靈獸", "空間裂開一道縫，@從裡面鑽了出來。"]]
+  };
+  BEAST["北璃"] = BEAST["南嶺"];
 
   var s = null, shown = 0;
   // 三個存檔欄位，每格各自有進行中的人生、前世紀錄、輪迴點
@@ -280,7 +288,7 @@
         友他: ta(n.frSex), 敵他: ta(n.rvSex), 侶他: ta(n.ptSex), 前: s.prev ? s.prev.n : "", 前侶: s.prev && s.prev.pt || "" }[k];
     });
   }
-  function chapter(t) { s.chap = (s.chap || 1) + 1; return { c: "ch", t: "卷" + (s.chap <= 10 ? CN[s.chap - 1] : "十" + CN[s.chap - 11]) + "　" + t }; }
+  function chapter(t) { s.chap = (s.chap || 1) + 1; var n = s.chap; return { c: "ch", t: "卷" + (n <= 10 ? CN[n - 1] : n < 20 ? "十" + CN[n - 11] : CN[Math.floor(n / 10) - 1] + "十" + (n % 10 ? CN[n % 10 - 1] : "")) + "　" + t }; }
 
   // ---------- 角色數值 ----------
   function stat() {
@@ -320,14 +328,15 @@
     o = o || {};
     var m = M[Math.max(1, o.tier || s.lv)];
     var f = { n: T(n), hp: Math.round(110 * m * mult * K.rand(.9, 1.1)), atk: Math.round(16 * m * mult), def: Math.round(3 * m * mult),
-      boss: o.boss ? 1 : 0, deadly: o.deadly ? 1 : 0, win: o.win || "", after: o.after || "", die: o.die || "", dieT: o.dieT || "", loot: Math.round(8 * m * mult) };
+      boss: o.boss ? 1 : 0, deadly: o.deadly ? 1 : 0, win: o.win || "", after: o.after || "", die: o.die || "", dieT: o.dieT || "", loot: Math.round(8 * m * mult * (o.loot || 1)), soul: o.soul ? 1 : 0 };
     f.max = f.hp;
     s.pending = { id: "fight", f: f };
-    return { c: "fight", t: "【戰鬥】" + f.n + (f.boss ? "（不能逃）" : "") };
+    return { c: "fight", t: (f.soul ? "【神魂之戰】" : "【戰鬥】") + f.n + (f.boss && !f.soul ? "（不能逃）" : "") };
   }
   function fightOpts() {
     var f = s.pending.f, t = stat(), cost = Math.ceil(t.mp * .3), o = [];
     function op(label, k, dis) { o.push({ q: 1, t: label, dis: dis, r: function () { return turn(f, k); } }); }
+    if (f.soul) { op("神識衝擊", "soul"); op("凝神守護", "guard"); op("燃燒精血（氣血 -20%）", "burn", s.hp <= t.hp * .2); return o; }
     op("攻擊", "atk");
     op("施展「" + skill() + "」（法力 " + cost + "）", "sk", s.mp < cost);
     if (s.items.heal) op("服用回春丹（剩 " + s.items.heal + "）", "heal");
@@ -337,7 +346,8 @@
     return o;
   }
   function turn(f, k) {
-    var t = stat(), out = "", d, cost = Math.ceil(t.mp * .3), stun = false;
+    var t = stat(), out = "", d, cost = Math.ceil(t.mp * .3), stun = false, guard = false;
+    var sp = (10 + s.st.xin * 3 + s.st.wu * 1.5) * M[s.lv];
     function dmg(x) { return Math.max(1, Math.round(x * K.rand(.85, 1.15) - f.def * .5)); }
     if (k === "atk") { d = dmg(t.atk); if (P(.03 + s.st.yuan * .015)) { d = Math.round(d * 1.8); out += "暴擊！"; } f.hp -= d; out += "你出手攻擊，造成 " + d + " 點傷害。"; }
     else if (k === "sk") {
@@ -349,9 +359,13 @@
     else if (k === "heal") { s.items.heal--; var h3 = Math.round(t.hp * .5); s.hp = Math.min(t.hp, s.hp + h3); out += "你服下回春丹，回復 " + h3 + " 氣血。"; }
     else if (k === "mana") { s.items.mana--; s.mp = t.mp; out += "你服下回元丹，法力全滿。"; }
     else if (k === "tr") { f.usedT = 1; d = dmg(t.atk * 2.8); f.hp -= d; out += "你祭出「" + s.gear.w.n + "」，造成 " + d + " 點傷害。"; }
+    else if (k === "soul") { d = dmg(sp); f.hp -= d; out += "你以神識衝擊對方的神魂，造成 " + d + " 點傷害。"; }
+    else if (k === "guard") { guard = true; var hg = Math.round(t.hp * .1); s.hp = Math.min(t.hp, s.hp + hg); out += "你凝神守住靈台，穩住了 " + hg + " 點神魂。"; }
+    else if (k === "burn") { s.hp -= Math.round(t.hp * .2); d = dmg(sp * 2.5); f.hp -= d; out += "你燃燒精血，神識暴漲，造成 " + d + " 點傷害。"; }
     else if (k === "run") { if (chk(.45, ["yuan"])) return endFight(f, "run", out + "你找到空隙，脫身逃走了。"); out += "你想逃，卻被攔了下來。"; }
+    if (s.pet && !f.soul && f.hp > 0) { var pd = Math.max(1, Math.round(t.atk * s.pet.k * K.rand(.8, 1.2))); f.hp -= pd; out += "靈寵" + s.pet.n + "撲上去，造成 " + pd + " 點傷害。"; }
     if (f.hp <= 0) return endFight(f, "win", out);
-    if (!stun) { var e = Math.max(1, Math.round(f.atk * K.rand(.85, 1.15) - t.def * .5)); s.hp -= e; out += f.n + "反擊，你受到 " + e + " 點傷害。"; }
+    if (!stun) { var e = Math.max(1, Math.round(f.atk * K.rand(.85, 1.15) - (f.soul ? 0 : t.def * .5))); if (guard) e = Math.round(e * .4); s.hp -= e; out += f.n + "反擊，你受到 " + e + " 點傷害。"; }
     if (s.hp <= 0) return endFight(f, "lose", out);
     s.pending = { id: "fight", f: f };
     return { c: "hit", t: out };
@@ -364,11 +378,33 @@
       r.push({ c: "up", t: "你擊敗了" + f.n + "，得到 " + f.loot + " 塊靈石。" });
       if (f.win) r.push(CB[f.win]());
     } else if (res === "lose") {
-      if (f.boss || (f.deadly && P(.25))) { die(f.die || "敗於" + f.n + "之手"); r.push({ c: "bad", t: f.dieT || "你倒在血泊裡，再也沒有站起來。" }); return r; }
+      if (f.boss || (f.deadly && P(.25))) {
+        if (!f.soul && s.lv >= 4 && (s.seized || 0) < 2) { s.lostBody = 1; s.pending = { id: "seizeme" }; r.push({ c: "bad", t: "你的肉身被打得粉碎。千鈞一髮之際，" + (is("mo") ? "魔嬰" : "元嬰") + "破體而出，化作一道流光遁走。沒有肉身的元嬰撐不了多久，你得儘快找一具身體。" }); return r; }
+        die(f.die || "敗於" + f.n + "之手"); r.push({ c: "bad", t: f.dieT || "你倒在血泊裡，再也沒有站起來。" }); return r; }
       s.hp = 1; hurt(.04); r.push({ c: "bad", t: "你被打成重傷，拚死逃了出來，損了些壽元。" });
     }
     if (f.after && !s.dead && !s.pending) r.push(CB[f.after]());
     return r;
+  }
+
+  // ---------- 奪舍 ----------
+  function bodySwap(kind) {
+    s.seized = (s.seized || 0) + 1;
+    var drop = kind === "凡人" || s.lostBody;
+    if (drop) s.lv = Math.max(2, s.lv - 1);
+    s.exp = drop ? 0 : s.exp * .5;
+    s.root = kind === "凡人" ? wpick([0, 1, 2], function (i) { return ROOT[i].p; }) : wpick([1, 2, 3], function (i) { return ROOT[i].p; });
+    s.st.gen = R(3, 8);
+    s.life = s.age + Math.round(LIFE[s.lv] * (kind === "凡人" ? .6 : .45));
+    s.lostBody = 0; full();
+    var t = kind === "凡人" ? "你的神魂鑽進一個重病垂死的少年體內。三天後，少年睜開了眼睛，眼神卻不再是個孩子。新的身體太弱，你的境界跌回了「" + short(s.lv) + "」。" : "你吞噬了那名修士的神魂，佔據了他的肉身。";
+    t += "新身體的靈根是「" + ROOT[s.root].n + "」。";
+    if (is("fo")) { s.res = 0; t += "你破了殺戒與妄戒，多年的功德一夕散盡。"; }
+    if (is("ru")) { s.res = Math.floor(s.res / 3); t += "你胸中的浩然氣散了大半。"; }
+    if (is("mo")) { s.res += 5; t += "魔功在新的身體裡運轉得更加順暢。（煞氣+5）"; }
+    if (is("dao")) t += "（" + st("xin", -2) + "）";
+    big("奪舍" + (kind === "凡人" ? "凡人少年" : "修士") + "重生");
+    return [chapter("奪舍重生"), { c: "up", t: t }];
   }
 
   // ---------- 入門 ----------
@@ -416,7 +452,9 @@
     kwwin: function () { gain(5); big("鎮岳山重新封印魔頭"); return "你把魔頭殘魂重新封回山腹。封印裡飄出一團靈光，是一份「化神靈液」。"; },
     tywin: function () { s.stone += 200; big("天塹城擊退魔族先鋒"); return "你在城頭上斬了魔族先鋒，天塹城的守將親自替你斟了一杯酒。"; },
     mjwin: function () { gain(8); addExp(.3); big("斬殺魔族大將"); return "魔族大將倒下，魔潮退去。人族各城為你立了碑。"; },
-    beast: function () { if (P(.3)) { item("heal"); return "你從妖獸巢穴裡撿到一顆回春丹。"; } return ""; },
+    beast: function () {
+      if (!s.pet && P(.2 + s.st.yuan * .02)) { s.pending = { id: "tame" }; return "妖獸倒在地上，沒有再反抗，只是用一雙眼睛看著你。"; }
+      if (P(.3)) { item("heal"); return "你從妖獸巢穴裡撿到一顆回春丹。"; } return ""; },
     ruin: function () { var g = gain(s.lv + 1); addExp(.2); big("在秘境中得到" + g); return "傀儡後面是一具枯骨，旁邊的儲物袋裡有一份「" + g + "」和幾卷功法心得。"; },
     rv2w: function () { s.stone += 20 * s.lv; return "{敵}負傷遁走，臨走前狠狠瞪了你一眼：「這筆帳，我記下了。」"; },
     rv2a: function () { s.rival = 3; return ""; },
@@ -436,6 +474,16 @@
     motrial: function () { s.res += 3; addExp(.2); big("萬鬼窟試煉生還"); return "你是第一個走出萬鬼窟的人，渾身是血，分不清是自己的還是別人的。（煞氣+3）"; },
     mocorpse: function () { s.gear.a = { n: "屍王骨甲", def: Math.round(2 * M[1]) + 2 }; big("煉化亂葬崗屍王"); return "你把屍王煉成一副骨甲穿在身上。{師}看了，難得地點了點頭。"; },
     mospy: function () { gain(2); gain(2); big("潛入赤霧秘境奪草"); return "你帶著靈草全身而退。{師}用靈草煉了兩顆築基丹給你。"; },
+    unseize: function () { addExp(.3); big("神魂之戰，反噬奪舍老魔"); return "你反過來吞噬了老魔的殘魂，連同他幾百年的記憶。（" + st("wu", 1) + "）"; },
+    seizewin: function () { return bodySwap("修士"); },
+    garden: function () { var g = gain(s.lv + 1); return "你把老獸趕跑，剩下的靈草全歸你了，其中一株能煉成「" + g + "」。"; },
+    tomb: function () { var g = gain(s.lv + 1); s.stone += Math.round(8 * M[s.lv]); return "古屍重新倒下。棺材裡的陪葬品裡，有一份「" + g + "」。"; },
+    bandit: function () { s.stone += Math.round(4 * M[s.lv]); return "劫修們跪地求饒，把搶來的靈石都交了出來。"; },
+    ar1: function () { s.stone += Math.round(4 * M[s.lv]); s.pending = { id: "arena2" }; return "你贏了第一場。台下有人開始下注了。"; },
+    ar2: function () { s.stone += Math.round(6 * M[s.lv]); s.pending = { id: "arena3" }; return "你贏了第二場。最後一場的對手，是蟬聯三屆的擂主。"; },
+    ar3: function () { var g = gain(s.lv + 1); s.stone += Math.round(10 * M[s.lv]); big("鬥法擂台三連勝"); return "你拿下了頭彩：一份「" + g + "」和一大袋靈石。擂主拱手：「後生可畏。」"; },
+    meteor: function () { s.iron = 1; big("撿到天外隕鐵"); return "隕坑底部躺著一塊還在冒煙的天外隕鐵。找個煉器師，也許能把你的法寶重煉一遍。"; },
+    hidden: function () { var g = gain(s.lv + 1); addExp(.4); var a = Math.round(7 * M[s.lv + 1]); if (!s.gear.w || s.gear.w.atk < a) s.gear.w = { n: "秘境古劍", atk: a }; s.map = 0; big("闖過隱藏秘境"); return { c: "up", t: "秘境深處有一座古修士的坐化之地。你得到了一份「" + g + "」、一把古劍（攻擊 " + s.gear.w.atk + "），還有幾卷上古功法。" }; },
     expose: function () { return "你處理掉了屍體，沒有人知道發生了什麼。（" + st("xin", -1) + "）"; }
   };
 
@@ -764,7 +812,8 @@
           hurt(.08); s.rival = 4; return "{敵}趁你說法時偷襲，重傷了你，卻沒有下殺手，轉身走了。"; } },
         { t: "放{敵}一馬", r: function () { s.rival = 4; return "你收起法寶：「走吧。」{敵}愣了一下，消失在夜色裡。"; } }]; } },
     { id: "rv4", k: "explore", once: 1, w: 4, c: function () { return s.rival === 4 && s.lv >= 5; }, r: function () { s.rival = 9; s.res += 3; big("{敵}捨命相救"); return "你被三位大能圍攻，眼看就要隕落，一道血光撞了進來：是{敵}。{敵他}替你擋下了致命的一擊，臨死前只說了一句：「這下，兩清了。」（" + st("xin", 1) + "）"; } },
-    { id: "partner", k: "explore", once: 1, w: 4, c: function () { return s.lv >= 2; }, r: function () {
+    { id: "partner", k: "explore", w: 4, c: function () { return s.lv >= 2 && !s.partner && (s.ptCount || 0) < 2 && !(s.mem && s.prev.pt && !s.done.pl_love); }, r: function () {
+      s.ptCount = (s.ptCount || 0) + 1;
       s.npc.ptSex = s.sex === "男" ? "女" : "男"; s.npc.pt = gname(s.npc.ptSex);
       return "你在一次除妖時與{侶}聯手，之後又幾度同行。{侶}問你，願不願意結為道侶。"; },
       ch: function () { return [
@@ -786,16 +835,52 @@
       ch: function () { return [
         { t: "親自出手退敵", r: function () { return fight("來犯的仇家", 1.5, { win: "sectatk" }); } },
         { t: "開啟大陣，固守待援", r: function () { s.stone = Math.floor(s.stone / 2); return "大陣耗光了庫房的靈石，總算撐到敵人退去。"; } }]; } },
-    { id: "seize", k: "explore", once: 1, w: .6, c: function () { return s.lv >= 2 && s.lv <= 6; }, r: function () {
-      if (chk(.8, ["xin"])) { addExp(.25); big("擊退奪舍的老魔"); return "一縷殘魂趁你打坐時鑽入識海，想奪舍你的肉身。你死守靈台，反過來把它煉化了。"; }
-      die("被老魔奪舍"); return "一縷殘魂趁你打坐時鑽入識海。你沒能守住。從此，那具身體換了一個主人。"; } },
+    { id: "seize", k: "calm", w: 8, c: function () { return s.haunt; }, r: function () {
+      s.haunt = 0; return "你閉關到一半，識海裡忽然一陣刺痛：那縷一直跟著你的黑氣終於動手了。一個蒼老的聲音笑道：「好肉身，借老夫用用。」"; },
+      ch: function () { return [
+        { t: "死守靈台，跟它拚神魂", r: function () { return fight("奪舍老魔的殘魂", 1, { soul: 1, boss: 1, win: "unseize", die: "被老魔奪舍", dieT: "你沒能守住。從此，那具身體換了一個主人。" }); } },
+        { t: "燃燒精血，硬把它逼出去", r: function () { hurt(.08); s.hp = 1; return "你噴出一大口血，那縷殘魂慘叫著被逼出識海，化成黑煙散了。你的壽元也折損了不少。"; } }]; } },
 
     // ===== 歷練：機緣與險境 =====
-    { id: "beast", k: "explore", w: 6, r: function () { var n = pick(["鐵背蒼狼", "赤鱗巨蟒", "雙頭火鴉", "千年玄龜", "嗜血魔猿", "六翼霜蚣"]); s.bn = n; return "趕路時，一頭" + n + "攔住了去路。"; },
+    { id: "beast", k: "explore", w: 6, r: function () {
+      var B = BEAST[s.region] || BEAST["澄國"], b = pick(B);
+      s.bn = b[0]; s.elite = P(.15) ? 1 : 0;
+      return (s.elite ? "【首領】" : "") + b[1].replace("@", (s.elite ? "一頭體型大了一倍的" : "一頭") + s.bn); },
       ch: function () { return [
-        { t: "迎戰", r: function () { return fight(s.bn || "妖獸", K.rand(.8, 1.15), { deadly: 1, win: "beast", die: "葬身妖獸之口" }); } },
+        { t: "迎戰", r: function () { return fight((s.elite ? "首領・" : "") + (s.bn || "妖獸"), s.elite ? 1.4 : K.rand(.8, 1.15), { deadly: 1, win: "beast", die: "葬身妖獸之口", loot: s.elite ? 2 : 1 }); } },
         { t: "繞路避開", r: function () { if (chk(.7, ["yuan"])) return "你悄悄繞路，有驚無險。"; s.hp = Math.max(1, s.hp - Math.round(stat().hp * .2)); return "繞了遠路，還是被追上咬了一口，好不容易才甩掉。"; } }]; } },
-    { id: "ruin", k: "explore", w: 3, r: function () { return "傳聞附近有一座" + pick(["古修士洞府", "上古秘境", "沉入地底的宗門遺址"]) + "現世，各方修士蜂擁而至。"; },
+    { id: "r_doors", k: "explore", w: 2, r: function () { return "你在瀑布後面發現一座古修士洞府。洞府深處有三道石門，分別刻著「生」「死」「空」三個字。"; },
+      ch: function () { return ["生", "死", "空"].map(function (d) { return { t: "推開「" + d + "」字門", r: function () {
+        var roll = Math.random() + (s.st.yuan - 5) * .04;
+        if (roll > .7) { var g = gain(s.lv + 1); if (P(.4)) { s.map = (s.map || 0) + 1; } return "門後是洞府主人的寶庫，你收走了一份「" + g + "」" + (s.map ? "，還有一塊殘破的地圖碎片（" + s.map + "/3）" : "") + "。"; }
+        if (roll > .4) { return ["門後站著一具石像。你一進門，它就睜開了眼睛。", fight("洞府石像", 1.2, { deadly: 1, win: "ruin", die: "死於古修洞府" })]; }
+        if (roll > .15) { addExp(.15); return "門後空無一物，只有牆上刻著一段心得。你在門前坐了三天，若有所悟。"; }
+        hurt(.04); if (P(.5)) s.haunt = 1; return "門後是一道殺陣。你拚死衝出來，渾身是傷。" + (s.haunt ? "你沒注意到，有一縷黑氣跟著你出了洞府。" : ""); } }; }); } },
+    { id: "r_array", k: "explore", w: 2, r: function () { return "山谷裡罩著一層淡淡的光幕，是上古修士留下的禁制。光幕後面隱約能看見一座藥爐。"; },
+      ch: function () { return [
+        { t: "靜下心來破陣（看悟性）", r: function () { if (chk(.45, ["wu"])) { var g = gain(s.lv + 1); addExp(.1); return "你花了七天七夜，一根一根拆開禁制的陣紋。藥爐裡還剩一份「" + g + "」。（" + st("wu", 1) + "）"; } hurt(.04); return "你算錯了一步，禁制反噬，把你彈出十幾丈遠。"; } },
+        { t: "強行轟開", r: function () { return ["光幕破碎的同時，一個陣靈從陣眼裡衝了出來。", fight("禁制陣靈", 1.25, { win: "ruin", deadly: 1, die: "死於上古禁制" })]; } },
+        { t: "不碰為妙", r: function () { return "你繞開了山谷。"; } }]; } },
+    { id: "r_garden", k: "explore", w: 2, r: function () { return "你誤闖一座荒廢的藥園。藥田裡長滿了靈草，年份最淺的也有幾百年。園子中央，一頭老獸正在打盹。"; },
+      ch: function () { return [
+        { t: "輕手輕腳採一株就走", r: function () { var g = Math.round(R(6, 12) * M[s.lv]); s.stone += g; return "你採了一株最老的靈草，賣了 " + g + " 塊靈石。"; } },
+        { t: "全部採光", r: function () { s.stone += Math.round(R(6, 12) * M[s.lv]); return ["採到一半，老獸醒了。", fight("守園老獸", 1.3, { win: "garden", deadly: 1, die: "死於荒廢藥園" })]; } }]; } },
+    { id: "r_field", k: "explore", w: 2, c: function () { return s.lv >= 2; }, r: function () { return "你路過一片上古戰場。黃沙底下埋著斷劍殘甲，夜裡還能聽見廝殺聲。"; },
+      ch: function () { return [
+        { t: "翻找殘器", r: function () {
+          if (s.gear.w && chk(.4, ["yuan"])) { var a = Math.round(s.gear.w.atk * 1.3); s.gear.w.atk = a; return "你挖出一截上古劍尖，熔進自己的「" + s.gear.w.n + "」裡。（攻擊提升到 " + a + "）"; }
+          if (P(.45)) { s.haunt = 1; return "你什麼也沒找到，只覺得背後發涼。回去的路上，總覺得有人跟著你。"; }
+          s.stone += Math.round(5 * M[s.lv]); return "你撿到幾件還能用的殘器，賣了些靈石。"; } },
+        { t: "替亡魂誦經、超度", r: function () { s.res += is("fo") ? 4 : 1; return "你在戰場邊坐了一夜。天亮時，廝殺聲停了。" + (is("fo") ? "（功德+4）" : ""); } }]; } },
+    { id: "r_tomb", k: "explore", w: 2, r: function () { return "山崩之後，露出一座古墓。墓門上寫著：「擅入者，與我同眠。」"; },
+      ch: function () { return [
+        { t: "開棺", r: function () { if (P(.5)) return ["棺材蓋自己飛了出去，裡面的古屍坐了起來。", fight("屍變的墓主", 1.3, { win: "tomb", deadly: 1, die: "死於古墓" })]; s.haunt = P(.6) ? 1 : 0; var g = Math.round(10 * M[s.lv]); s.stone += g; return "棺材裡只有一具枯骨和一些陪葬的靈石（" + g + " 塊）。" + (s.haunt ? "你闔上棺蓋時，好像聽見有人在笑。" : ""); } },
+        { t: "磕三個頭，離開", r: function () { return "你對著墓門磕了三個頭。轉身時，墓門縫裡滾出一顆回春丹。" + (item("heal"), ""); } }]; } },
+    { id: "r_ship", k: "explore", w: 4, c: function () { return s.region === "萬島海"; }, r: function () { return "退潮時，海面上露出一艘古代沉船的桅杆。船艙裡好像有東西在發光。"; },
+      ch: function () { return [
+        { t: "潛下去", r: function () { if (P(.5)) return ["你剛游進船艙，一條海妖就從暗處竄了出來。", fight("沉船海妖", 1.3, { win: "ruin", deadly: 1, die: "葬身沉船" })]; s.stone += Math.round(12 * M[s.lv]); s.map = (s.map || 0) + (P(.5) ? 1 : 0); return "船艙裡有一箱發霉的靈石，還有一個用油布包著的東西。" + (s.map ? "（地圖碎片 " + s.map + "/3）" : ""); } },
+        { t: "等漲潮前離開", r: function () { return "你看著沉船重新沒入海中。"; } }]; } },
+    { id: "ruin", k: "explore", w: 2, r: function () { return "傳聞附近有一座" + pick(["古修士洞府", "上古秘境", "沉入地底的宗門遺址"]) + "現世，各方修士蜂擁而至。"; },
       ch: function () { return [
         { t: "進去碰碰運氣", r: function () { return ["洞府深處，一具守護傀儡動了起來。", fight("守護傀儡", 1.3, { deadly: 1, win: "ruin", die: "死於秘境" })]; } },
         { t: "不湊這個熱鬧", r: function () { return "後來聽說，進去的人死了大半。"; } }]; } },
@@ -806,6 +891,7 @@
           s.stone -= cost;
           if (chk(.35, ["yuan"])) { addExp(.3); return "殘玉裡封著一段前人的修煉心得，你看了三天三夜，修為大進。"; }
           if (P(.2)) { var g = gain(s.lv + 1); return "殘玉一捏就碎，裡面滾出一份「" + g + "」。攤販要是知道，大概會哭。"; }
+          if (P(.35)) { s.haunt = 1; return "回去研究了半個月，殘玉裡什麼也沒有。只是那之後，你夜裡常聽見有人在耳邊說話。"; }
           return "回去研究了半個月，就只是一塊普通的玉。被騙了。"; } },
         { t: "不買", r: function () { return "你搖搖頭走開了。"; } }]; } },
     { id: "enemy", k: "explore", w: 4, c: function () { return s.enemy; }, r: function () { s.enemy = 0; return ["仇家在半路埋伏你。", fight("仇家", 1.3, { deadly: 1, die: "被仇家截殺" })]; } },
@@ -821,6 +907,60 @@
           if (chk(.25 + (s.bottle ? .25 : 0), ["wu"])) { gain(s.lv + 1); s.res += 1; return "爐蓋一開，丹香滿室：成了！"; }
           return "火候失控，一爐材料全成了焦炭。"; } },
         { t: "煉回春丹（較穩）", r: function () { if (chk(.7, ["wu"])) { item("heal", 3); return "丹成，你得到三顆回春丹。"; } return "丹藥品質不佳，只能扔了。"; } }]; } },
+
+    // ===== 歷練：人物奇遇 =====
+    { id: "n_help", k: "explore", w: 3, r: function () { return "路邊躺著一個受傷的散修，向你伸出手：「道友……救我……」"; },
+      ch: function () { return [
+        { t: "扶他起來，替他療傷", r: function () {
+          if (P(.35)) return ["你剛蹲下，他就一掌拍向你的丹田：原來是劫修裝的。", fight("裝傷的劫修", 1.1, { deadly: 1, die: "被假裝受傷的劫修暗算" })];
+          s.map = (s.map || 0) + 1; item("heal"); return "散修傷好之後，塞給你一顆回春丹和一塊殘破的地圖：「我拿著也沒用了，送你。」（地圖碎片 " + s.map + "/3，" + st("xin", 1) + "）"; } },
+        { t: "繞過去", r: function () { return "你沒有停下腳步。修仙界，人心難測。"; } }]; } },
+    { id: "n_child", k: "explore", once: 1, w: 2, r: function () { return "山路上有個凡人小孩在哭，說跟家人走散了。"; },
+      ch: function () { return [
+        { t: "送他回家", r: function () { if (P(.3)) { gain(s.lv + 1); big("送迷路小孩回家，遇見隱世高人"); return "孩子的家在山谷深處。開門的老人看了你一眼：「好心腸。」他是隱居的高人，送了你一份「" + PILL[s.lv + 1] + "」。"; } return "你把孩子送回村裡。孩子的娘拉著你的手，硬塞給你一籃雞蛋。（" + st("xin", 1) + "）"; } },
+        { t: "給他指個方向", r: function () { return "孩子擦乾眼淚，往山下跑去了。"; } }]; } },
+    { id: "n_merchant", k: "explore", w: 2, r: function () { return "一個揹著大竹簍的雲遊商人攔住你：「道友，看看？都是別處買不到的好東西。」"; },
+      ch: function () { var L = Math.max(1, s.lv), o = [];
+        if (!s.pet && !s.egg) o.push({ t: "買一顆靈獸蛋（" + Math.round(15 * M[L]) + " 靈石）", c: function () { return s.stone >= Math.round(15 * M[L]); }, r: function () { s.stone -= Math.round(15 * M[L]); s.egg = 3; return "你把靈獸蛋揣在懷裡。商人說，再出門歷練幾次，它就會孵出來。"; } });
+        o.push({ t: "買一塊地圖碎片（" + Math.round(8 * M[L]) + " 靈石）", c: function () { return s.stone >= Math.round(8 * M[L]); }, r: function () { s.stone -= Math.round(8 * M[L]); s.map = (s.map || 0) + 1; return "商人神祕兮兮地說：「湊齊三塊，就知道寶藏在哪裡。」（地圖碎片 " + s.map + "/3）"; } });
+        o.push({ t: "什麼都不買", r: function () { return "商人聳聳肩，揹著竹簍走了。"; } });
+        return o; } },
+    { id: "n_smith", k: "explore", w: 2, c: function () { return s.gear.w || s.gear.a; }, r: function () { return "你在小鎮上遇到一個脾氣古怪的煉器師。他瞄了一眼你的法寶：「這東西，我能讓它更好。」" + (s.iron ? "他看到你帶著的天外隕鐵，眼睛亮了。" : ""); },
+      ch: function () { var cost = Math.round(12 * M[Math.max(1, s.lv)]), o = [];
+        if (s.gear.w) o.push({ t: (s.iron ? "用天外隕鐵重煉法寶（免費，攻擊 ×1.8）" : "強化法寶（" + cost + " 靈石，攻擊 ×1.3）"), c: function () { return s.iron || s.stone >= cost; }, r: function () { if (s.iron) { s.iron = 0; s.gear.w.atk = Math.round(s.gear.w.atk * 1.8); big("以天外隕鐵重煉「" + s.gear.w.n + "」"); } else { s.stone -= cost; s.gear.w.atk = Math.round(s.gear.w.atk * 1.3); } return "煉器師敲打了三天三夜。「" + s.gear.w.n + "」的攻擊提升到 " + s.gear.w.atk + "。"; } });
+        if (s.gear.a) o.push({ t: "強化護具（" + cost + " 靈石，防禦 ×1.3）", c: function () { return s.stone >= cost; }, r: function () { s.stone -= cost; s.gear.a.def = Math.round(s.gear.a.def * 1.3); return "「" + s.gear.a.n + "」的防禦提升到 " + s.gear.a.def + "。"; } });
+        o.push({ t: "不用了", r: function () { return "煉器師哼了一聲：「不識貨。」"; } });
+        return o; } },
+    { id: "n_debate", k: "explore", w: 2, c: function () { return s.lv >= 2; }, r: function () { return "茶樓裡，一位" + pick(["白眉老道", "年輕的劍修", "雲遊的老僧", "落魄的書生"]) + "邀你論道，說輸的人請喝茶。"; },
+      ch: function () { return [
+        { t: "應邀論道（看悟性）", r: function () { if (chk(.5, ["wu"])) { addExp(.25); return "你們從天黑論到天亮。對方最後起身一揖：「受教了。」你也覺得自己想通了好幾處關竅。"; } s.stone = Math.max(0, s.stone - Math.round(2 * M[s.lv])); return "你被問得啞口無言，乖乖付了茶錢。回去之後想了好幾天。（" + st("wu", 1) + "）"; } },
+        { t: "笑著婉拒", r: function () { return "你喝完自己的茶就走了。"; } }]; } },
+    { id: "n_gamble", k: "explore", w: 2, r: function () { var c = Math.round(6 * M[Math.max(1, s.lv)]); s.gc = c; return "坊市裡有一家賭石鋪，原石切開之前，誰也不知道裡面是靈玉還是廢石。一塊要 " + c + " 靈石。"; },
+      ch: function () { var c = s.gc || 10; return [
+        { t: "賭一塊（" + c + " 靈石）", c: function () { return s.stone >= c; }, r: function () {
+          s.stone -= c; var r = Math.random() + (s.st.yuan - 5) * .03;
+          if (r > .92) { var g = gain(s.lv + 1); return "刀一落下，滿室寶光：原石裡竟然是一份「" + g + "」！整條街的人都圍過來看。"; }
+          if (r > .6) { s.stone += c * 3; return "切出一塊上好的靈玉，你轉手賣了 " + c * 3 + " 塊靈石。"; }
+          return "廢石一塊。老闆笑得很開心。"; } },
+        { t: "不賭", r: function () { return "十賭九輸，你轉身走了。"; } }]; } },
+    { id: "n_bandit", k: "explore", w: 3, r: function () { var c = Math.round(4 * M[Math.max(1, s.lv)]); s.bc = c; return "山道上跳出幾個劫修：「此山是我開，留下 " + c + " 塊靈石當過路費！」"; },
+      ch: function () { var c = s.bc || 10; return [
+        { t: "打過去", r: function () { return fight("劫修頭子", 1.05, { win: "bandit" }); } },
+        { t: "付錢了事（" + c + " 靈石）", c: function () { return s.stone >= c; }, r: function () { s.stone -= c; return "劫修收了錢，讓開了路。"; } },
+        { t: "轉身就跑", r: function () { if (chk(.55, ["yuan"])) return "你轉身就跑，他們沒追上。"; return ["你沒跑掉。", fight("劫修頭子", 1.15, { win: "bandit" })]; } }]; } },
+    { id: "n_arena", k: "explore", w: 2, c: function () { return s.lv >= 2 && s.region !== "靈界"; }, r: function () { return "城裡在辦鬥法擂台，連勝三場的人可以拿走頭彩。"; },
+      ch: function () { return [
+        { t: "上台", r: function () { return ["第一場，對手是一個嘴很臭的年輕修士。", fight("擂台第一場對手", .95, { win: "ar1" })]; } },
+        { t: "在台下看熱鬧", r: function () { return "你看了一下午，學到了幾招。"; } }]; } },
+    { id: "p_meteor", k: "explore", once: 1, w: 2, c: function () { return s.lv >= 2; }, r: function () { return "夜裡，一顆流星墜進了遠處的山谷，整座山都震了一下。"; },
+      ch: function () { return [
+        { t: "趕過去看看", r: function () { if (P(.4)) return ["隕坑邊，一頭被流星砸醒的妖獸正在發狂。", fight("發狂的妖獸", 1.2, { win: "meteor", deadly: 1 })]; return CB.meteor(); } },
+        { t: "不去", r: function () { return "第二天，那座山谷擠滿了修士。"; } }]; } },
+    { id: "p_rain", k: "explore", w: 2, r: function () { addExp(.12); return pick(["天降靈雨，你在雨中打坐了一整夜，修為漲了一截。", "一陣帶著靈氣的大霧籠罩山林，你趁機吐納了三天。", "你在山頂看見日月同輝，心有所感。"]); } },
+    { id: "hidden", k: "explore", once: 1, w: 30, c: function () { return (s.map || 0) >= 3; }, r: function () { return [chapter("隱藏秘境"), "三塊地圖碎片拼在一起，指向一座沒有出現在任何典籍裡的秘境。秘境入口，蹲著一頭渾身鱗甲的守護獸。"]; },
+      ch: function () { return [
+        { t: "闖進去", r: function () { return fight("秘境守護獸", 1.6, { win: "hidden", deadly: 1, die: "死於隱藏秘境" }); } },
+        { t: "先準備一下再說", r: function () { s.done.hidden = 0; return "你把地圖收好，打算準備妥當再來。"; } }]; } },
 
     // ===== 歷練：佛 =====
     { id: "fo_save", k: "explore", w: 4, c: function () { return is("fo"); }, r: function () { return "路上遇到一群逃荒的饑民，老老小小餓得走不動了。"; },
@@ -888,6 +1028,19 @@
         { t: "不爭，坐山觀虎鬥", r: function () { s.stone += Math.round(10 * M[s.lv]); return "六宗殺得兩敗俱傷，你悄悄收走了不少戰利品。"; } }]; } }
   ];
   var EVM = {}; EV.concat([QSTART], QP.dao, QP.fo, QP.ru, QP.mo, QS).forEach(function (e) { EVM[e.id] = e; });
+  EVM.seizeme = { id: "seizeme", r: function () { return ""; }, ch: function () { return [
+    { t: "奪舍一個凡人少年（一定成功，境界跌一層）", r: function () { return bodySwap("凡人"); } },
+    { t: "奪舍一個修士（要打贏神魂之戰）", r: function () { return ["你找上一個獨自閉關的修士，神魂破體而入。", fight("被奪舍修士的神魂", s.lostBody ? 1.1 : .95, { soul: 1, boss: 1, win: "seizewin", die: "奪舍失敗，神魂俱滅", dieT: "對方的神魂比你想的頑強。你的神魂被一點一點磨滅，什麼也沒剩下。" })]; } },
+    { t: "放下執念，就此離去", r: function () { s.peace = 1; die(s.lostBody ? "肉身被毀，元嬰消散" : "壽元耗盡，坐化"); return s.partner ? "你沒有奪舍。你靠在{侶}的肩上，安靜地閉上了眼睛。" : "你沒有奪舍。這一生，夠了。"; } }]; } };
+  EVM.tame = { id: "tame", r: function () { return ""; }, ch: function () { return [
+    { t: "收服牠當靈寵", r: function () { s.pet = { n: (s.bn || "妖獸").replace("首領・", ""), k: s.elite ? .35 : .22 }; big("收服靈寵" + s.pet.n); return "你在牠額頭上烙下神識印記。從此，" + s.pet.n + "跟在你身邊，戰鬥時會幫你出手。"; } },
+    { t: "放牠走", r: function () { return "妖獸看了你一眼，一瘸一拐地消失在林子裡。"; } }]; } };
+  EVM.arena2 = { id: "arena2", r: function () { return ""; }, ch: function () { return [
+    { t: "打第二場", r: function () { return fight("擂台第二場對手", 1.15, { win: "ar2" }); } },
+    { t: "見好就收", r: function () { return "你拿著贏來的靈石下了台。"; } }]; } };
+  EVM.arena3 = { id: "arena3", r: function () { return ""; }, ch: function () { return [
+    { t: "挑戰擂主", r: function () { return fight("蟬聯三屆的擂主", 1.35, { win: "ar3" }); } },
+    { t: "見好就收", r: function () { return "你拿著贏來的靈石下了台。台下一片噓聲。"; } }]; } };
   EVM.nangong = { id: "nangong", r: function () { return ""; }, ch: function () { return [
     { t: "出手相救", r: function () { return ["一位女修被兩名別派弟子圍攻，已經負傷。你衝了上去。", fight("別派弟子", 1.4, { win: "ngwin", after: "ngafter", deadly: 1, die: "隕落赤霧秘境" })]; } },
     { t: "悄悄退走", r: function () { gain(2); return "你屏住呼吸，從另一條路出了禁地。宗門賜你一顆築基丹。"; } }]; } };
@@ -962,6 +1115,7 @@
   function warn(ent) { var y = STEP[s.lv]; if (!s.dead && s.life - s.age <= y * 2 && s.life > s.age) ent.t.push({ c: "bad", t: "你感覺到，壽元快要盡了。" }); }
   function aged(ent) {
     if (s.age < s.life) return false;
+    if (s.lv >= 3 && (s.seized || 0) < 2) { s.lostBody = 0; s.pending = { id: "seizeme" }; ent.t.push({ c: "bad", t: "你的壽元到頭了。肉身一天天乾枯，神魂卻還不想走。修仙界有一條禁忌的路：奪舍。" }); return true; }
     die("壽元耗盡，坐化");
     put(ent, s.partner ? "壽元耗盡。你靠在{侶}的肩上，在洞府中坐化。" : "壽元耗盡，你沒能再往前一步，在洞府中坐化。");
     return true;
@@ -991,6 +1145,7 @@
     s.exp = Math.min(NEED[s.lv], s.exp + rate() * y * K.rand(.3, .5));
     s.hp = Math.min(t.hp, s.hp + Math.round(t.hp * .3)); s.mp = Math.min(t.mp, s.mp + Math.round(t.mp * .3));
     if (aged(ent)) return after();
+    if (s.egg && !--s.egg) { var pn = pick(["雪羽鶴", "赤炎狐", "金睛猿", "墨鱗蛟", "紫電貂", "玄甲龜"]); s.pet = { n: pn, k: .32 }; big("靈獸蛋孵出" + pn); ent.t.push({ c: "up", t: "懷裡的靈獸蛋裂開了，鑽出一隻小小的" + pn + "，認了你當主人。" }); return after(); }
     var e = pickEvent("explore");
     if (e) runEv(e, ent); else put(ent, fill());
     warn(ent); after();
@@ -1067,7 +1222,7 @@
     var top = s.ascended ? 10 : s.lv;
     past.unshift({ n: s.name, a: s.age, p: s.path ? PATH[s.path].n : "", l: s.ascended ? "飛升仙界" : short(s.lv), d: s.dead,
       lv: s.ascended ? 10 : s.lv, pt: s.partner ? s.npc.pt : "", w: s.gear.w ? s.gear.w.n.replace("（前世）", "") : "" });
-    var m = meta(), gainK = 1 + s.lv * 2 + (s.ascended ? 20 : 0) + Math.min(5, Math.floor(s.big.length / 3));
+    var m = meta(), gainK = 1 + s.lv * 2 + (s.ascended ? 20 : 0) + Math.min(5, Math.floor(s.big.length / 3)) + (s.peace ? 3 : 0);
     m.karma += gainK; m.offer = null; m.lives = (m.lives || 0) + 1; store(key("meta"), m);
     store(key("past"), past.slice(0, 20));
     var one = 1 / (s.prob * REACH[top]);
@@ -1114,6 +1269,11 @@
     if (s.gear.a) more.push("護具 <b>" + esc(s.gear.a.n) + "</b>");
     Object.keys(s.pill).forEach(function (k) { if (s.pill[k] > 0) more.push(PILL[k] + " <b>" + s.pill[k] + "</b>"); });
     if (s.bottle) more.push("<b>小玉瓶</b>");
+    if (s.pet) more.push("靈寵 <b>" + esc(s.pet.n) + "</b>");
+    if (s.egg) more.push("<b>靈獸蛋</b>（再歷練 " + s.egg + " 次）");
+    if (s.map) more.push("地圖碎片 <b>" + s.map + "/3</b>");
+    if (s.iron) more.push("<b>天外隕鐵</b>");
+    if (s.seized) more.push("奪舍 <b>" + s.seized + "</b> 次");
     if (s.fr) more.push("摯友 <b>" + esc(n.fr) + "</b>");
     if (s.li) more.push("兄弟 <b>石驚鴻</b>");
     if (n.ms && !s.msGone) more.push("師父 <b>" + esc(n.ms) + "</b>");
