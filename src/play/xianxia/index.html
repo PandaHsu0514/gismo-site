@@ -60,6 +60,15 @@
   .meter .v { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; font-size: 12px; }
   .stats { display: flex; gap: 4px 12px; flex-wrap: wrap; font-size: 13px; margin-top: 6px; color: var(--muted); }
   .stats b { color: var(--text); }
+  .quest { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--board); font-size: 13px; display: grid; gap: 4px; }
+  .quest .qt { font-weight: 700; color: var(--accent2); }
+  .quest .qt span { font-weight: 400; color: var(--muted); }
+  .quest .qr { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; }
+  .quest .qr .t { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+  .quest .qr .t i { display: block; height: 100%; background: var(--accent2); }
+  .quest .qr .v { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+  .quest .qh { color: var(--text); }
+  .quest.ok { outline: 2px solid var(--accent2); }
   details.more { margin-top: 4px; font-size: 13px; }
   details.more summary { cursor: pointer; color: var(--accent2); }
   /* 人生紀錄 */
@@ -466,6 +475,33 @@
         { t: "鎮守後方", r: function () { s.res += 2; return "你守住了後方的傳送陣，讓數十萬人族百姓撤離。"; } }]; } },
     { id: "q_tribu", t: "天劫將至", lv: 9, ex: .5, r: function () { return [chapter("渡劫"), "你感覺到天劫將至。天上的雲一天比一天低，雷聲在雲層裡翻滾。這是最後一關了。"]; } }
   ];
+  var QD = {
+    q_li: "門裡有個少年，似乎在做傻事。", q_wolf: "山下的黑風寨蠢蠢欲動。", q_bottle: "後山的石縫裡好像有東西在發光。",
+    q_mo: "柳大夫最近看你的眼神很奇怪。", q_tainan: "柳大夫的遺物指向雲台谷。", q_blood: "宗門要開赤霧秘境，裡面有築基用的靈草。",
+    q_lhy: "築基之後，會有長老注意到你。", q_bamboo: "煉一把真正屬於自己的飛劍。", q_invade: "幽冥五宗的大軍正在逼近。",
+    q_star: "在萬島海找個落腳的地方。", q_war: "萬島海的兩大勢力就要開戰。", q_dan: "結丹需要一份靈物。",
+    q_xutian: "沉淵古殿就要開啟了。", q_back: "是時候回南嶺看看了。", q_zhuimo: "葬魔淵底下藏著上古傳承。",
+    q_kunwu: "北璃鎮岳山的封印鬆動了。", q_node: "人界已經容不下你，得找到飛升靈界的路。", q_ty: "在靈界站穩腳跟。",
+    q_mojie: "魔族大軍壓境。", q_tribu: "最後一關：天劫。"
+  };
+  function qrow(label, v, max, txt) { return '<div class="qr"><span>' + label + '</span><span class="t"><i style="width:' + clamp(v / max * 100, 0, 100) + '%"></i></span><span class="v">' + txt + "</span></div>"; }
+  function questBox() {
+    var q = curQ();
+    if (!s.path) return "";
+    if (!q) return '<div class="quest"><div class="qt">主線　<span>都完成了</span></div><div class="qh">' + (s.exp >= NEED[s.lv] ? "修為圓滿，可以衝關。" : "閉關修煉，等修為圓滿再衝關。") + "</div></div>";
+    var ok = qReady(q), h = '<div class="quest' + (ok ? " ok" : "") + '"><div class="qt">主線：' + esc(q.t) + "　<span>" + esc(QD[q.id] || "") + "</span></div>", tip = "";
+    if (s.lv < q.lv) {
+      h += qrow("修為", s.exp, NEED[s.lv], "突破到「" + esc(short(q.lv)) + "」");
+      tip = s.exp >= NEED[s.lv] ? "修為已滿，按「衝擊」突破境界。" : "閉關修煉累積修為，滿了就能衝關突破。";
+    } else if (s.lv === q.lv && q.ex) {
+      h += qrow("修為", s.exp, NEED[s.lv] * q.ex, Math.floor(s.exp / NEED[s.lv] * 100) + "%／" + Math.round(q.ex * 100) + "%");
+      if (s.exp < NEED[s.lv] * q.ex) tip = "閉關修煉可以增加修為；外出歷練也會增加一點。";
+    }
+    if (q.age) { h += qrow("年齡", s.age, q.age, s.age + "／" + q.age + " 歲"); if (!tip && s.age < q.age) tip = "多閉關幾次，時間就會過去。"; }
+    if (q.rg && s.region !== q.rg && !tip) tip = "要先到" + q.rg + "，跟著主線走就會抵達。";
+    if (ok) tip = "條件達成！按下方「主線：" + esc(q.t) + "」出發。";
+    return h + '<div class="qh">' + tip + "</div></div>";
+  }
   function curQ() { return Q[s.q]; }
   function qReady(q) { return q && s.lv >= q.lv && (s.lv > q.lv || !q.ex || s.exp >= NEED[q.lv] * q.ex) && (!q.age || s.age >= q.age) && (!q.rg || s.region === q.rg); }
   function qHint(q) {
@@ -919,6 +955,7 @@
     if (s.partner) more.push("道侶 <b>" + esc(n.pt) + "</b>");
     if (n.dc) more.push("徒弟 <b>" + esc(n.dc) + "</b>");
     if (s.rival && s.rival < 9) more.push("宿敵 <b>" + esc(n.rv) + "</b>");
+    h += questBox();
     var open = $("more") && $("more").open;
     h += '<details class="more" id="more"' + (open ? " open" : "") + '><summary>資質、法寶、人物</summary><div class="stats">' + more.map(function (x) { return "<span>" + x + "</span>"; }).join("") + "</div></details>";
     $("who").innerHTML = h;
