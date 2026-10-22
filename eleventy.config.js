@@ -1,4 +1,6 @@
 import { HtmlBasePlugin } from "@11ty/eleventy";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 export default function (eleventyConfig) {
   // 網站放在子路徑（例如 github.io/gismo-site/）時，自動替站內連結加上前綴
@@ -32,6 +34,8 @@ export default function (eleventyConfig) {
   eleventyConfig.addCollection("works", (api) => api.getFilteredByGlob("src/works/*.md").sort(byYear));
   eleventyConfig.addCollection("games", (api) => api.getFilteredByGlob("src/games/*.md").sort((a, b) => (a.data.order || 999) - (b.data.order || 999)));
 
+  // 靜態檔加上內容雜湊版本號（/assets/style.css → /assets/style.css?v=1a2b3c4d），改版後瀏覽器馬上抓新檔
+  eleventyConfig.addFilter("v", (url) => `${url}?v=${createHash("md5").update(readFileSync(`src${url}`)).digest("hex").slice(0, 8)}`);
   eleventyConfig.addFilter("uniq", (items, key) => [...new Set(items.map((i) => i.data[key]).filter(Boolean))]);
   eleventyConfig.addFilter("first", (items, n) => items.slice(0, n));
   eleventyConfig.addFilter("navActive", (item, url) => [item.url, ...(item.also || [])].some((u) => url.startsWith(u)));
