@@ -282,7 +282,9 @@ main > .grid, main > .papers { padding-bottom: 64px; }
 .spread { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity .45s; pointer-events: none; }
 .spread.on { opacity: 1; }
 .spread img { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; background: #141828; }
-.story-text { font: 400 clamp(20px, 2.4vw, 26px)/1.9 "Noto Serif TC", serif; min-height: 7.6em; margin: 0 0 18px; letter-spacing: .02em; }
+/* 晚安故事注音字型：字嗨注音標楷的子集（只含故事用字；漢字 CC-BY 4.0、其餘 SIL OFL 1.1，© But Ko，https://github.com/ButTaiwan/bpmfvs）。新增故事後要重新產生 */
+@font-face { font-family: "StoryBpmf"; src: url("/assets/fonts/story-bpmf.woff2") format("woff2"); font-display: swap; }
+.story-text { font: 400 clamp(20px, 2.4vw, 26px)/1.9 "StoryBpmf", "Noto Serif TC", serif; min-height: 7.6em; margin: 0 0 18px; letter-spacing: .02em; }
 .story-progress { font-size: 13px; color: #b8b3c9; margin-bottom: 14px; }
 .story-progress .bar { height: 4px; background: #343a55; border-radius: 4px; margin-top: 6px; overflow: hidden; }
 .story-progress .bar i { display: block; height: 100%; width: 0; background: #e2b44f; transition: width .3s; }
@@ -291,12 +293,14 @@ main > .grid, main > .papers { padding-bottom: 64px; }
 .story-controls button.primary { flex: 1; background: #e2b44f; border-color: #e2b44f; color: #1d2235; font-weight: 700; }
 .auto { display: block; margin-top: 12px; font-size: 14px; color: #b8b3c9; }
 .fulltext { margin-top: 24px; }
+.font-credit { margin-top: 18px; font-size: 13px; color: var(--muted); }
+.fulltext .prose { font-family: "StoryBpmf", "Noto Serif TC", serif; line-height: 2; }
 .fulltext summary { cursor: pointer; color: var(--muted); }
 @media (max-width: 760px) {
   .story { padding-top: 20px; }
   .reader { grid-template-columns: 1fr; padding: 12px; gap: 12px; margin: 0 -8px; }
   .stage-img { height: 44vh; width: 100%; aspect-ratio: auto; }
-  .story-text { min-height: 5.4em; font-size: 18px; line-height: 1.8; margin-bottom: 6px; }
+  .story-text { min-height: 5.4em; font-size: 20px; line-height: 1.9; margin-bottom: 6px; }
   .story-head h1 { font-size: 22px; }
   .story .crumb { margin-bottom: 12px; }
 }

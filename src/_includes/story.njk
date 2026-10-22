@@ -32,6 +32,7 @@ layout: base.njk
     <summary>看整篇故事文字</summary>
     <div class="prose">{% for p in pages %}<p>{{ p.text }}</p>{% endfor %}</div>
   </details>
+  <p class="font-credit">注音字型：<a href="https://github.com/ButTaiwan/bpmfvs" target="_blank" rel="noopener">字嗨注音標楷</a>（But Ko，漢字 CC BY 4.0、其餘 SIL OFL 1.1；含國發會全字庫正楷體），本站使用子集。</p>
   {% if storyAudio %}<audio id="storyAudio" src="{{ storyAudio }}" preload="none"></audio>{% endif %}
 </article>
 

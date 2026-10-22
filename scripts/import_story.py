@@ -6,11 +6,15 @@
 - 有 storyboard.json 時，同一場景的幾頁共用一張圖（只輸出場景數量的 JPG）
 - 圖片用 macOS 的 sips 縮成 540×960 JPEG；音檔直接複製 m4a；不放 MP4（影片另外上傳 YouTube 再填 youtube 欄位）
 - 已存在同名 slug 就停止，不覆寫
+- 匯入後自動重跑 build_story_font.py，讓新故事的字也有注音
 """
 import hashlib, json, os, re, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-args = [a for a in sys.argv[1:] if not a.startswith("--")]
+argv = sys.argv[1:]
+if "--date" in argv:
+    k = argv.index("--date"); argv = argv[:k] + argv[k + 2:]
+args = [a for a in argv if not a.startswith("--")]
 if len(args) != 2:
     sys.exit(__doc__)
 book, slug = os.path.abspath(args[0]), args[1]
@@ -53,4 +57,6 @@ fm = {"title": title, "date": date, "summary": summary if len(summary) <= 100 el
       "youtube": ""}
 with open(md, "w", encoding="utf-8") as fh:
     fh.write("---json\n" + json.dumps(fm, ensure_ascii=False, indent=1) + "\n---\n")
+# 注音字型只含已上架故事的用字，新故事有新字就要重新產生
+subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "build_story_font.py")], check=True)
 print(json.dumps({"slug": slug, "title": title, "pages": n, "images": len(made)}, ensure_ascii=False))
