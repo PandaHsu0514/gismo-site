@@ -70,6 +70,11 @@
   .quest .qh { color: var(--text); }
   .quest.ok { outline: 2px solid var(--accent2); }
   details.more { margin-top: 4px; font-size: 13px; }
+  .mores { display: flex; gap: 4px 16px; flex-wrap: wrap; }
+  .mores details[open] { flex-basis: 100%; }
+  .attr { margin: 6px 0 0; padding: 0 0 0 16px; max-height: 42vh; overflow-y: auto; color: var(--muted); line-height: 1.6; }
+  .attr li + li { margin-top: 4px; }
+  .attr b { color: var(--text); }
   .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
   .slots button { background: var(--board); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; font-size: 13px; line-height: 1.4; }
   .slots button b { display: block; font-size: 14px; }
@@ -151,6 +156,7 @@
         <li><b>坊市</b>：用靈石買丹藥、法寶、護具。</li>
         <li><b>主線</b>：佛、道、儒、魔前期各走各的劇情，幽冥五宗入侵之後匯成同一條路，一直到靈界。</li>
         <li>修為滿了就能<b>衝關</b>。壽元用完、戰死、衝關失敗，這一生就結束了。</li>
+        <li>角色卡上的「屬性有什麼用」，會用目前的數字說明每個屬性的實際效果。</li>
       </ul>
     </div>
     <div class="panel" id="pastBox" hidden>
@@ -295,11 +301,24 @@
     var g = s.st, m = M[s.lv], f = s.path ? PATH[s.path].f : [1, 1, 1, 1], w = s.gear.w, a = s.gear.a;
     return {
       hp: Math.round((60 + g.gen * 8) * m * f[0]) + (a ? a.def * 3 : 0),
-      atk: Math.round((8 + g.gen * 1.5 + g.wu * .5) * m * f[1]) + (w ? w.atk : 0),
+      atk: Math.round((8 + g.gen * 1.5 + g.wu * .5) * m * f[1] * (s.path ? FX.atk() : 1)) + (w ? w.atk : 0),
       def: Math.round((3 + g.gen * .5) * m * .6 * f[2]) + (a ? a.def : 0),
       mp: Math.round((20 + g.wu * 4) * m * f[3])
     };
   }
+  // 四系屬性（功德、道心、浩然氣、煞氣）的效果
+  var FX = {
+    brk: function () { return is("mo") ? .05 : Math.min(s.res * .005, .12); },          // 衝關成功率加成
+    shield: function () { return is("fo") ? Math.min(s.res * .01, .5) : 0; },           // 佛光護體：致命一擊時保住 1 點氣血
+    heal: function () { return .2 + Math.min(s.res * .005, .2); },                        // 佛修絕技回血比例
+    karma: function () { return is("fo") ? Math.floor(Math.min(s.res, 60) / 10) : 0; }, // 轉世多得的輪迴點
+    skill: function () { return is("dao") ? 1 + Math.min(s.res, 40) * .01 : 1; },       // 道修絕技傷害倍率
+    safe: function () { return is("dao") ? Math.min(s.res * .003, .1) : 0; },           // 道修衝關失敗時少掉的喪命率
+    stun: function () { return .5 + Math.min(s.res * .01, .35); },                        // 儒修絕技震住敵人的機率
+    ward: function () { return is("ru") ? Math.min(s.res * .02, .8) : 0; },             // 儒修燒散殘魂的機率
+    atk: function () { return is("mo") ? 1 + Math.min(s.res, 50) * .01 : 1; },          // 魔修攻擊倍率
+    tribu: function () { return Math.min(s.res, 40) * .005; }                             // 渡劫失敗時少掉的死亡率
+  };
   function full() { var t = stat(); s.hp = t.hp; s.mp = t.mp; }
   function skill() { var a = PATH[s.path].skill; return a[s.lv <= 2 ? 0 : s.lv <= 4 ? 1 : s.lv <= 6 ? 2 : 3]; }
   function rootM() { return ROOT[s.root].m || (s.forged ? .45 : 0); }
@@ -316,7 +335,7 @@
   }
   function chance(pill) {
     var c = BC[s.lv] + (s.st.xin - 5) * .03 + (s.st.wu - 5) * .02 + s.wait * .06;
-    c += is("mo") ? .05 : Math.min(s.res * .005, .12);
+    c += FX.brk();
     if (pill) c += .3;
     return clamp(c, .05, .95);
   }
@@ -351,9 +370,9 @@
     function dmg(x) { return Math.max(1, Math.round(x * K.rand(.85, 1.15) - f.def * .5)); }
     if (k === "atk") { d = dmg(t.atk); if (P(.03 + s.st.yuan * .015)) { d = Math.round(d * 1.8); out += "暴擊！"; } f.hp -= d; out += "你出手攻擊，造成 " + d + " 點傷害。"; }
     else if (k === "sk") {
-      s.mp -= cost; d = dmg(t.atk * PATH[s.path].sk); f.hp -= d; out += "你施展「" + skill() + "」，造成 " + d + " 點傷害。";
-      if (is("fo")) { var h = Math.round(t.hp * .2); s.hp = Math.min(t.hp, s.hp + h); out += "佛光護體，回復 " + h + " 氣血。"; }
-      if (is("ru") && P(.5)) { stun = true; out += f.n + "被浩然正氣震住，動彈不得。"; }
+      s.mp -= cost; d = dmg(t.atk * PATH[s.path].sk * FX.skill()); f.hp -= d; out += "你施展「" + skill() + "」，造成 " + d + " 點傷害。";
+      if (is("fo")) { var h = Math.round(t.hp * FX.heal()); s.hp = Math.min(t.hp, s.hp + h); out += "佛光護體，回復 " + h + " 氣血。"; }
+      if (is("ru") && P(FX.stun())) { stun = true; out += f.n + "被浩然正氣震住，動彈不得。"; }
       if (is("mo")) { var h2 = Math.round(d * .5); s.hp = Math.min(t.hp, s.hp + h2); out += "你吸取血氣，回復 " + h2 + " 氣血。"; }
     }
     else if (k === "heal") { s.items.heal--; var h3 = Math.round(t.hp * .5); s.hp = Math.min(t.hp, s.hp + h3); out += "你服下回春丹，回復 " + h3 + " 氣血。"; }
@@ -366,6 +385,7 @@
     if (s.pet && !f.soul && f.hp > 0) { var pd = Math.max(1, Math.round(t.atk * s.pet.k * K.rand(.8, 1.2))); f.hp -= pd; out += "靈寵" + s.pet.n + "撲上去，造成 " + pd + " 點傷害。"; }
     if (f.hp <= 0) return endFight(f, "win", out);
     if (!stun) { var e = Math.max(1, Math.round(f.atk * K.rand(.85, 1.15) - (f.soul ? 0 : t.def * .5))); if (guard) e = Math.round(e * .4); s.hp -= e; out += f.n + "反擊，你受到 " + e + " 點傷害。"; }
+    if (s.hp <= 0 && !f.shield && P(FX.shield())) { f.shield = 1; s.hp = 1; out += "佛光一閃，替你擋下了致命的一擊。"; }
     if (s.hp <= 0) return endFight(f, "lose", out);
     s.pending = { id: "fight", f: f };
     return { c: "hit", t: out };
@@ -836,8 +856,10 @@
         { t: "親自出手退敵", r: function () { return fight("來犯的仇家", 1.5, { win: "sectatk" }); } },
         { t: "開啟大陣，固守待援", r: function () { s.stone = Math.floor(s.stone / 2); return "大陣耗光了庫房的靈石，總算撐到敵人退去。"; } }]; } },
     { id: "seize", k: "calm", w: 8, c: function () { return s.haunt; }, r: function () {
-      s.haunt = 0; return "你閉關到一半，識海裡忽然一陣刺痛：那縷一直跟著你的黑氣終於動手了。一個蒼老的聲音笑道：「好肉身，借老夫用用。」"; },
-      ch: function () { return [
+      s.haunt = 0; s.warded = P(FX.ward()) ? 1 : 0;
+      if (s.warded) { s.res += 1; return "你閉關到一半，一縷黑氣想鑽進你的識海，卻被胸中的浩然氣灼得慘叫一聲，化成黑煙散了。（浩然氣+1）"; }
+      return "你閉關到一半，識海裡忽然一陣刺痛：那縷一直跟著你的黑氣終於動手了。一個蒼老的聲音笑道：「好肉身，借老夫用用。」"; },
+      ch: function () { return s.warded ? [] : [
         { t: "死守靈台，跟它拚神魂", r: function () { return fight("奪舍老魔的殘魂", 1, { soul: 1, boss: 1, win: "unseize", die: "被老魔奪舍", dieT: "你沒能守住。從此，那具身體換了一個主人。" }); } },
         { t: "燃燒精血，硬把它逼出去", r: function () { hurt(.08); s.hp = 1; return "你噴出一大口血，那縷殘魂慘叫著被逼出識海，化成黑煙散了。你的壽元也折損了不少。"; } }]; } },
 
@@ -1190,7 +1212,7 @@
       big("晉入" + short(s.lv));
       return { c: "up", t: "突破成功！你晉入「" + lvName(s.lv) + "」，壽元延長到 " + s.life + " 歲。" + nsk };
     }
-    var d = from === 9 ? .75 - Math.min(s.res, 40) * .005 : .03 + from * .03 + (is("mo") ? s.res * .002 : 0);
+    var d = from === 9 ? .75 - FX.tribu() : Math.max(.01, .03 + from * .03 + (is("mo") ? s.res * .002 : 0) - FX.safe());
     if (P(d)) { die(from === 9 ? "渡劫失敗，身死道消" : "衝關失敗，" + (is("mo") ? "走火入魔" : "經脈寸斷")); return { c: "bad", t: from === 9 ? "第九道天雷落下，你化為飛灰。" : "衝關失敗，" + (is("mo") ? "魔氣倒灌" : "真氣逆行") + "，你沒能挺過來。" }; }
     s.exp = NEED[s.lv] * K.rand(.5, .75); s.life -= Math.round(Math.max(LIFE[s.lv] * .03, 1));
     return { c: "bad", t: "衝關失敗，修為倒退，還折損了些壽元。" };
@@ -1222,7 +1244,7 @@
     var top = s.ascended ? 10 : s.lv;
     past.unshift({ n: s.name, a: s.age, p: s.path ? PATH[s.path].n : "", l: s.ascended ? "飛升仙界" : short(s.lv), d: s.dead,
       lv: s.ascended ? 10 : s.lv, pt: s.partner ? s.npc.pt : "", w: s.gear.w ? s.gear.w.n.replace("（前世）", "") : "" });
-    var m = meta(), gainK = 1 + s.lv * 2 + (s.ascended ? 20 : 0) + Math.min(5, Math.floor(s.big.length / 3)) + (s.peace ? 3 : 0);
+    var m = meta(), gainK = 1 + s.lv * 2 + (s.ascended ? 20 : 0) + Math.min(5, Math.floor(s.big.length / 3)) + (s.peace ? 3 : 0) + FX.karma();
     m.karma += gainK; m.offer = null; m.lives = (m.lives || 0) + 1; store(key("meta"), m);
     store(key("past"), past.slice(0, 20));
     var one = 1 / (s.prob * REACH[top]);
@@ -1245,6 +1267,29 @@
   // ---------- 畫面 ----------
   function bar(label, v, max, c) {
     return "<span>" + label + '</span><span class="t"><i style="width:' + clamp(v / max * 100, 0, 100) + "%;--c:var(--" + c + ')"></i></span><span class="v">' + v + "/" + max + "</span>";
+  }
+  function pct(x) { return Math.round(x * 100) + "%"; }
+  function attrHelp() {
+    var g = s.st, t = stat(), L = [];
+    function row(n, v, d) { L.push("<li><b>" + n + " " + v + "</b>　" + d + "</li>"); }
+    var lifeF = (.9 + g.gen * .02).toFixed(2);
+    row("根骨", g.gen, "氣血、攻擊、防禦都會提高；壽元上限 ×" + lifeF + "；迎戰、搶奪這類判定 " + (g.gen >= 5 ? "+" : "") + pct((g.gen - 5) * .05) + "。");
+    row("悟性", g.wu, (is("fo") ? "" : "修煉速度" + (is("ru") ? "（與心性平均）" : "") + "提高；") + "法力上限提高；衝關 " + (g.wu >= 5 ? "+" : "") + pct((g.wu - 5) * .02) + "；破陣、論道、考試判定 " + (g.wu >= 5 ? "+" : "") + pct((g.wu - 5) * .05) + "。");
+    row("心性", g.xin, (is("fo") || is("ru") ? "修煉速度提高；" : "") + "衝關 " + (g.xin >= 5 ? "+" : "") + pct((g.xin - 5) * .03) + "；神魂之戰傷害提高；抵抗心魔、度化他人的判定 " + (g.xin >= 5 ? "+" : "") + pct((g.xin - 5) * .05) + "。");
+    row("機緣", g.yuan, "暴擊率 " + pct(.03 + g.yuan * .015) + "；逃跑成功率 " + pct(clamp(.45 + (g.yuan - 5) * .05, .05, .95)) + "；收服靈寵 " + pct(.2 + g.yuan * .02) + "；秘境、賭石、奇遇的運氣更好。");
+    if (s.path) {
+      var r = s.res;
+      if (is("fo")) row("功德", r, "衝關 +" + pct(FX.brk()) + (FX.brk() >= .12 ? "（已滿）" : "") + "；佛光護體（致命一擊時保住一命，每場一次）" + pct(FX.shield()) + "；絕技回血 " + pct(FX.heal()) + "；渡劫失敗時死亡率 -" + pct(FX.tribu()) + "；轉世多得 " + FX.karma() + " 點輪迴點。");
+      if (is("dao")) row("道心", r, "衝關 +" + pct(FX.brk()) + (FX.brk() >= .12 ? "（已滿）" : "") + "；絕技傷害 ×" + FX.skill().toFixed(2) + "；衝關失敗時喪命率 -" + pct(FX.safe()) + "；渡劫失敗時死亡率 -" + pct(FX.tribu()) + "。");
+      if (is("ru")) row("浩然氣", r, "衝關 +" + pct(FX.brk()) + (FX.brk() >= .12 ? "（已滿）" : "") + "；絕技震住敵人 " + pct(FX.stun()) + "；殘魂來奪舍時自動燒散 " + pct(FX.ward()) + "；渡劫失敗時死亡率 -" + pct(FX.tribu()) + "。");
+      if (is("mo")) row("煞氣", r, "修煉速度 +" + pct(Math.min(r, 30) * .02) + "；攻擊 +" + pct(FX.atk() - 1) + "；衝關固定 +5%，但失敗時喪命率 +" + pct(r * .002) + (r >= 15 ? "；煞氣已重，閉關時可能被反噬" : "；超過 15 點後，閉關時可能被反噬") + "。");
+      row("靈根", ROOT[s.root].n + (s.forged ? "（血煉魔脈）" : ""), "修煉速度的根本。現在每閉關一年約增加修為 " + rate().toFixed(2) + "，這一層需要 " + NEED[s.lv] + "。");
+      row("攻擊", t.atk, (s.gear.w ? "含法寶「" + esc(s.gear.w.n) + "」+" + s.gear.w.atk + "；" : "") + "絕技傷害是攻擊的 " + (PATH[s.path].sk * FX.skill()).toFixed(1) + " 倍。");
+      row("防禦", t.def, (s.gear.a ? "含護具「" + esc(s.gear.a.n) + "」+" + s.gear.a.def + "；" : "") + "每點防禦抵銷半點傷害。");
+      row("氣血／法力", t.hp + "／" + t.mp, "氣血歸零就會戰敗；施展絕技要花法力上限的 30%。閉關會回滿，歷練只回三成。");
+    }
+    row("壽元", s.age + "／" + s.life, "到了上限就會坐化。突破境界能大幅延長；結丹以上壽元將盡時，可以選擇奪舍。");
+    return '<ul class="attr">' + L.join("") + "</ul>";
   }
   function render() {
     if (!s) return;
@@ -1281,8 +1326,9 @@
     if (n.dc) more.push("徒弟 <b>" + esc(n.dc) + "</b>");
     if (s.rival && s.rival < 9) more.push("宿敵 <b>" + esc(n.rv) + "</b>");
     h += questBox();
-    var open = $("more") && $("more").open;
-    h += '<details class="more" id="more"' + (open ? " open" : "") + '><summary>資質、法寶、人物</summary><div class="stats">' + more.map(function (x) { return "<span>" + x + "</span>"; }).join("") + "</div></details>";
+    var open = $("more") && $("more").open, open2 = $("attr") && $("attr").open;
+    h += '<div class="mores"><details class="more" id="more"' + (open ? " open" : "") + '><summary>資質、法寶、人物</summary><div class="stats">' + more.map(function (x) { return "<span>" + x + "</span>"; }).join("") + "</div></details>";
+    h += '<details class="more" id="attr"' + (open2 ? " open" : "") + "><summary>屬性有什麼用</summary>" + attrHelp() + "</details></div>";
     $("who").innerHTML = h;
 
     var log = $("log"), stick = innerHeight + scrollY >= document.body.scrollHeight - 120;
