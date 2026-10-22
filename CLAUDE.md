@@ -31,9 +31,9 @@
 - 安全：`base.njk` 有 CSP meta（GitHub Pages 不能自訂 header）；要嵌入新的外部服務（例如 YouTube 以外的影片）得改 CSP；`/play/` 遊戲頁 noindex；Dependabot 每週檢查套件
 
 ## 內容來源與規則
-- 晚安故事：來源 `~/Library/Application Support/BedtimeVideo/`，只放完整版、不放樣本；「雲杉林裡小貘的靜靜風箏」「星霧果園裡小鸚鵡的晚安果籃」使用者認為品質不好，不要放；影片一律上傳 YouTube 再填 `youtube` 欄位，不把 MP4 放進網站
+- 晚安故事：來源 OpenClaw 的 `bedtime-story/picturebooks/`（外接碟），用繪本審核台核准上架（見下方）；只放完整版、不放樣本；「雲杉林裡小貘的靜靜風箏」「星霧果園裡小鸚鵡的晚安果籃」使用者認為品質不好，不要放；影片一律上傳 YouTube 再填 `youtube` 欄位，不把 MP4 放進網站
 - 文獻筆記：來源 `~/Documents/每日文獻閱讀/文獻讀書報告/`，以及 Google Drive（panda@esad.cc）`我的雲端硬碟/workspace/journal-reading-reports`、`journal-reading-reports 1`（本機路徑 `~/Library/CloudStorage/GoogleDrive-panda@esad.cc/`）。使用者同意全部公開；同一篇論文只留最完整的一份；不放使用者自己論文的筆記；匯入時去掉內部作業說明（選題理由、PDF 路徑等），「你」改成第一人稱；每篇要有中文標題（`title`），英文原題放 `paperTitle`；`category` 用 教育／管理／行銷／觀光／AI 應用／研究方法／理論
-- 勇博開講的財經報告（來源 `~/.openclaw/workspace/finance-learning-reports/`）要使用者看過才發布：一律先用 `draft: true` 匯入
+- 財經內容（OpenClaw 的 `finance-learning-reports/`）2026-10-22 使用者決定**不放上 gismo.com.tw**，不要匯入；`src/finance/` 現有 6 篇草稿維持 `draft: true` 不發布
 - AdSense 尚未申請；兒童內容（晚安故事）不放廣告
 - gismo.com.tw 只做個人網站。使用者的 AI token 銷售業務會另外用別的網域經營，不要把販售 token、API 額度的內容放進這個網站
 
@@ -45,3 +45,8 @@
 - 匯入只新增不覆寫，手動修改過的筆記（標題、分類）不會被蓋掉
 - 要下架某篇：刪掉 `src/notes/` 的檔案和 `src/files/notes/` 的圖，並把它的 DOI（沒有 DOI 就用英文標題）加進 `scripts/data/notes-removed.json`，否則隔天會被重新匯入
 - 停用：`launchctl bootout gui/$(id -u)/tw.gismo.publish-notes`
+
+## 繪本審核台（本機）
+- `npm run review` 開 http://127.0.0.1:8090（只聽本機、網址帶隨機 token；`review/` 不在 `src/`，不會進網站）
+- 列出 OpenClaw `picturebooks/` 裡收尾完成、還沒上架的書，自動檢查頁數、分鏡對應、SVG 假圖、鏡頭種類；核准 → `import_story.py` 匯入＋建置檢查 → 按「推上網站」才 commit／push（等於使用者確認）；可撤銷核准、退回（原因寫進繪本資料夾 `REVIEW-REJECTED.md` 給 OpenClaw）
+- 上架／退回紀錄在 `scripts/data/stories-review.json`；網站已有同名故事的也算已上架

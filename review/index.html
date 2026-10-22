@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>繪本審核台</title>
+<style>
+:root { --bg: #f5f0e6; --surface: #fffdf8; --ink: #2b2620; --muted: #7a7064; --line: #e2d9c8; --seal: #b23a2b; --ok: #2f7d4a; --bad: #b23a2b; --night: #1d2235; }
+@media (prefers-color-scheme: dark) { :root { --bg: #1a1814; --surface: #24211c; --ink: #ece4d6; --muted: #a59a8a; --line: #3a352d; --seal: #e0735f; --ok: #6cc08a; --bad: #e0735f; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.7 -apple-system, "PingFang TC", "Noto Sans TC", sans-serif; }
+header { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2; }
+.seal { background: var(--seal); color: #fff; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: "Noto Serif TC", serif; }
+header h1 { font: 700 20px "Noto Serif TC", serif; margin: 0; }
+header .grow { flex: 1; }
+main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+h2 { font: 700 18px "Noto Serif TC", serif; margin: 28px 0 12px; }
+.empty { color: var(--muted); padding: 18px; border: 1px dashed var(--line); border-radius: 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 18px; }
+.card h3 { margin: 0 0 4px; font: 700 19px "Noto Serif TC", serif; }
+.meta { color: var(--muted); font-size: 14px; }
+.checks { list-style: none; padding: 0; margin: 12px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; font-size: 14px; }
+.checks li::before { content: "✔ "; color: var(--ok); font-weight: 700; }
+.checks li.fail::before { content: "✘ "; color: var(--bad); }
+.checks .d { color: var(--muted); }
+.strip { display: flex; gap: 8px; overflow-x: auto; padding: 6px 0 10px; }
+.strip figure { margin: 0; flex: 0 0 auto; text-align: center; font-size: 12px; color: var(--muted); }
+.strip img { height: 180px; aspect-ratio: 9/16; object-fit: cover; border-radius: 8px; background: var(--night); display: block; }
+details { margin: 8px 0; } summary { cursor: pointer; color: var(--muted); }
+.pages { max-height: 320px; overflow: auto; background: var(--bg); border-radius: 8px; padding: 8px 12px; font-size: 15px; }
+.pages p { margin: 4px 0; display: flex; gap: 8px; align-items: center; }
+.pages .n { color: var(--muted); min-width: 2.2em; text-align: right; font-size: 13px; }
+.pages audio { height: 28px; width: 140px; flex: 0 0 auto; }
+.frames { display: flex; gap: 8px; flex-wrap: wrap; } .frames img { height: 220px; border-radius: 6px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+label.slug { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+input[type=text] { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); min-width: 220px; }
+button { font: inherit; padding: 7px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--seal); border-color: var(--seal); color: #fff; font-weight: 600; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+a { color: var(--seal); }
+.done { list-style: none; padding: 0; margin: 0; font-size: 14px; } .done li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.tag { display: inline-block; font-size: 12px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin-left: 6px; }
+.tag.warn { border-color: var(--seal); color: var(--seal); }
+#bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--night); color: #f1e9da; padding: 12px 24px; display: none; align-items: center; gap: 14px; z-index: 3; }
+#bar.on { display: flex; } #bar .grow { flex: 1; } #bar code { color: #e8c98a; }
+#toast { position: fixed; top: 70px; right: 20px; max-width: 420px; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; display: none; z-index: 4; white-space: pre-wrap; }
+#toast.on { display: block; } #toast.err { background: var(--bad); color: #fff; }
+.busy { opacity: .6; pointer-events: none; }
+@media (max-width: 640px) { header { padding: 12px 16px; } .strip img { height: 140px; } input[type=text] { min-width: 0; width: 100%; } label.slug { flex-wrap: wrap; width: 100%; } }
+</style>
+</head>
+<body>
+<header><span class="seal">勇博</span><h1>繪本審核台</h1><span class="grow"></span><button id="reload">重新整理</button></header>
+<main id="app"><p class="meta">讀取中…</p></main>
+<div id="bar"><span class="grow" id="barText"></span><button class="primary" id="publish">推上網站</button></div>
+<div id="toast"></div>
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const bookUrl = (folder, p) => `/book/${encodeURIComponent(folder)}/${p}`;
+const pad = (n) => String(n).padStart(2, "0");
+function toast(msg, err) { const t = $("#toast"); t.textContent = msg; t.className = "on" + (err ? " err" : ""); clearTimeout(t._h); t._h = setTimeout(() => (t.className = ""), err ? 9000 : 5000); }
+async function api(name, body) {
+  const r = await fetch(`/api/${name}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) });
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText); return j;
+}
+function card(b) {
+  const checks = b.checks.map((c) => `<li class="${c.pass ? "" : "fail"}">${esc(c.label)} <span class="d">${esc(c.detail)}</span></li>`).join("");
+  const strip = b.scenes.map((p) => `<figure><img loading="lazy" src="${bookUrl(b.folder, `images/illustration-${pad(p)}.png`).replace("/book/", "/thumb/")}" alt="第 ${p} 頁"><figcaption>p${p}</figcaption></figure>`).join("");
+  const pages = b.texts.map((t, i) => `<p><span class="n">${i + 1}</span><audio preload="none" controls src="${bookUrl(b.folder, `audio/page-${pad(i + 1)}.m4a`)}"></audio><span>${esc(t)}</span></p>`).join("");
+  const frames = ["start", "middle", "end"].map((k) => `<img loading="lazy" src="${bookUrl(b.folder, `.verify/${k}.png`).replace("/book/", "/thumb/")}" alt="${k}">`).join("");
+  const slug = `story-${b.date.replaceAll("-", "")}`;
+  return `<article class="card" data-folder="${esc(b.folder)}">
+    <h3>${esc(b.title)}${b.passed ? "" : '<span class="tag warn">檢查沒全過</span>'}</h3>
+    <div class="meta">${esc(b.date)}・${b.pages} 頁・${b.scenes.length} 張不同的圖・<a href="${bookUrl(b.folder, "flipbook-reader.html")}" target="_blank">開翻頁繪本 ↗</a>${b.mp4 ? `・<a href="${bookUrl(b.folder, b.mp4)}" target="_blank">看 MP4 ↗</a>` : ""}</div>
+    <ul class="checks">${checks}</ul>
+    <div class="strip">${strip}</div>
+    <details><summary>逐頁文字與旁白（${b.pages} 頁）</summary><div class="pages">${pages}</div></details>
+    <details><summary>MP4 抽查影格（開頭／中間／結尾）</summary><div class="frames">${frames}</div></details>
+    <div class="actions">
+      <label class="slug">網址代稱 <input type="text" class="slug-in" value="${slug}" pattern="[a-z0-9-]+" title="小寫英文、數字和 -"></label>
+      <button class="primary act-approve" ${b.passed ? "" : "disabled"}>核准上架</button>
+      <button class="act-reject">退回</button>
+      <span class="meta">核准後會先在本機匯入與建置，按畫面下方「推上網站」才會公開。</span>
+    </div></article>`;
+}
+async function load() {
+  const q = await (await fetch("/api/queue")).json();
+  const unpushed = q.published.filter((p) => p.unpushed);
+  let html = q.error ? `<p class="empty">${esc(q.error)}</p>` : "";
+  html += `<h2>待審核（${q.pending.length}）</h2>` + (q.pending.length ? q.pending.map(card).join("") : '<p class="empty">目前沒有待審的繪本。OpenClaw 每天 20:30 做新故事，跑完收尾腳本後就會出現在這裡。</p>');
+  html += `<h2>已上架（${q.published.length}）</h2><ul class="done">` + q.published.map((p) => `<li>${esc(p.date)} ${esc(p.title)}${p.slug ? `<span class="tag">${esc(p.slug)}</span>` : ""}${p.unpushed ? `<span class="tag warn">已核准，還沒推上去</span> <a href="http://localhost:8080/stories/${esc(p.slug)}/" target="_blank">本機預覽 ↗</a> <button class="act-undo" data-folder="${esc(p.folder)}">撤銷核准</button>` : ""}</li>`).join("") + "</ul>";
+  html += `<h2>已退回（${q.rejected.length}）</h2><ul class="done">` + (q.rejected.length ? q.rejected.map((p) => `<li>${esc(p.date)} ${esc(p.title)} <span class="meta">— ${esc(p.reason)}</span></li>`).join("") : '<li class="meta">（沒有）</li>') + "</ul>";
+  $("#app").innerHTML = html;
+  $("#bar").className = unpushed.length ? "on" : "";
+  $("#barText").innerHTML = unpushed.length ? `已核准 ${unpushed.length} 本、還沒公開：${unpushed.map((p) => esc(p.title)).join("、")}　<span class="meta" style="color:#cfc5b3">本機預覽請先執行 <code>npm run dev</code></span>` : "";
+}
+document.addEventListener("click", async (e) => {
+  const el = e.target, art = el.closest(".card");
+  try {
+    if (el.matches(".act-approve")) {
+      const slug = $(".slug-in", art).value.trim();
+      if (!confirm(`核准「${$("h3", art).textContent}」，網址代稱 ${slug}？`)) return;
+      art.classList.add("busy"); toast("匯入與建置中，約需 10～30 秒…");
+      const r = await api("approve", { folder: art.dataset.folder, slug });
+      toast(`已在本機匯入：${r.files.length} 個檔案變動。\n預覽：${r.preview}\n確認沒問題再按「推上網站」。`); await load();
+    } else if (el.matches(".act-reject")) {
+      const reason = prompt("退回原因（會寫進繪本資料夾給 OpenClaw 參考）："); if (!reason) return;
+      await api("reject", { folder: art.dataset.folder, reason }); toast("已退回"); await load();
+    } else if (el.matches(".act-undo")) {
+      if (!confirm("撤銷這次核准？會刪掉本機匯入的故事檔案（還沒推上去）。")) return;
+      await api("unapprove", { folder: el.dataset.folder }); toast("已撤銷"); await load();
+    } else if (el.id === "publish") {
+      if (!confirm("把已核准的繪本 commit 並推上 gismo.com.tw？約 1 分鐘後生效。")) return;
+      el.disabled = true; toast("推送中…");
+      const r = await api("publish"); toast(`已推上網站（${r.sha}）：${r.titles}\n約 1 分鐘後生效：\n${r.urls.join("\n")}`); await load();
+    } else if (el.id === "reload") { await load(); }
+  } catch (err) { toast(err.message, true); art && art.classList.remove("busy"); }
+  finally { if (el.id === "publish") el.disabled = false; }
+});
+load();
+</script>
+</body>
+</html>
