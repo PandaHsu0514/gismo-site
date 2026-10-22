@@ -19,8 +19,8 @@
 
 ## DNS（GoDaddy）
 - 網站：`@` A 記錄 ×4 指向 GitHub（185.199.108–111.153），`www` CNAME → pandahsu0514.github.io
-- 信箱相關記錄（MX、SPF TXT、SRV autodiscover、CNAME email）不要動
-- 使用者目前沒在用 @gismo.com.tw 信箱，正在考慮要不要用
+- 郵件（2026-10-09 確認）：GoDaddy 沒有任何郵件服務；使用者已自行刪除 MX，所以 @gismo.com.tw 目前收不到信。2026-10-09 已改成防冒用設定：SPF `v=spf1 -all`、DMARC `v=DMARC1; p=reject`（宣告此網域不寄信）。SRV autodiscover 與 CNAME email 還在。之後要啟用信箱時，這兩筆要改回對應服務的設定
+- 使用者決定郵件先不處理。之後若要用，建議做法：把 gismo.com.tw 加進 esad.cc 的 Google Workspace 當「使用者別名網域」（esad.cc 用 Google Workspace），MX 設 `smtp.google.com`、SPF 改 `v=spf1 include:_spf.google.com ~all`、加 DKIM；esad.cc 本身也缺 SPF 記錄
 - Claude Code 的自動模式不允許代改 DNS；需要改時請使用者自己在 GoDaddy 操作，再幫忙用 dig 驗證
 - 網域自動續約是關閉的，2027-02-23 到期
 
@@ -39,8 +39,9 @@
 
 ## 文獻筆記自動上架
 - `scripts/publish-notes.sh` 每天 13:00 由 launchd 執行（`~/Library/LaunchAgents/tw.gismo.publish-notes.plist`），紀錄在 `~/Library/Logs/gismo-publish-notes.log`，完成或失敗會跳 Mac 通知
-- 流程：git pull → `scripts/import_notes.py` 匯入 Drive 新報告 → 先建置網站確認沒壞 → 只 commit `src/notes`、`src/files/notes`、Crossref 快取 → push
-- 匯入規則寫在 `import_notes.py` 開頭；中文標題與分類讀 OpenClaw 報告裡的「## 網站上架資訊」（規格寫在 Drive 的 `workspace/journal-agent-pipeline-prompt.md` Step 6）
+- 來源：2026-10-11 起 OpenClaw workspace 在外接碟 `/Volumes/mac Ds - Data/Offload/openclaw/workspace/`（Drive 只剩舊報告，且只在雲端的檔案背景讀會出 Errno 11 或卡住，所以不再讀 Drive）；外接碟沒接上就會失敗
+- 流程：git pull → `scripts/import_notes.py` 匯入新報告 → 先建置網站確認沒壞 → 只 commit `src/notes`、`src/files/notes`、Crossref 快取 → push
+- 匯入規則寫在 `import_notes.py` 開頭；中文標題與分類讀 OpenClaw 報告裡的「## 網站上架資訊」（規格寫在外接碟 workspace 的 `journal-agent-pipeline-prompt.md` Step 6；2026-10-22 補回，搬家時漏掉了）
 - 匯入只新增不覆寫，手動修改過的筆記（標題、分類）不會被蓋掉
 - 要下架某篇：刪掉 `src/notes/` 的檔案和 `src/files/notes/` 的圖，並把它的 DOI（沒有 DOI 就用英文標題）加進 `scripts/data/notes-removed.json`，否則隔天會被重新匯入
 - 停用：`launchctl bootout gui/$(id -u)/tw.gismo.publish-notes`

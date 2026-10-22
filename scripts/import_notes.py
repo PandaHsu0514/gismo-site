@@ -19,8 +19,9 @@ from collections import defaultdict
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.join(ROOT, "src")
 CACHE = os.path.join(ROOT, "scripts", "data", "crossref-cache.json")
-# 可用環境變數 NOTES_SOURCE 指到別的資料夾（測試用）
-W = os.environ.get("NOTES_SOURCE") or os.path.expanduser("~/Library/CloudStorage/GoogleDrive-panda@esad.cc/我的雲端硬碟/workspace")
+# OpenClaw 2026-10-11 起把 workspace 搬到外接碟（Drive 只剩舊報告，而且只在雲端的檔案背景讀不到、會卡住）
+# 可用環境變數 NOTES_SOURCE 指到別的資料夾，多個用「:」分隔（例如臨時加讀 Drive）
+SOURCES = (os.environ.get("NOTES_SOURCE") or "/Volumes/mac Ds - Data/Offload/openclaw/workspace").split(":")
 DIRS = ["journal-reading-reports", "journal-reading-reports 1"]
 DRY = "--dry-run" in sys.argv
 
@@ -121,8 +122,10 @@ def clean_sections(s):
 
 
 def main():
-    if not os.path.isdir(W):
-        print(json.dumps({"error": f"找不到 Google Drive 資料夾：{W}"}, ensure_ascii=False)); sys.exit(2)
+    # 來源資料夾：每個 workspace 底下的報告資料夾（外接碟沒接上、Drive 沒同步的就略過）
+    roots = [f"{w}/{d}" for w in SOURCES for d in DIRS if os.path.isdir(f"{w}/{d}")]
+    if not roots:
+        print(json.dumps({"error": f"找不到報告資料夾：{SOURCES}"}, ensure_ascii=False)); sys.exit(2)
 
     # 已經有的就跳過：我的論文、網站上的筆記
     skip_doi, skip_title = set(), set()
@@ -141,16 +144,19 @@ def main():
         (skip_doi.add(x.lower()) if x.startswith("10.") else skip_title.add(norm(x)))
 
     topic_of = {}
-    for d in DIRS:
-        for p in glob.glob(f"{W}/{d}/by-topic/*/*.md"):
+    for d in roots:
+        for p in glob.glob(f"{d}/by-topic/*/*.md"):
             topic_of.setdefault(os.path.basename(p), p.split("/by-topic/")[1].split("/")[0])
 
     groups = defaultdict(list)
-    for d in DIRS:
-        for f in sorted(os.listdir(f"{W}/{d}")):
+    for d in roots:
+        for f in sorted(os.listdir(d)):
             if not re.match(r"\d{4}-\d\d-\d\d_.*\.md$", f):
                 continue
-            raw = open(f"{W}/{d}/{f}", encoding="utf-8").read()
+            try:
+                raw = open(f"{d}/{f}", encoding="utf-8").read()
+            except OSError as e:  # Drive 只在雲端的檔案，背景執行時讀不到（Errno 11）
+                print(f"略過（讀不到）：{d}/{f}：{e}", file=sys.stderr); continue
             s = convert_old_format(raw)
             m = re.search(r"10\.\d{4,9}/[^\s\)\]，,。>\"]+", raw)
             doi = m.group(0).lower().rstrip("*`)。.,;'\"") if m else ""
@@ -196,9 +202,9 @@ def main():
             fm["journal"], fm["preprint"] = "arXiv 預印本", "https://arxiv.org/abs/" + doi.split("arxiv.")[1]
         # 讀書帳圖
         m = re.search(r"\]\((reading-ledgers/[^)]+)\)", raw)
-        cands = [f"{W}/{best['dir']}/" + urllib.parse.unquote(m.group(1))] if m else []
-        for d in DIRS:
-            cands += glob.glob(f"{W}/{d}/reading-ledgers/{glob.escape(best['file'][:-3])}*")
+        cands = [f"{best['dir']}/" + urllib.parse.unquote(m.group(1))] if m else []
+        for d in roots:
+            cands += glob.glob(f"{d}/reading-ledgers/{glob.escape(best['file'][:-3])}*")
         src_img = next((c for c in cands if os.path.exists(c)), None)
         if not DRY:
             if src_img:
