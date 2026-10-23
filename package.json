@@ -8,6 +8,6 @@
     "review": "node review/server.mjs"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^3.1.6"
+    "@11ty/eleventy": "^3.1.7"
   }
 }
