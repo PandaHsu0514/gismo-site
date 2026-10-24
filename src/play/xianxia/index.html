@@ -459,15 +459,15 @@
     return { dis: big ? R(25, 40) : R(3, 6), fame: big ? 50 : 10, vein: big ? 2 : 1, vault: big ? Math.round(30 * M[Math.max(1, s.lv)]) : 0, bld: { dan: 0, lib: 0, arr: 0, shop: 0 }, idle: 0, genius: 0 };
   }
   function orgM() { return M[Math.max(1, s.lv)]; }
-  function orgIncome(o) { return Math.round(orgM() * (o.vein * 1.2 + o.dis * .06 + o.bld.shop * 1.5 + o.bld.dan * .8) * (.5 + o.fame / 100)); }
+  function orgIncome(o) { return Math.round(orgM() * (o.vein * .9 + o.dis * .05 + o.bld.shop * 1.1 + o.bld.dan * .6) * (.5 + o.fame / 100)); }
   function orgUpkeep(o) { return Math.round(orgM() * (o.dis * .04 + (o.bld.dan + o.bld.lib + o.bld.arr + o.bld.shop) * .3)); }
   function orgSettle(ent) {
     var o = s.sec.org, inc = orgIncome(o), up = orgUpkeep(o);
     o.vault = Math.max(0, o.vault + inc - up); o.idle++;
     var t = s.sec.n + "本期收入 " + inc + "、支出 " + up + "，庫房結餘 " + o.vault + " 靈石。";
     if (o.bld.dan && P(.5)) { item("heal", o.bld.dan); t += "煉丹房送來 " + o.bld.dan + " 顆回春丹。"; }
-    if (o.idle >= 4) { var lost = Math.max(1, Math.round(o.dis * .1)); o.dis = Math.max(1, o.dis - lost); o.fame = Math.max(0, o.fame - 5); t += "你太久沒主持門派事務，" + lost + " 名弟子離開了，名望 -5。"; }
-    ent.t.push({ c: o.idle >= 4 ? "bad" : "hit", t: t });
+    if (o.idle >= 6) { var lost = Math.max(1, Math.round(o.dis * .1)); o.dis = Math.max(1, o.dis - lost); o.fame = Math.max(0, o.fame - 5); t += "你太久沒主持門派事務，" + lost + " 名弟子離開了，名望 -5。"; }
+    ent.t.push({ c: o.idle >= 6 ? "bad" : "hit", t: t });
   }
   // 主持事務：花時間，並把「多久沒管」歸零
   function orgAct(text, fn) {
@@ -584,12 +584,19 @@
       var o = sc.org, bl = Object.keys(BLD).filter(function (k) { return o.bld[k]; }).map(function (k) { return BLD[k][0] + o.bld[k]; });
       return '<div class="quest"><div class="qt">門派：' + esc(sc.n) + "・宗主　<span>弟子 " + o.dis + "・名望 " + o.fame + "・靈脈 " + o.vein + " 級・庫房 " + o.vault + "</span></div>" +
         '<div class="qh">' + (bl.length ? "建築：" + bl.join("、") + "。" : "還沒有任何建築。") + "每期收入約 " + orgIncome(o) + "、支出約 " + orgUpkeep(o) + "。" +
-        (o.idle >= 3 ? "<b>你已經 " + o.idle + " 期沒主持事務，再不管弟子就要散了。</b>" : "按下方「門派」主持事務；連續 4 期不管會衰落。") + "</div></div>";
+        (o.idle >= 5 ? "<b>你已經 " + o.idle + " 期沒主持事務，再不管弟子就要散了。</b>" : "按下方「門派」主持事務；連續 6 期不管會衰落。") + "</div></div>";
     }
     var h = '<div class="quest"><div class="qt">宗門：' + esc(sc.n) + "・" + RANK[sc.rank] + "　<span>貢獻 " + sc.con + "・信任 " + sc.trust + "</span></div>";
     if (sc.task) { var left = sc.task.due - s.age; h += qrow("差事", sc.task.y - left, sc.task.y, "剩 " + left + " 年") + '<div class="qh">「' + esc(sc.task.n) + "」：按下方「宗門」接手。逾期會扣信任，信任歸零會被逐出。</div>"; }
     else if (sc.rank < 4) h += '<div class="qh">目前沒有差事，大約 ' + Math.max(0, sc.next - s.age) + " 年後會派下一件。每次閉關、歷練領俸祿 " + sectPay() + " 靈石。</div>";
     return h + "</div>";
+  }
+  // 測試用：網址加 ?test=zongzhu，選好修行路之後可以直接接任宗主
+  var TEST = /[?&]test=zongzhu/.test(location.search);
+  function testOrg() {
+    if (!idle()) return;
+    s.sect = s.own = s.sect || RECRUIT[s.region] || "紫霞宗"; s.sec = null; syncSect(); s.sec.org = initOrg(true);
+    entry(0).t.push({ c: "up", t: "（測試）你接任" + s.sec.n + "宗主。" }); after();
   }
   function sect() { if (!idle() || !s.sec) return; entry(0).t.push(s.sec.rank === 4 ? "你回到" + s.sec.n + "主持事務。" : "你回到" + s.sec.n + "。"); s.pending = { id: "sect" }; after(); }
 
@@ -1681,7 +1688,8 @@
     var r2 = document.createElement("div"); r2.className = "row";
     var q = curQ();
     if (q) { var ok = qReady(q); r2.appendChild(btn(ok ? "主線：" + q.t : "主線：" + q.t + "（" + qHint(q) + "）", ok ? "main" : "", quest, !ok)); }
-    if (s.sec) r2.appendChild(btn(s.sec.rank === 4 ? (s.sec.org && s.sec.org.idle >= 3 ? "門派！" : "門派") : s.sec.task ? "宗門！" : "宗門", "sec small", sect));
+    if (s.sec) r2.appendChild(btn(s.sec.rank === 4 ? (s.sec.org && s.sec.org.idle >= 5 ? "門派！" : "門派") : s.sec.task ? "宗門！" : "宗門", "sec small", sect));
+    if (TEST && !(s.sec && s.sec.org)) r2.appendChild(btn("（測試）接任宗主", "sec small", testOrg));
     r2.appendChild(btn("坊市", "sec small", shop));
     f.appendChild(r2);
   }
