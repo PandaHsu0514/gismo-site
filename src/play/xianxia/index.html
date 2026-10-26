@@ -627,7 +627,13 @@
     return h + "</div>";
   }
   // 測試用：網址加 ?test=zongzhu，選好修行路之後可以直接接任宗主
-  var TEST = /[?&]test=zongzhu/.test(location.search);
+  var TEST = /[?&]test=zongzhu/.test(location.search), TEST2 = /[?&]test=jiazu/.test(location.search);
+  // 測試用：網址加 ?test=jiazu，直接結為道侶、生下第一個孩子
+  function testClan() {
+    if (!idle()) return;
+    s.npc.ptSex = s.sex === "男" ? "女" : "男"; s.npc.pt = gname(s.npc.ptSex); s.partner = 1; s.kidCool = 0;
+    var ent = entry(0); ent.t.push({ c: "up", t: T("（測試）你和{侶}結為道侶。") }); runEv(EVM.kid, ent); after();
+  }
   function testOrg() {
     if (!idle()) return;
     s.sect = s.own = s.sect || RECRUIT[s.region] || "紫霞宗"; s.sec = null; syncSect(); s.sec.org = initOrg(true);
@@ -1827,6 +1833,7 @@
     var q = curQ();
     if (q) { var ok = qReady(q); r2.appendChild(btn(ok ? "主線：" + q.t : "主線：" + q.t + "（" + qHint(q) + "）", ok ? "main" : "", quest, !ok)); }
     if (s.sec) r2.appendChild(btn(s.sec.rank === 4 ? (s.sec.org && s.sec.org.idle >= 5 ? "門派！" : "門派") : s.sec.task ? "宗門！" : "宗門", "sec small", sect));
+    if (TEST2 && !s.partner) r2.appendChild(btn("（測試）結道侶生子", "sec small", testClan));
     if (TEST && !(s.sec && s.sec.org)) r2.appendChild(btn("（測試）接任宗主", "sec small", testOrg));
     if (s.clanMine || (s.kids || []).length) r2.appendChild(btn("家族", "sec small", clanMenu));
     r2.appendChild(btn("坊市", "sec small", shop));
