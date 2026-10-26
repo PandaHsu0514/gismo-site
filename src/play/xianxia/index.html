@@ -87,6 +87,11 @@
   .tals input { margin-top: 4px; accent-color: var(--accent); }
   .tals b { color: var(--text); }
   .tals small { color: var(--muted); display: block; }
+  .tal { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+  .tal.on { border-color: var(--accent); }
+  .tal > span { flex: 1; }
+  .tal button { min-width: 34px; padding: 4px 0; }
+  .talrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .mem { color: var(--accent2); font-size: 14px; margin: 0 0 8px; }
   details.more summary { cursor: pointer; color: var(--accent2); }
   /* 人生紀錄 */
@@ -261,20 +266,39 @@
   try { // 舊版只有一個存檔：前世紀錄搬到存檔一（進行中的人生主線編號不同，不搬）
     if (!localStorage.getItem("xianxia-past-1") && localStorage.getItem("xianxia-past")) localStorage.setItem("xianxia-past-1", localStorage.getItem("xianxia-past"));
   } catch (e) {}
-  // 轉世天賦：c 是要花的輪迴點
+  // 轉世天賦：c 是每一級要花的輪迴點（可以疊到 c.length 級）；ok 是這個天賦出現的條件
   var TAL = [
-    { id: "root", n: "靈根轉世", d: "靈根至少是三靈根", c: 4 },
-    { id: "gen", n: "根骨強健", d: "根骨 +2", c: 2 },
-    { id: "wu", n: "生而知之", d: "悟性 +2", c: 2 },
-    { id: "xin", n: "心如止水", d: "心性 +2", c: 2 },
-    { id: "yuan", n: "福緣深厚", d: "機緣 +2", c: 2 },
-    { id: "rich", n: "帶寶投胎", d: "出生就有 80 靈石、3 顆回春丹", c: 2 },
-    { id: "long", n: "天生長壽", d: "壽元 +15%", c: 3 },
-    { id: "fast", n: "夙慧", d: "修煉速度 +20%", c: 4 },
-    { id: "clan", n: "修仙世家", d: "一定出生在修仙世家", c: 5 }
+    { id: "root", n: "靈根轉世", d: ["靈根至少是三靈根", "靈根至少是雙靈根"], c: [5, 7] },
+    { id: "gen", n: "根骨強健", d: "每級根骨 +1", c: [2, 3, 4] },
+    { id: "wu", n: "生而知之", d: "每級悟性 +1", c: [2, 3, 4] },
+    { id: "xin", n: "心如止水", d: "每級心性 +1", c: [2, 3, 4] },
+    { id: "yuan", n: "福緣深厚", d: "每級機緣 +1", c: [2, 3, 4] },
+    { id: "rich", n: "帶寶投胎", d: "每級出生多 60 靈石、2 顆回春丹", c: [2, 3, 4] },
+    { id: "long", n: "天生長壽", d: "每級壽元 +10%", c: [3, 4, 5] },
+    { id: "fast", n: "夙慧", d: "每級修煉速度 +15%", c: [4, 5, 6] },
+    { id: "clan", n: "修仙世家", d: "一定出生在修仙世家", c: [5], ok: function (m) { return !m.clan; } },
+    { id: "relic", n: "前世法寶", d: "帶著前世用過的法寶踏上仙途", c: [4], ok: function (m, p) { return p && p.w; } },
+    { id: "vow", n: "道侶之約", d: "這一世一定會重逢前世的道侶", c: [3], ok: function (m, p) { return p && p.pt; } },
+    { id: "pour", n: "灌注家族底蘊", d: "每級家族底蘊 +10", c: [3, 3, 3, 3, 3], ok: function (m) { return m.clan; } }
   ];
-  var picked = [];
-  function meta() { var m = load(key("meta")) || {}; m.karma = m.karma || 0; if (!m.offer) m.offer = K.shuffle(TAL.map(function (x) { return x.id; })).slice(0, 4); return m; }
+  var HOME = 3; // 投胎回自己家族要花的輪迴點
+  var picked = {};
+  function talBy(id) { return TAL.filter(function (y) { return y.id === id; })[0]; }
+  function talOk(x, m, p) { return !x.ok || !!x.ok(m, p); }
+  function talCost(x, lv) { var c = 0; for (var i = 0; i < lv; i++) c += x.c[i]; return c; }
+  function talD(x, lv) { return typeof x.d === "string" ? x.d : x.d[Math.max(0, Math.min(x.d.length, lv) - 1)]; }
+  function pickedCost() { return Object.keys(picked).reduce(function (a, id) { var x = talBy(id); return a + (x ? talCost(x, picked[id]) : id === "home" && picked.home ? HOME : 0); }, 0); }
+  function meta() {
+    var m = load(key("meta")) || {}, p = (load(key("past")) || [])[0];
+    m.karma = m.karma || 0;
+    if (!m.offer || m.offer.length < 6) m.offer = K.shuffle(TAL.filter(function (x) { return talOk(x, m, p); }).map(function (x) { return x.id; })).slice(0, 6);
+    return m;
+  }
+  // ---------- 家族（存在輪迴紀錄裡，跨世保留）----------
+  function surOf(n) { return SUR2.indexOf(n.slice(0, 2)) >= 0 ? n.slice(0, 2) : n.charAt(0); }
+  function clanGet() { return meta().clan || null; }
+  function clanSave(fn) { var m = meta(); if (!m.clan) return; fn(m.clan); store(key("meta"), m); }
+  var APT = ["測不出靈根，是個凡人。", "有偽靈根，勉強能修行。", "是三靈根，資質不錯。", "竟是雙靈根，將來不可限量。"];
   function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
@@ -284,7 +308,7 @@
     for (i = 0; i < list.length; i++) { r -= w(list[i]); if (r <= 0) return list[i]; }
     return list[list.length - 1];
   }
-  function gname(sex) { return (P(.06) ? pick(SUR2) : pick(SUR)) + pick(sex === "男" ? GM : GF) + (P(.6) ? pick(sex === "男" ? GM : GF) : ""); }
+  function gname(sex, sur) { return (sur || (P(.06) ? pick(SUR2) : pick(SUR))) + pick(sex === "男" ? GM : GF) + (P(.6) ? pick(sex === "男" ? GM : GF) : ""); }
   function lvName(lv) {
     if (!s.path || lv === 0) return "凡人";
     var n = PATH[s.path].lv[lv];
@@ -348,6 +372,7 @@
     b *= PATH[p].spd;
     if (p === "mo") b *= 1 + Math.min(s.res, 30) * .02;
     if (s.bottle) b *= 1.6;
+    if (s.partner) b *= 1.2; // 與道侶雙修
     if (s.sec && s.sec.org) b *= 1 + s.sec.org.bld.lib * .1;
     if (s.fast) b *= s.fast;
     return b;
@@ -402,6 +427,7 @@
     else if (k === "burn") { s.hp -= Math.round(t.hp * .2); d = dmg(sp * 2.5); f.hp -= d; out += "你燃燒精血，神識暴漲，造成 " + d + " 點傷害。"; }
     else if (k === "run") { if (chk(.45, ["yuan"])) return endFight(f, "run", out + "你找到空隙，脫身逃走了。"); out += "你想逃，卻被攔了下來。"; }
     if (s.pet && !f.soul && f.hp > 0) { var pd = Math.max(1, Math.round(t.atk * s.pet.k * K.rand(.8, 1.2))); f.hp -= pd; out += "靈寵" + s.pet.n + "撲上去，造成 " + pd + " 點傷害。"; }
+    if (s.partner && !f.soul && f.hp > 0 && P(.3)) { var qd = Math.max(1, Math.round(t.atk * .5 * K.rand(.8, 1.2))); f.hp -= qd; out += "{侶}從旁出手，造成 " + qd + " 點傷害。"; }
     if (f.hp <= 0) return endFight(f, "win", out);
     if (!stun) { var e = Math.max(1, Math.round(f.atk * K.rand(.85, 1.15) - (f.soul ? 0 : t.def * .5))); if (guard) e = Math.round(e * .4); s.hp -= e; out += f.n + "反擊，你受到 " + e + " 點傷害。"; }
     if (s.hp <= 0 && !f.shield && P(FX.shield())) { f.shield = 1; s.hp = 1; out += "佛光一閃，替你擋下了致命的一擊。"; }
@@ -607,6 +633,34 @@
     s.sect = s.own = s.sect || RECRUIT[s.region] || "紫霞宗"; s.sec = null; syncSect(); s.sec.org = initOrg(true);
     entry(0).t.push({ c: "up", t: "（測試）你接任" + s.sec.n + "宗主。" }); after();
   }
+  function clanMenu() { if (!idle()) return; entry(0).t.push(s.clanMine ? "你回到" + clanGet().sur + "家。" : "你回家看看孩子。"); s.pending = { id: "clan" }; after(); }
+  function clanOpts() {
+    var o = [], m = M[Math.max(1, s.lv)], c = s.clanMine ? clanGet() : null;
+    function stay(x) { s.pending = { id: "clan" }; return x; }
+    (s.kids || []).forEach(function (k) {
+      var age = s.age - k.b, cap = Math.max(1, s.lv - 1), cost = Math.round(6 * M[k.lv + 1]);
+      if (!k.apt) return;
+      if (age < 10) { o.push({ q: 1, dis: true, t: "栽培" + k.n + "（才 " + age + " 歲，十歲才能修行）", r: function () { return ""; } }); return; }
+      if (k.lv >= cap) { o.push({ q: 1, dis: true, t: "栽培" + k.n + "（已是「" + lvName(k.lv) + "」，再往上得等你境界更高）", r: function () { return ""; } }); return; }
+      o.push({ q: 1, dis: s.stone < cost, t: "栽培" + k.n + "到「" + lvName(k.lv + 1) + "」（" + cost + " 靈石）", r: function () {
+        s.stone -= cost; if (P(.5 + k.apt * .15)) { k.lv++; return stay({ c: "up", t: "你替" + k.n + "護法，" + ta(k.sex) + "一舉突破到「" + lvName(k.lv) + "」。" }); }
+        return stay({ c: "bad", t: k.n + "沒能突破，靈石白花了。" }); } });
+    });
+    if (c) {
+      var dep = Math.round(10 * m);
+      if (s.stone >= dep) o.push({ q: 1, t: "存入 " + dep + " 靈石到" + c.sur + "家寶庫（下一世投胎回來可以領）", r: function () { s.stone -= dep; clanSave(function (c) { c.vault += dep; }); return stay("你把 " + dep + " 塊靈石存進家族寶庫。"); } });
+      var w = s.gear.w && s.gear.w.n.replace(/（(前世|祖傳)）$/, "");
+      if (w && (!c.w || c.w.n !== w)) o.push({ q: 1, t: "把「" + w + "」立為傳家寶" + (c.w ? "（取代「" + c.w.n + "」）" : ""), r: function () { clanSave(function (c) { c.w = { n: w, lv: s.lv }; }); return stay("你在族譜上記下：「" + w + "」，" + c.sur + "家傳家之寶。"); } });
+    }
+    o.push({ q: 1, t: "離開", r: function () { return ""; } });
+    return o;
+  }
+  function clanBox() {
+    if (!s.path || !(s.clanMine || (s.kids || []).length)) return "";
+    var c = s.clanMine ? clanGet() : null, ks = (s.kids || []).map(function (k) { return esc(k.n) + "（" + (k.apt ? lvName(k.lv) : "凡人") + "）"; });
+    return '<div class="quest"><div class="qt">' + (c ? "家族：" + esc(c.sur) + "家　<span>底蘊 " + c.dz + "・寶庫 " + c.vault + " 靈石" + (c.w ? "・傳家寶 " + esc(c.w.n) : "") + "</span>" : "家人") + "</div>" +
+      '<div class="qh">' + (ks.length ? "子女：" + ks.join("、") + "。" : "還沒有子女。") + (c ? "按下方「家族」栽培子女、充實寶庫。死後底蘊會依你的境界與子女成就增加；轉世時可以選擇投胎回來。" : "") + "</div></div>";
+  }
   function sect() { if (!idle() || !s.sec) return; entry(0).t.push(s.sec.rank === 4 ? "你回到" + s.sec.n + "主持事務。" : "你回到" + s.sec.n + "。"); s.pending = { id: "sect" }; after(); }
 
   // ---------- 奪舍 ----------
@@ -646,6 +700,7 @@
     if (s.fr) out.push("臨走那天，{友}送你到村口，塞給你兩個熱饅頭：「發達了，別忘了我。」");
     out.push({ c: "up", t: "你踏上" + PATH[path].n + "修之路，入門第一層「" + PATH[path].lv[1] + "」。學會絕技「" + skill() + "」。" });
     big("踏上" + PATH[path].n + "修之路");
+    if (s.relic && !s.gear.w) { s.gear.w = { n: s.relic + "（前世）", atk: Math.round(7 * M[2]) }; out.push({ c: "up", t: "你第一次運轉靈力，識海深處的「" + s.relic + "」就跟著醒了過來：那是你前世的法寶，跟著你一起轉世了。（攻擊 +" + s.gear.w.atk + "）" }); }
     return out;
   }
 
@@ -710,6 +765,7 @@
     taskok: function () { return taskOk(""); },
     veinwin: function () { var o = s.sec.org; o.vein++; o.fame = Math.min(100, o.fame + 8); s.vw = 1; big(s.sec.n + "奪下 " + o.vein + " 級靈脈"); return { c: "up", t: "對方認輸讓出了靈脈。" + s.sec.n + "的靈脈升到 " + o.vein + " 級，名望 +8。" }; },
     veinend: function () { if (s.vw || !s.sec || !s.sec.org) return ""; s.sec.org.fame = Math.max(0, s.sec.org.fame - 8); return { c: "bad", t: "你敗下陣來，靈脈沒搶到，名望 -8。" }; },
+    clanwin: function () { var c = clanGet(); clanSave(function (c) { c.dz += 4; }); big("擊退" + c.sur + "家的仇敵"); return c.sur + "家保住了。族人說起這一戰，都說老祖宗顯靈了。底蘊 +4。"; },
     orgthief: function () { s.sec.org.fame = Math.min(100, s.sec.org.fame + 2); s.sec.org.dis--; return "典籍追回來了。你當眾廢了他的修為，逐出山門。名望 +2。"; },
     orgdef: function () { var o = s.sec.org; o.fame = Math.min(100, o.fame + 5); var g = Math.round(8 * orgM()); o.vault += g; big("擊退來犯的" + s.atkr); return "來犯的人狼狽退走，留下了賠禮 " + g + " 靈石。名望 +5。"; },
     taskend: function () { return s.sec && s.sec.task ? taskFail("") : ""; },
@@ -1023,7 +1079,7 @@
       var t = "你走進一座荒廢的洞府。牆上的劍痕、桌上的茶杯，一切都熟悉得可怕：這是你前世{前}的洞府。你在石床底下挖出 " + g + " 塊靈石。";
       if (s.prev.w && (!s.gear.w || s.gear.w.atk < a)) { s.gear.w = { n: s.prev.w + "（前世）", atk: a }; t += "牆角還靠著前世用過的「" + s.prev.w + "」，劍身一碰到你的手，就嗡嗡作響。（攻擊 +" + a + "）"; }
       return t; } },
-    { id: "pl_love", k: "explore", once: 1, w: 6, c: function () { return s.mem && s.prev.pt && s.lv >= 2 && !s.partner; }, r: function () {
+    { id: "pl_love", k: "explore", once: 1, w: function () { return s.vow ? 30 : 6; }, c: function () { return (s.mem || s.vow) && s.prev && s.prev.pt && s.lv >= 2 && !s.partner; }, r: function () {
       s.npc.ptSex = s.sex === "男" ? "女" : "男"; s.npc.pt = gname(s.npc.ptSex);
       return "你在坊市裡和一個陌生人擦肩而過，兩個人同時停下了腳步。你們都想起來了：前世，你是{前}，對方是{前侶}。這一世，對方叫{侶}。"; },
       ch: function () { return [
@@ -1059,7 +1115,7 @@
           hurt(.08); s.rival = 4; return "{敵}趁你說法時偷襲，重傷了你，卻沒有下殺手，轉身走了。"; } },
         { t: "放{敵}一馬", r: function () { s.rival = 4; return "你收起法寶：「走吧。」{敵}愣了一下，消失在夜色裡。"; } }]; } },
     { id: "rv4", k: "explore", once: 1, w: 4, c: function () { return s.rival === 4 && s.lv >= 5; }, r: function () { s.rival = 9; s.res += 3; big("{敵}捨命相救"); return "你被三位大能圍攻，眼看就要隕落，一道血光撞了進來：是{敵}。{敵他}替你擋下了致命的一擊，臨死前只說了一句：「這下，兩清了。」（" + st("xin", 1) + "）"; } },
-    { id: "partner", k: "explore", w: 4, c: function () { return s.lv >= 2 && !s.partner && (s.ptCount || 0) < 2 && !(s.mem && s.prev.pt && !s.done.pl_love); }, r: function () {
+    { id: "partner", k: "explore", w: 4, c: function () { return s.lv >= 2 && !s.partner && (s.ptCount || 0) < 2 && !((s.mem || s.vow) && s.prev && s.prev.pt && !s.done.pl_love); }, r: function () {
       s.ptCount = (s.ptCount || 0) + 1;
       s.npc.ptSex = s.sex === "男" ? "女" : "男"; s.npc.pt = gname(s.npc.ptSex);
       return "你在一次除妖時與{侶}聯手，之後又幾度同行。{侶}問你，願不願意結為道侶。"; },
@@ -1070,6 +1126,41 @@
       ch: function () { return [
         { t: "分出自己一成壽元救{侶}", r: function () { s.life -= Math.round(s.life * .1); s.psaved = 1; s.res += 3; big("以壽元救回{侶}"); return "你以秘法渡出壽元。{侶}醒來時，你的鬢角多了一縷白髮。"; } },
         { t: "四處尋找靈藥", r: function () { if (chk(.45, ["yuan"])) { s.psaved = 1; return "你翻遍三座山，終於找到靈藥，救回了{侶}。"; } s.partner = 0; big("{侶}隕落"); return "你帶著靈藥趕回來時，{侶}已經沒了氣息。（" + st("xin", 1) + "）"; } }]; } },
+    { id: "pt_up", k: "calm", w: 2, c: function () { return s.partner && s.lv >= 2; }, r: function () { addExp(.12); item("heal"); return "{侶}閉關出來，修為又精進了一層。你們互相印證心得，你也有所領悟。{侶}還塞給你一顆回春丹。"; } },
+    { id: "kid", k: "calm", w: 3, c: function () { return s.partner && s.lv >= 2 && (s.kids || []).length < 3 && s.age >= (s.kidCool || 0); }, r: function () {
+      var sex = P(.5) ? "男" : "女", apt = Math.min(3, wpick([0, 1, 2, 3], function (i) { return [.3, .4, .22, .08][i]; }) + (s.clanBorn ? 1 : 0));
+      var k = { n: gname(sex, surOf(s.name)), sex: sex, b: s.age, apt: apt, lv: 0 }, t = "";
+      s.kids = s.kids || []; s.kids.push(k); s.kidCool = s.age + R(15, 30);
+      var m = meta();
+      if (!m.clan) { m.clan = { sur: surOf(s.name), founder: s.name, gen: 1, dz: 0, vault: 0, w: null, kids: [] }; store(key("meta"), m); s.clanMine = 1; t = "從這一天起，世上多了一個「" + m.clan.sur + "家」。往後你留下的靈石、法寶與名聲，都會成為家族的底蘊；轉世時，可以選擇投胎回來。"; }
+      else if (!s.clanMine) t = "（你這一世不是" + m.clan.sur + "家的人，孩子不入族譜。）";
+      big("{侶}生下孩子" + k.n);
+      return { c: "up", t: "{侶}生下了你們的孩子，是個" + (sex === "男" ? "男孩" : "女孩") + "，取名" + k.n + "。孩子" + APT[apt] + t }; } },
+    { id: "kid_up", k: "calm", w: 3, c: function () { return (s.kids || []).some(function (k) { return k.apt && s.age - k.b >= 10 && k.lv < Math.max(1, s.lv - 1); }); }, r: function () {
+      var k = pick(s.kids.filter(function (k) { return k.apt && s.age - k.b >= 10 && k.lv < Math.max(1, s.lv - 1); }));
+      if (!P(.25 + k.apt * .15)) return k.n + "閉關衝擊瓶頸，沒能成功。你在關外守了三天，什麼也沒說。";
+      k.lv++; return { c: "up", t: k.n + "自己突破到「" + lvName(k.lv) + "」了。" }; } },
+    { id: "kid_sect", k: "explore", once: 1, w: 3, c: function () { return s.sec && s.sec.org && (s.kids || []).some(function (k) { return k.lv >= 2; }); }, r: function () {
+      var k = pick(s.kids.filter(function (k) { return k.lv >= 2; })), o = s.sec.org; o.genius++; o.fame = Math.min(100, o.fame + 5);
+      return k.n + "拜入" + s.sec.n + "，很快就成了同輩裡最出色的弟子。名望 +5。"; } },
+    { id: "clan_genius", k: "calm", w: 1.5, c: function () { return s.clanMine && s.lv >= 2; }, r: function () {
+      var c = clanGet(), nm = gname(P(.5) ? "男" : "女", c.sur); clanSave(function (c) { c.dz += 5; });
+      return "族裡傳來消息：旁支出了一個叫" + nm + "的孩子，十歲就引氣入體。" + c.sur + "家底蘊 +5。"; } },
+    { id: "clan_raid", k: "explore", w: 2, c: function () { return s.clanMine && s.lv >= 3 && s.age >= (s.raidCool || 0); }, r: function () {
+      s.raidCool = s.age + 40; return "仇家趁你不在，找上了" + clanGet().sur + "家。族人傳訊求援。"; },
+      ch: function () { return [
+        { t: "趕回去", r: function () { return fight("找上門的仇家", 1.3, { win: "clanwin" }); } },
+        { t: "分身乏術", r: function () { var c = clanGet(); clanSave(function (c) { c.vault = Math.floor(c.vault / 2); c.dz = Math.max(0, c.dz - 3); }); return { c: "bad", t: c.sur + "家死傷慘重，寶庫被搶走一半，底蘊 -3。" }; } }]; } },
+    { id: "clan_elder", k: "explore", once: 1, w: 6, c: function () { var c = clanGet(); return s.clanBorn && c && c.kids && c.kids.length && s.lv >= 1; }, r: function () {
+      var c = clanGet(), k = pick(c.kids), alive = k.lv >= 2;
+      addExp(.3); item("heal", 2);
+      return alive ? "族裡的老祖" + k.n + "把你叫到祠堂，看了你很久。" + ta(k.sex) + "認出來了：你是" + ta(k.sex) + "前世的" + (s.sex === "男" ? "父親" : "母親") + "。" + k.n + "什麼也沒說，只把自己這些年的修煉心得都傳給了你。（修為精進，得到 2 顆回春丹，" + st("xin", 1) + "）"
+        : "你在祠堂裡看到一塊牌位，上面寫著「" + k.n + "」：那是你前世的孩子，早已壽終。牌位後面壓著一本手札，寫滿了" + ta(k.sex) + "一生的修煉心得。（修為精進，得到 2 顆回春丹，" + st("xin", 1) + "）"; } },
+    { id: "clan_heir", k: "explore", once: 1, w: 6, c: function () { var c = clanGet(); return s.clanBorn && c && (c.w || c.vault > 0) && s.lv >= 2; }, r: function () {
+      var c = clanGet(), t = "族長把你帶進" + c.sur + "家寶庫：「這些本來就是你的。」", g = Math.min(Math.floor(c.vault * .3), Math.round(15 * M[s.lv])), a = Math.round(6 * M[s.lv + 1]);
+      clanSave(function (c) { c.vault -= g; }); s.stone += g; if (g) t += "你領到 " + g + " 塊靈石。";
+      if (c.w && (!s.gear.w || s.gear.w.atk < a)) { s.gear.w = { n: c.w.n + "（祖傳）", atk: a }; t += "你還拿回了前世立下的傳家寶「" + c.w.n + "」。（攻擊 +" + a + "）"; }
+      big("繼承" + c.sur + "家寶庫"); return { c: "up", t: t }; } },
     { id: "student", k: "explore", once: 1, w: 2, c: function () { return s.lv >= 3 && !s.npc.dc; }, r: function () { s.npc.dc = gname(P(.5) ? "男" : "女"); s.res += 1; big("收{徒}為徒"); return "你收了一個叫{徒}的徒弟，資質平平，卻很肯吃苦，像極了當年的自己。"; } },
     { id: "sectfound", k: "explore", once: 1, w: 3, c: function () { return s.lv >= 5 && !s.own && s.region !== "靈界"; }, r: function () { return "你在一處靈脈上選好了地方，想開宗立派。"; },
       ch: function () { var cost = Math.round(30 * M[s.lv]); return [
@@ -1365,29 +1456,45 @@
     ent.t.push(typeof x === "string" ? T(x) : { c: x.c, t: T(x.t) });
   }
   function birth() {
-    var m = meta(), tal = {}, cost = 0;
-    picked.forEach(function (id) { var x = TAL.filter(function (y) { return y.id === id; })[0]; if (x && cost + x.c <= m.karma) { tal[id] = 1; cost += x.c; } });
-    var o = tal.clan ? 9 : wpick(ORIGINS.map(function (x, i) { return i; }), function (i) { return ORIGINS[i].p; });
-    var org = ORIGINS[o], boost = org.boost || 1;
+    var m = meta(), tal = {}, cost = 0, past = load(key("past")) || [], p0 = past[0] || null;
+    Object.keys(picked).forEach(function (id) {
+      var x = talBy(id); if (!x || !talOk(x, m, p0)) return;
+      var lv = Math.min(picked[id], x.c.length), c = talCost(x, lv);
+      if (lv && cost + c <= m.karma) { tal[id] = lv; cost += c; }
+    });
+    var cl = null;
+    if (picked.home && m.clan && cost + HOME <= m.karma) { cost += HOME; cl = m.clan; }
+    if (tal.pour && m.clan) m.clan.dz += 10 * tal.pour;
+    var dz = cl ? cl.dz : 0;
+    var o = tal.clan || cl ? 9 : wpick(ORIGINS.map(function (x, i) { return i; }), function (i) { return ORIGINS[i].p; });
+    var org = ORIGINS[o], boost = (org.boost || 1) + (cl ? Math.min(4, Math.floor(dz / 15)) : 0);
     var r = wpick(ROOT.map(function (x, i) { return i; }), function (i) { return ROOT[i].p * (i ? boost : 1); });
     var rsum = ROOT.reduce(function (a, x, i) { return a + x.p * (i ? boost : 1); }, 0);
-    if (tal.root && r < 2) r = 2;
+    if (tal.root && r < 1 + tal.root) r = 1 + tal.root;
     var sex = P(.5) ? "男" : "女", stt = {};
-    Object.keys(ST).forEach(function (k) { stt[k] = clamp(R(0, 3) + R(0, 3) + R(0, 4) + ((org.st || {})[k] || 0) + (tal[k] ? 2 : 0), 1, 10); });
+    Object.keys(ST).forEach(function (k) { stt[k] = clamp(R(0, 3) + R(0, 3) + R(0, 4) + ((org.st || {})[k] || 0) + (tal[k] || 0) + (cl ? Math.min(2, Math.floor(dz / 30)) : 0), 1, 10); });
     var frSex = P(.5) ? "男" : "女", rvSex = P(.7) ? "男" : "女";
-    var past = load(key("past")) || [];
-    s = { name: gname(sex), sex: sex, origin: o, root: r, prob: org.p * ROOT[r].p * (r ? boost : 1) / rsum, st: stt, age: 0, life: 70,
+    s = { name: gname(sex, cl ? cl.sur : ""), sex: sex, origin: o, root: r, prob: org.p * ROOT[r].p * (r ? boost : 1) / rsum, st: stt, age: 0, life: 70,
       path: null, lv: 0, exp: 0, res: 0, wait: 0, stone: org.stone || 0, pill: {}, items: {}, gear: {}, bag: {}, gearBag: [], hp: 1, mp: 0, q: 0,
       region: "澄國", done: {}, log: [], big: [], pending: null, dead: null, chap: 1,
-      npc: { fr: gname(frSex), frSex: frSex, rv: gname(rvSex), rvSex: rvSex }, prev: past[0] || null, tal: Object.keys(tal) };
+      npc: { fr: gname(frSex), frSex: frSex, rv: gname(rvSex), rvSex: rvSex }, prev: p0, tal: Object.keys(tal), talLv: tal, kids: [] };
     s.mem = s.prev && s.prev.lv >= 2 ? 1 : 0;
-    if (tal.rich) { s.stone += 80; s.items.heal = 3; }
-    if (tal.long) s.lifeMul = 1.15;
-    if (tal.fast) s.fast = 1.2;
-    if (cost) { m.karma -= cost; m.offer = null; store(key("meta"), m); }
-    picked = [];
-    s.log.push({ a: 0, t: [{ c: "ch", t: "卷一　" + org.n }, "你出生在" + org.n + "。" + org.d, "你是個" + (sex === "男" ? "男孩" : "女孩") + "，名叫" + s.name + "。"] });
-    if (s.tal.length) s.log[0].t.push({ c: "pick", t: "轉世天賦：" + s.tal.map(function (id) { return TAL.filter(function (y) { return y.id === id; })[0].n; }).join("、") });
+    if (tal.rich) { s.stone += 60 * tal.rich; s.items.heal = 2 * tal.rich; }
+    if (tal.long) s.lifeMul = 1 + .1 * tal.long;
+    if (tal.fast) s.fast = 1 + .15 * tal.fast;
+    if (tal.relic) s.relic = p0.w;
+    if (tal.vow) s.vow = 1;
+    var give = 0;
+    if (cl) { // 投胎回自己的家族：祖傳功法加快修煉，寶庫撥一部分靈石
+      s.clanBorn = s.clanMine = 1; s.fast = (s.fast || 1) * (1 + Math.min(.3, dz * .003));
+      give = Math.min(Math.floor(cl.vault * .3), 150); cl.vault -= give; s.stone += give;
+    }
+    if (cost || tal.pour || cl) { m.karma -= cost; m.offer = null; store(key("meta"), m); }
+    picked = {};
+    var first = cl ? [{ c: "ch", t: "卷一　" + cl.sur + "家" }, "你出生在" + cl.sur + "家。這是你前世親手開創的修仙家族，如今傳到第 " + (cl.gen + 1) + " 代，族中底蘊 " + dz + "。" + (give ? "族裡撥給你 " + give + " 塊靈石。" : "")]
+      : [{ c: "ch", t: "卷一　" + org.n }, "你出生在" + org.n + "。" + org.d];
+    s.log.push({ a: 0, t: first.concat(["你是個" + (sex === "男" ? "男孩" : "女孩") + "，名叫" + s.name + "。"]) });
+    if (s.tal.length) s.log[0].t.push({ c: "pick", t: "轉世天賦：" + s.tal.map(function (id) { var x = talBy(id); return x.n + (x.c.length > 1 ? " " + tal[id] + " 級" : ""); }).join("、") });
     shown = 0; $("log").innerHTML = ""; $("end").hidden = true;
     $("home").hidden = true; $("game").hidden = false;
     scrollTo(0, 0); save(); render();
@@ -1524,6 +1631,7 @@
     if (id === "fight") return fightOpts();
     if (id === "shop") return shopOpts();
     if (id === "sell") return sellOpts();
+    if (id === "clan") return clanOpts();
     if (id === "sect") return !s.sec ? [{ q: 1, t: "離開", r: function () { return ""; } }] : s.sec.rank === 4 ? (s.sec.org || (s.sec.org = initOrg(true)), orgOpts()) : sectOpts();
     return EVM[id].ch().filter(function (o) { return !o.c || o.c(); });
   }
@@ -1545,14 +1653,25 @@
     past.unshift({ n: s.name, a: s.age, p: s.path ? PATH[s.path].n : "", l: s.ascended ? "飛升仙界" : short(s.lv), d: s.dead,
       lv: s.ascended ? 10 : s.lv, pt: s.partner ? s.npc.pt : "", w: s.gear.w ? s.gear.w.n.replace("（前世）", "") : "" });
     var m = meta(), gainK = 1 + s.lv * 2 + (s.ascended ? 20 : 0) + Math.min(5, Math.floor(s.big.length / 3)) + (s.peace ? 3 : 0) + FX.karma();
-    m.karma += gainK; m.offer = null; m.lives = (m.lives || 0) + 1; store(key("meta"), m);
+    m.karma += gainK; m.offer = null; m.lives = (m.lives || 0) + 1;
+    var cmsg = "";
+    if (m.clan) {
+      var c = m.clan;
+      if (s.clanMine) {
+        var ks = s.kids || [], add = top * 3 + ks.length + ks.reduce(function (a, k) { return a + k.lv * 2; }, 0), left = ks.length ? Math.floor(s.stone * .5) : 0;
+        c.dz += add; c.vault += left; if (s.clanBorn) c.gen++;
+        if (ks.length) c.kids = ks.map(function (k) { return { n: k.n, sex: k.sex, lv: k.lv }; });
+        cmsg = c.sur + "家底蘊 +" + add + "（共 " + c.dz + "）" + (left ? "，留給子女 " + left + " 塊靈石" : "") + "。";
+      } else c.dz = Math.floor(c.dz * .9);
+    }
+    store(key("meta"), m);
     store(key("past"), past.slice(0, 20));
     var one = 1 / (s.prob * REACH[top]);
     var title = s.ascended ? "飛升仙界" : top <= 2 ? "仙路過客" : top === 3 ? "一方真人" : top === 4 ? "老怪級人物" : top === 5 ? "人界巔峰" : "靈界大能";
     var e = $("end");
     e.innerHTML = "<h2>" + esc(title) + '</h2><p class="muted">' + esc(s.name) + "，" + (s.path ? PATH[s.path].n + "修，" : "") + "享年 " + s.age + " 歲，" + esc(s.dead) + '</p><div class="big">' + fmt(one) + ' 分之一</div><p class="muted">出身、靈根加上最後的境界，大約這麼罕見（遊戲估算）</p>' +
       (s.big.length ? "<ul>" + s.big.map(function (b) { return "<li>" + b.a + " 歲　" + esc(b.t) + "</li>"; }).join("") + "</ul>" : "") +
-      '<p class="mem">這一生得到 ' + gainK + " 點輪迴點（共 " + m.karma + " 點），轉世時可以挑天賦。" + (s.lv >= 2 ? "你修到了" + esc(short(Math.min(s.lv, 9))) + "，下一世會帶著前世的記憶出生。" : "修到築基以上，下一世才會留有前世記憶。") + "</p>";
+      (cmsg ? '<p class="mem">' + esc(cmsg) + "</p>" : "") + '<p class="mem">這一生得到 ' + gainK + " 點輪迴點（共 " + m.karma + " 點），轉世時可以挑天賦。" + (s.lv >= 2 ? "你修到了" + esc(short(Math.min(s.lv, 9))) + "，下一世會帶著前世的記憶出生。" : "修到築基以上，下一世才會留有前世記憶。") + "</p>";
     e.hidden = false;
   }
   function fmt(n) {
@@ -1601,7 +1720,7 @@
   function render() {
     if (!s) return;
     var p = s.path && PATH[s.path], n = s.npc, t = stat();
-    var h = '<div class="top"><span class="nm">' + esc(s.name) + '</span><span class="muted">' + s.sex + "・" + esc(ORIGINS[s.origin].n) + "</span>" +
+    var h = '<div class="top"><span class="nm">' + esc(s.name) + '</span><span class="muted">' + s.sex + "・" + esc(s.clanBorn ? surOf(s.name) + "家嫡系" : ORIGINS[s.origin].n) + "</span>" +
       (p ? '<span class="badge" style="--c:var(--' + p.c + ')">' + p.n + "修</span>" : "") + "</div>";
     h += '<div class="meta">境界：' + esc(s.ascended ? "飛升仙界" : lvName(s.lv)) + "　靈根：" + (s.tested ? esc(ROOT[s.root].n) + (s.forged ? "（血煉魔脈）" : "") : "尚未測過") + "　" + s.region + (s.own || s.sect ? "・" + esc(s.own || s.sect) : "") + "</div>";
     h += '<div class="meter">' + bar("壽", s.age, s.life, "muted");
@@ -1629,10 +1748,11 @@
     if (s.fr) more.push("摯友 <b>" + esc(n.fr) + "</b>");
     if (s.li) more.push("兄弟 <b>石驚鴻</b>");
     if (n.ms && !s.msGone) more.push("師父 <b>" + esc(n.ms) + "</b>");
-    if (s.partner) more.push("道侶 <b>" + esc(n.pt) + "</b>");
+    if (s.partner) more.push("道侶 <b>" + esc(n.pt) + "</b>（雙修：修煉 +20%，戰鬥時有三成機會出手）");
+    (s.kids || []).forEach(function (k) { more.push((k.sex === "男" ? "兒子" : "女兒") + " <b>" + esc(k.n) + "</b>（" + (s.age - k.b) + " 歲・" + (k.apt ? lvName(k.lv) : "凡人") + "）"); });
     if (n.dc) more.push("徒弟 <b>" + esc(n.dc) + "</b>");
     if (s.rival && s.rival < 9) more.push("宿敵 <b>" + esc(n.rv) + "</b>");
-    h += questBox() + sectBox();
+    h += questBox() + sectBox() + clanBox();
     var open = $("more") && $("more").open, open2 = $("attr") && $("attr").open, open3 = $("bagd") && $("bagd").open;
     h += '<div class="mores"><details class="more" id="more"' + (open ? " open" : "") + '><summary>資質、法寶、人物</summary><div class="stats">' + more.map(function (x) { return "<span>" + x + "</span>"; }).join("") + "</div></details>";
     h += '<details class="more" id="attr"' + (open2 ? " open" : "") + "><summary>屬性有什麼用</summary>" + attrHelp() + "</details>";
@@ -1708,6 +1828,7 @@
     if (q) { var ok = qReady(q); r2.appendChild(btn(ok ? "主線：" + q.t : "主線：" + q.t + "（" + qHint(q) + "）", ok ? "main" : "", quest, !ok)); }
     if (s.sec) r2.appendChild(btn(s.sec.rank === 4 ? (s.sec.org && s.sec.org.idle >= 5 ? "門派！" : "門派") : s.sec.task ? "宗門！" : "宗門", "sec small", sect));
     if (TEST && !(s.sec && s.sec.org)) r2.appendChild(btn("（測試）接任宗主", "sec small", testOrg));
+    if (s.clanMine || (s.kids || []).length) r2.appendChild(btn("家族", "sec small", clanMenu));
     r2.appendChild(btn("坊市", "sec small", shop));
     f.appendChild(r2);
   }
@@ -1732,18 +1853,28 @@
     var pn = $("pname"); pn.value = m.name || "";
     pn.oninput = function () { var mm = meta(); mm.name = pn.value.trim(); store(key("meta"), mm); var on = sl.querySelector(".on b"); if (on) on.textContent = mm.name || "存檔" + "一二三".charAt(slot - 1); };
     var past0 = (load(key("past")) || [])[0], memOn = past0 && past0.lv >= 2;
-    $("talBox").hidden = !m.karma && !memOn;
-    var used = picked.reduce(function (a, id) { return a + TAL.filter(function (y) { return y.id === id; })[0].c; }, 0);
+    $("talBox").hidden = !m.karma && !memOn && !m.clan;
+    var used = pickedCost(), left = m.karma - used;
     $("talSub").innerHTML = (memOn ? '<span class="mem">上一世「' + esc(past0.n) + "」修到了" + esc(past0.l) + "。這一世出生時會帶著前世記憶：修煉起步更快，還可能遇見前世的洞府與道侶。</span><br>" : "") +
-      "輪迴點 <b>" + (m.karma - used) + "</b>／" + m.karma + "。每一世結束都會得到輪迴點，修得越高越多。勾選想要的天賦再投胎；這次沒挑的，下一世會換一批。";
+      "輪迴點 <b>" + left + "</b>／" + m.karma + "。每一世結束都會得到輪迴點，修得越高越多。天賦可以疊加等級，越高級越貴；這次沒挑的，下一世會換一批。";
     var tl = $("tals"); tl.innerHTML = "";
+    function stepper(label, desc, lv, max, next, on, inc, dec) {
+      var d = document.createElement("div"); d.className = "tal" + (lv ? " on" : "");
+      d.innerHTML = "<span><b>" + esc(label) + "</b>" + (max > 1 ? "（" + lv + "／" + max + " 級）" : lv ? "（已選）" : "") + "<small>" + esc(desc) + "</small></span>";
+      var minus = btn("−", "small", dec, !lv), plus = btn("＋", "small", inc, lv >= max || left < next);
+      d.appendChild(minus); d.appendChild(plus); tl.appendChild(d);
+    }
+    if (m.clan) stepper("投胎回" + m.clan.sur + "家", "出身修仙世家、祖傳功法加快修煉、領家族寶庫的靈石與傳家寶，還可能遇見前世的子女。底蘊 " + m.clan.dz + "，越高加成越多。" + HOME + " 點", picked.home ? 1 : 0, 1, HOME, 0,
+      function () { picked.home = 1; renderHome(); }, function () { delete picked.home; renderHome(); });
     m.offer.forEach(function (id) {
-      var x = TAL.filter(function (y) { return y.id === id; })[0], on = picked.indexOf(id) >= 0, can = on || m.karma - used >= x.c;
-      var l = document.createElement("label"); if (!can) l.className = "off";
-      l.innerHTML = '<input type="checkbox"' + (on ? " checked" : "") + (can ? "" : " disabled") + "><span><b>" + esc(x.n) + "</b>（" + x.c + " 點）<small>" + esc(x.d) + "</small></span>";
-      l.querySelector("input").onchange = function () { if (this.checked) picked.push(id); else picked.splice(picked.indexOf(id), 1); renderHome(); };
-      tl.appendChild(l);
+      var x = talBy(id); if (!x || !talOk(x, m, past0)) return;
+      var lv = picked[id] || 0, max = x.c.length, next = lv < max ? x.c[lv] : 0;
+      stepper(x.n, talD(x, lv < max ? lv + 1 : lv) + "。" + (lv < max ? "下一級 " + next + " 點" : "已滿級") + (lv ? "，已花 " + talCost(x, lv) + " 點" : ""), lv, max, next, 0,
+        function () { picked[id] = lv + 1; renderHome(); }, function () { if (lv > 1) picked[id] = lv - 1; else delete picked[id]; renderHome(); });
     });
+    var rr = document.createElement("div"); rr.className = "talrow";
+    rr.appendChild(btn("換一批天賦（1 點）", "small", function () { var mm = meta(); if (mm.karma - pickedCost() < 1) return; mm.karma -= 1; mm.offer = null; picked = {}; store(key("meta"), mm); renderHome(); }, left < 1));
+    tl.appendChild(rr);
     var past = load(key("past")) || [];
     $("pastBox").hidden = !past.length;
     $("past").innerHTML = past.map(function (x) {
@@ -1756,7 +1887,7 @@
   renderHome();
   if (saved && saved.log && saved.gear && saved.q !== undefined && !saved.dead) resume();
   else foot();
-  window.__xx = { sect: sect, setPick: function (a) { picked = a; }, meta: meta, get s() { return s; }, opts: opts, choose: choose, birth: birth, grow: grow, cultivate: cultivate, explore: explore, quest: quest, shop: shop, brk: brk, qReady: function () { return qReady(curQ()); }, stat: stat, need: function () { return NEED[s.lv]; } };
+  window.__xx = { sect: sect, setPick: function (a) { picked = {}; (a || []).forEach(function (id) { picked[id] = 1; }); }, setPicked: function (o) { picked = o; }, clan: clanMenu, meta: meta, get s() { return s; }, opts: opts, choose: choose, birth: birth, grow: grow, cultivate: cultivate, explore: explore, quest: quest, shop: shop, brk: brk, qReady: function () { return qReady(curQ()); }, stat: stat, need: function () { return NEED[s.lv]; } };
 })();
 </script>
 </body>
