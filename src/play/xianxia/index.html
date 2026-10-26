@@ -520,6 +520,8 @@
   }
   function taskGap() { return Math.max(3, STEP[s.lv] * 2); }
   // 師父還在同一個宗門時，宗門看師父的面子，不會把你逐出，你也不能叛出
+  // 已經是宗主：劇情不再把你塞進別的宗門
+  function lord() { syncSect(); return s.sec && s.sec.rank === 4; }
   function shielded() { return s.npc.ms && !s.msGone && s.msSect && s.sect === s.msSect; }
   function outOfTrust() {
     if (!shielded()) return expel();
@@ -652,7 +654,7 @@
     wolf: function () { s.stone += 15; return "天亮時，黑風寨退了。石驚鴻拍著你的肩膀：「好兄弟，命是你救的。」"; },
     modoc: function () {
       s.msGone = 1; s.npc.ms = ""; item("heal", 3); s.stone += 40; big("反殺柳大夫");
-      if (s.sect === "青嵐門") s.sect = "";
+      if (s.sect === "青嵐門" && !lord()) s.sect = "";
       return "柳大夫倒下前，眼神裡竟有一絲解脫。你在他的遺物裡找到一些靈石、三顆回春丹，還有一張紙條，上面寫著「雲台谷」。殺了門中長老，青嵐門是待不下去了，你當夜就下了山。";
     },
     blood1: function () { addExp(.15); s.pending = { id: "nangong" }; return "你斬殺妖獸，深入禁地，採到了一大把靈草。正要離開，前方傳來打鬥聲。"; },
@@ -664,8 +666,8 @@
       s.region = "萬島海"; s.sect = ""; big("經古傳送陣逃往萬島海");
       return [chapter("萬島海"), "澄國六宗的山門一個接一個陷落。你和幾個逃難的修士找到一座古傳送陣，拚著陣法崩潰的危險傳送出去。睜開眼時，四面都是看不到邊的海。"];
     },
-    swxg: function () { s.sect = "潮音閣"; s.stone += 80; s.res += 2; big("在潮音閣麾下立功"); return "你在潮音閣麾下屢立戰功，被賜了一座小靈島。"; },
-    swnx: function () { s.sect = "怒濤盟"; s.stone += 60; addExp(.2); big("在怒濤盟立功"); return "怒濤盟攻下了好幾座潮音閣的島嶼，你分到不少好處。"; },
+    swxg: function () { if (!lord()) s.sect = "潮音閣"; s.stone += 80; s.res += 2; big("在潮音閣麾下立功"); return "你在潮音閣麾下屢立戰功，被賜了一座小靈島。"; },
+    swnx: function () { if (!lord()) s.sect = "怒濤盟"; s.stone += 60; addExp(.2); big("在怒濤盟立功"); return "怒濤盟攻下了好幾座潮音閣的島嶼，你分到不少好處。"; },
     dan: function () { gain(3); return "你剖開妖獸，取出一顆千年妖丹。這就是結丹要用的靈物。"; },
     xt1: function () { s.pending = { id: "xutian2" }; return "你擊碎守殿傀儡，闖到大殿深處。前方光芒大盛，殿中的至寶就在眼前，幾個元嬰老怪的分身也趕到了。"; },
     xtwin: function () { var d = Math.round(4 * M[s.lv + 1]); s.gear.a = { n: "沉淵古殿古寶寶甲", def: d }; gain(4); big("沉淵古殿奪寶"); return { c: "up", t: "你搶在老怪們之前，奪下一件古寶寶甲（防禦 +" + d + "），還順手收走一份「凝嬰靈果」。" }; },
@@ -785,6 +787,8 @@
           { t: "進入秘境", r: function () { return ["你剛踏進秘境，一頭渾身是血的妖獸就撲了過來。", fight("秘境妖獸", 1.1, { win: "blood1", deadly: 1, die: "隕落赤霧秘境" })]; } },
           { t: "不去冒險", r: function () { if (!s.sect) return "你沒有宗門可依，只能靠自己硬衝築基。（" + st("xin", 1) + "）"; gain(2); return "你留在宗門苦修。宗門按例賜你一顆築基丹。（" + st("xin", 1) + "）"; } }]; } },
       { id: "q_lhy", t: "拜師", lv: 2, r: function () {
+        syncSect();
+        if (s.sec && s.sec.rank >= 3) return [chapter("築基"), s.sec.rank === 4 ? "你築基成功。身為" + s.sec.n + "宗主，你不必再拜誰為師；門中幾位長老前來道賀，你收下賀禮，繼續閉關。" : "你築基成功。你已經是" + s.sec.n + "的長老，不必再拜師，宗門的長老們都來道賀。"];
         if (s.sect && s.sect !== "紫霞宗" && s.sect !== s.own) { s.npc.ms = gname(P(.5) ? "男" : "女"); s.msGone = 0; s.msSect = s.sect; return [chapter("築基"), "你築基成功，被" + s.sect + "的結丹長老{師}收為弟子。"]; }
         if (s.sect !== "紫霞宗") return [chapter("築基"), "你築基成功了。可惜你沒有宗門，沒有長老會收你為徒，一切只能靠自己。"];
         s.npc.ms = "秦長風"; s.msGone = 0; s.msSect = "紫霞宗";
@@ -810,7 +814,7 @@
       { id: "f_raid", t: "靜慈寺之劫", lv: 1, ex: .6, r: function () {
         return [chapter("靜慈寺之劫"), "一個血手魔僧夜襲靜慈寺，要搶寺中供奉的佛骨舍利。師兄們一個個倒下，了塵禪師正在閉死關，你是最後一個站著的人。" + (s.fox ? "這時，一道白影從林子裡竄出來，咬住了魔僧的手腕：是那隻白狐。" : ""),
           fight("血手魔僧", s.fox ? .9 : 1.2, { tier: 1, boss: 1, win: "fraid", die: "守護靜慈寺，戰死", dieT: "你倒在佛殿門口，手裡還握著掃帚。" })]; } },
-      { id: "f_wander", t: "下山遊方", lv: 2, r: function () { s.sect = ""; return [chapter("遊方"), "你築基之後，了塵禪師說：「寺裡教不了你了，下山走走吧。」你背著一個缽、一柄降魔杵，從此四海為家。"]; } },
+      { id: "f_wander", t: "下山遊方", lv: 2, r: function () { if (lord()) return [chapter("遊方"), "你築基之後，了塵禪師說：「寺裡教不了你了，該出去走走。」你把" + s.sec.n + "交給長老們打理，背著一個缽下了山。"]; s.sect = ""; return [chapter("遊方"), "你築基之後，了塵禪師說：「寺裡教不了你了，下山走走吧。」你背著一個缽、一柄降魔杵，從此四海為家。"]; } },
       { id: "f_cave", t: "千佛窟", lv: 2, ex: .3, r: function () { return "你遊方到西邊的荒漠，找到傳說中的千佛窟。窟裡一千尊佛像同時睜開眼睛，最深處坐著一個人，長得跟你一模一樣。"; },
         ch: function () { return [
           { t: "走上前去", r: function () { return fight("你的心魔", 1.2, { win: "focave" }); } },
@@ -882,7 +886,8 @@
     { id: "q_back", t: "重返南嶺", lv: 4, r: function () {
       s.region = "南嶺";
       var t = "離開百年，你重返南嶺。澄國早已物是人非。";
-      if (is("mo")) { s.sect = "血骨山"; s.own = "血骨山"; t += "你在血骨山開了一座魔窟，正道修士不敢靠近。"; }
+      if (lord()) t += "你把" + s.sec.n + "的山門也遷到了南嶺，弟子們跟著你重新開山。";
+      else if (is("mo")) { s.sect = "血骨山"; s.own = "血骨山"; t += "你在血骨山開了一座魔窟，正道修士不敢靠近。"; }
       else if (is("fo")) { s.sect = "白鹿宗"; t += "白鹿宗把你奉為客卿，在後山替你蓋了一座禪院。"; }
       else { s.sect = "白鹿宗"; t += "你以" + short(4) + "修士的身分加入白鹿宗，被奉為長老。"; }
       big("重返南嶺"); return [chapter("重返南嶺"), t]; } },
