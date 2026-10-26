@@ -509,7 +509,7 @@
     if (sc.task && s.age > sc.task.due) {
       sc.task = null; sc.trust -= 25; sc.next = s.age + taskGap();
       ent.t.push({ c: "bad", t: "你沒有在期限內完成宗門差事，執事長老很不滿意。（信任 -25）" });
-      if (sc.trust <= 0) put(ent, expel());
+      if (sc.trust <= 0) put(ent, outOfTrust());
       return;
     }
     if (!sc.task && sc.rank < 4 && s.age >= sc.next) {
@@ -519,6 +519,12 @@
     }
   }
   function taskGap() { return Math.max(3, STEP[s.lv] * 2); }
+  // 師父還在同一個宗門時，宗門看師父的面子，不會把你逐出，你也不能叛出
+  function shielded() { return s.npc.ms && !s.msGone && s.msSect && s.sect === s.msSect; }
+  function outOfTrust() {
+    if (!shielded()) return expel();
+    s.sec.trust = 20; return { c: "bad", t: "執事長老要把你逐出宗門，{師}出面替你求情，這次才作罷。（信任回到 20）" };
+  }
   function expel() {
     var n = s.sect;
     s.expelled = { n: n, lv: s.lv, next: s.age + 3, chase: 0 };
@@ -534,7 +540,7 @@
     var sc = s.sec; if (!sc) return text;
     sc.task = null; sc.trust -= 10; sc.next = s.age + taskGap();
     var r = [text, { c: "bad", t: "差事辦砸了。（信任 -10）" }];
-    if (sc.trust <= 0) r.push(expel());
+    if (sc.trust <= 0) r.push(outOfTrust());
     return r;
   }
   var TASKS = {
@@ -572,7 +578,8 @@
         if (sc.rank === 4) { s.own = sc.n; sc.org = initOrg(true); sc.task = null; return [chapter("執掌" + sc.n), { c: "up", t: "老宗主把宗主令交到你手上：「" + sc.n + "，以後就交給你了。」" }]; }
         return { c: "up", t: "你晉升為" + sc.n + RANK[sc.rank] + "。俸祿提高了，差事也會更重。" }; } });
     }
-    if (sc.rank < 4) o.push({ q: 1, t: "叛出宗門（會被追殺）", r: function () { var r = expel(); r.t = "你趁夜離開了" + s.expelled.n + "，從此成了散修。" + s.expelled.n + "的追殺令很快就會傳遍各地。"; return r; } });
+    if (sc.rank < 4 && shielded()) o.push({ q: 1, dis: true, t: "叛出宗門（{師}還在門中，你走不了）", r: function () { return ""; } });
+    else if (sc.rank < 4) o.push({ q: 1, t: "叛出宗門（會被追殺）", r: function () { var r = expel(); r.t = "你趁夜離開了" + s.expelled.n + "，從此成了散修。" + s.expelled.n + "的追殺令很快就會傳遍各地。"; return r; } });
     o.push({ q: 1, t: "離開", r: function () { return ""; } });
     return o;
   }
@@ -623,7 +630,7 @@
   // ---------- 入門 ----------
   function join(path, how) {
     var sect = { dao: "青嵐門", fo: "靜慈寺", ru: "白石書院", mo: "屍陰教" }[path];
-    s.path = path; s.lv = 1; s.exp = s.mem ? NEED[1] * .4 : 0; s.sect = sect; s.q = 0;
+    s.path = path; s.lv = 1; s.exp = s.mem ? NEED[1] * .4 : 0; s.sect = sect; s.msSect = sect; s.q = 0;
     s.res = path === "fo" && ORIGINS[s.origin].aff === "fo" ? 3 : 1;
     s.npc.ms = { dao: "柳大夫", fo: "了塵禪師", ru: "顧夫子", mo: pick("血陰屍鬼幽".split("")) + pick("九骨魂煞冥".split("")) + "老祖" }[path];
     var out = [{ dao: "你進了青嵐門，被分到百草谷，成了柳大夫的記名弟子。柳大夫交給你一卷沒有名字的口訣，要你每天練。第七天夜裡，丹田裡第一次有了一絲涼意。柳大夫知道後，笑得很開心。",
@@ -645,7 +652,8 @@
     wolf: function () { s.stone += 15; return "天亮時，黑風寨退了。石驚鴻拍著你的肩膀：「好兄弟，命是你救的。」"; },
     modoc: function () {
       s.msGone = 1; s.npc.ms = ""; item("heal", 3); s.stone += 40; big("反殺柳大夫");
-      return "柳大夫倒下前，眼神裡竟有一絲解脫。你在他的遺物裡找到一些靈石、三顆回春丹，還有一張紙條，上面寫著「雲台谷」。";
+      if (s.sect === "青嵐門") s.sect = "";
+      return "柳大夫倒下前，眼神裡竟有一絲解脫。你在他的遺物裡找到一些靈石、三顆回春丹，還有一張紙條，上面寫著「雲台谷」。殺了門中長老，青嵐門是待不下去了，你當夜就下了山。";
     },
     blood1: function () { addExp(.15); s.pending = { id: "nangong" }; return "你斬殺妖獸，深入禁地，採到了一大把靈草。正要離開，前方傳來打鬥聲。"; },
     ngwin: function () { s.res += 3; gain(2); gain(2); s.ng = 1; big("赤霧秘境救下蘇綺雲"); return "被救的女修自稱是碧月宮的蘇綺雲。她看了你一眼，把自己的靈草也分給你：「這份人情，我記下了。」出了禁地，你用兩人份的靈草換了兩顆築基丹。"; },
@@ -765,16 +773,21 @@
             if (chk(.5, ["xin"])) return ["你閉上眼睛，等柳大夫的神魂離體的那一刻，猛然睜眼。柳大夫的神魂撞上你的識海，被彈了回去，他元氣大傷。", fight("元氣大傷的柳大夫", .9, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍" })];
             return ["柳大夫早就看穿你的心思，冷笑一聲出手了。", fight("柳大夫", 1.4, { tier: 1, boss: 1, win: "modoc", die: "被柳大夫奪舍", dieT: "他比你想的更強。從此，那具身體換了一個主人。" })]; } }]; } },
       { id: "q_tainan", t: "雲台集", lv: 1, ex: .3, r: function () {
-        s.gear.w = s.gear.w || { n: "下品飛劍", atk: Math.round(5 * M[1]) }; s.sect = "紫霞宗";
-        return [chapter("紫霞宗"), "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。",
+        s.gear.w = s.gear.w || { n: "下品飛劍", atk: Math.round(5 * M[1]) };
+        var t0 = "你照著紙條找到雲台谷。這裡每隔幾年就有散修聚會，買賣法器、丹藥。你用柳大夫的靈石買了一把下品飛劍。";
+        if (s.sect) return [chapter("雲台集"), t0, "小會上有人說紫霞宗正在收徒。你已經是" + s.sect + "的人，只是笑笑，買完東西就走了。"];
+        if (s.expelled && s.expelled.n === "紫霞宗") return [chapter("雲台集"), t0, "紫霞宗正在辦收徒大典，可是你被紫霞宗逐出過，負責收徒的執事一眼就認出了你。你只好繼續當散修。"];
+        s.sect = "紫霞宗";
+        return [chapter("紫霞宗"), t0,
           "小會上有人說，紫霞宗正在辦收徒大典。你去了，憑著靈根被收為紫霞宗外門弟子。"]; } },
       { id: "q_blood", t: "赤霧秘境", lv: 1, ex: .6, r: function () { return [chapter("赤霧秘境"), "澄國六宗聯合開啟赤霧秘境。秘境裡長著煉製築基丹的靈草，但妖獸橫行，各派弟子互相殘殺，活著出來的不到一半。"]; },
         ch: function () { return [
           { t: "進入秘境", r: function () { return ["你剛踏進秘境，一頭渾身是血的妖獸就撲了過來。", fight("秘境妖獸", 1.1, { win: "blood1", deadly: 1, die: "隕落赤霧秘境" })]; } },
           { t: "不去冒險", r: function () { if (!s.sect) return "你沒有宗門可依，只能靠自己硬衝築基。（" + st("xin", 1) + "）"; gain(2); return "你留在宗門苦修。宗門按例賜你一顆築基丹。（" + st("xin", 1) + "）"; } }]; } },
       { id: "q_lhy", t: "拜師", lv: 2, r: function () {
-        if (s.sect !== "紫霞宗") return [chapter("築基"), "你築基成功了。可惜你已經不是紫霞宗弟子，沒有長老會收你為徒，一切只能靠自己。"];
-        s.npc.ms = "秦長風"; s.msGone = 0;
+        if (s.sect && s.sect !== "紫霞宗" && s.sect !== s.own) { s.npc.ms = gname(P(.5) ? "男" : "女"); s.msGone = 0; s.msSect = s.sect; return [chapter("築基"), "你築基成功，被" + s.sect + "的結丹長老{師}收為弟子。"]; }
+        if (s.sect !== "紫霞宗") return [chapter("築基"), "你築基成功了。可惜你沒有宗門，沒有長老會收你為徒，一切只能靠自己。"];
+        s.npc.ms = "秦長風"; s.msGone = 0; s.msSect = "紫霞宗";
         return [chapter("築基"), "你築基成功，被紫霞宗的結丹長老秦長風收為弟子。秦長風話不多，但很護短。" + (s.li ? "你寫信回青嵐門給石驚鴻，他回信說：「好兄弟，替我多看看天上的風景。」" : "")]; } },
       { id: "q_bamboo", t: "紫電竹", lv: 2, ex: .3, r: function () { return "你打聽到一處山谷裡長著紫電竹，是煉製飛劍的上等材料，但谷中有一頭雷屬性的妖獸守著。"; },
         ch: function () { return [
@@ -1699,7 +1712,7 @@
       return "<span>" + esc(x.n) + '</span><span class="t"><i style="width:' + Math.max(1, x.p / total * 100) + '%"></i></span><span class="n">' + (x.p * 100).toFixed(x.p < .01 ? 1 : 0) + "%</span>";
     }).join("");
   }
-  function resume() { var sv = load(key("life")); if (!sv) return; s = sv; s.bag = s.bag || {}; s.gearBag = s.gearBag || []; shown = 0; $("log").innerHTML = ""; $("end").hidden = true; $("home").hidden = true; $("game").hidden = false; render(); scrollTo(0, document.body.scrollHeight); }
+  function resume() { var sv = load(key("life")); if (!sv) return; s = sv; s.bag = s.bag || {}; s.gearBag = s.gearBag || []; if (s.msSect === undefined && s.npc && s.npc.ms) s.msSect = { 柳大夫: "青嵐門", 了塵禪師: "靜慈寺", 顧夫子: "白石書院", 秦長風: "紫霞宗" }[s.npc.ms] || (/老祖$/.test(s.npc.ms) ? "屍陰教" : ""); shown = 0; $("log").innerHTML = ""; $("end").hidden = true; $("home").hidden = true; $("game").hidden = false; render(); scrollTo(0, document.body.scrollHeight); }
   function renderHome() {
     bars($("oBars"), ORIGINS, .42); bars($("rBars"), ROOT, .385);
     var sl = $("slots"); sl.innerHTML = "";
