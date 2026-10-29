@@ -11,7 +11,7 @@ permalink: /stories/
 <div class="shelf">
   {%- for s in collections.stories %}
   <a class="book" href="{{ s.url }}">
-    <img src="{{ s.data.cover }}" alt="" loading="lazy" width="540" height="960">
+    <img src="{{ s.data.cover | replace(".jpg", ".webp") }}" alt="" loading="lazy" width="540" height="960">
     <span class="book-title">{{ s.data.title }}</span>
     <span class="book-meta">{{ s.data.pages.length }} 頁・有聲</span>
   </a>

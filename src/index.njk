@@ -47,7 +47,7 @@ layout: base.njk
   <div class="section-head"><h2>晚安故事</h2><a href="/stories/">全部 {{ collections.stories.length }} 本 →</a></div>
   <div class="shelf shelf-row">
     {%- for s in collections.stories | first(5) %}
-    <a class="book" href="{{ s.url }}"><img src="{{ s.data.cover }}" alt="" loading="lazy" width="540" height="960"><span class="book-title">{{ s.data.title }}</span><span class="book-meta">{{ s.data.pages.length }} 頁・有聲</span></a>
+    <a class="book" href="{{ s.url }}"><img src="{{ s.data.cover | replace(".jpg", ".webp") }}" alt="" loading="lazy" width="540" height="960"><span class="book-title">{{ s.data.title }}</span><span class="book-meta">{{ s.data.pages.length }} 頁・有聲</span></a>
     {%- endfor %}
   </div>
 </section>
