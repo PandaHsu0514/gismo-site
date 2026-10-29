@@ -28,6 +28,7 @@
 - 每頁的 title、description、canonical、Open Graph、schema.org JSON-LD 都在 `src/_includes/seo.njk` 自動產生（依網址判斷是文章、論文、遊戲或教案）；新內容只要 front matter 有 title 和 summary／description 就好
 - 給 AI 搜尋（GEO）：`/llms.txt`（自動列出全站內容）、`robots.txt` 明確允許 GPTBot、ClaudeBot、PerplexityBot 等
 - `/sitemap.xml`、`/feed.xml`（文章 Atom）自動產生；front matter 加 `noindex: true` 可排除
+- 統計：Google Analytics 4（Firebase 專案 dryungtalk，掛在 esad.cc 組織下，Spark 免費方案、不綁付款方式；評估 ID 在 `site.json` 的 `ga` 和 `src/play/kit/ga.js`）。網站頁面由 `base.njk` 載入、遊戲頁各自載入 `../kit/ga.js`；只在 gismo.com.tw 上送資料；晚安故事（`noAnalytics: true`）不載入。修仙遊戲送 xx_birth／xx_path／xx_quest／xx_break／xx_death 事件
 - 安全：`base.njk` 有 CSP meta（GitHub Pages 不能自訂 header）；要嵌入新的外部服務（例如 YouTube 以外的影片）得改 CSP；`/play/` 遊戲頁 noindex；Dependabot 每週檢查套件
 
 ## 內容來源與規則
