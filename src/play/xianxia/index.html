@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <script src="../kit/ga.js"></script>
   <title>修仙路上你和我</title>
   <link rel="stylesheet" href="../kit/kit.css">
 <style>
@@ -693,6 +694,7 @@
   function join(path, how) {
     var sect = { dao: "青嵐門", fo: "靜慈寺", ru: "白石書院", mo: "屍陰教" }[path];
     s.path = path; s.lv = 1; s.exp = s.mem ? NEED[1] * .4 : 0; s.sect = sect; s.msSect = sect; s.q = 0;
+    ga("xx_path", { how: how || "" });
     s.res = path === "fo" && ORIGINS[s.origin].aff === "fo" ? 3 : 1;
     s.npc.ms = { dao: "柳大夫", fo: "了塵禪師", ru: "顧夫子", mo: pick("血陰屍鬼幽".split("")) + pick("九骨魂煞冥".split("")) + "老祖" }[path];
     var out = [{ dao: "你進了青嵐門，被分到百草谷，成了柳大夫的記名弟子。柳大夫交給你一卷沒有名字的口訣，要你每天練。第七天夜裡，丹田裡第一次有了一絲涼意。柳大夫知道後，笑得很開心。",
@@ -1497,6 +1499,7 @@
     }
     if (cost || tal.pour || cl) { m.karma -= cost; m.offer = null; store(key("meta"), m); }
     picked = {};
+    ga("xx_birth", { lives: m.lives || 0, clan_born: cl ? 1 : 0, talents: Object.keys(tal).length, slot: slot });
     var first = cl ? [{ c: "ch", t: "卷一　" + cl.sur + "家" }, "你出生在" + cl.sur + "家。這是你前世親手開創的修仙家族，如今傳到第 " + (cl.gen + 1) + " 代，族中底蘊 " + dz + "。" + (give ? "族裡撥給你 " + give + " 塊靈石。" : "")]
       : [{ c: "ch", t: "卷一　" + org.n }, "你出生在" + org.n + "。" + org.d];
     s.log.push({ a: 0, t: first.concat(["你是個" + (sex === "男" ? "男孩" : "女孩") + "，名叫" + s.name + "。"]) });
@@ -1551,7 +1554,14 @@
     if (e) runEv(e, ent); else put(ent, fill());
     warn(ent); after();
   }
-  function quest() { var q = curQ(); if (!idle() || !qReady(q)) return; s.q++; runEv(q, entry(0)); after(); }
+  function quest() { var q = curQ(); if (!idle() || !qReady(q)) return; s.q++; ga("xx_quest", { quest_no: s.q, quest: q.t }); runEv(q, entry(0)); after(); }
+  // 遊玩紀錄送到 Google Analytics（不含名字等個人資料），用來看大家玩到哪、卡在哪
+  function ga(name, p) {
+    if (!window.track) return;
+    var o = { path: s && s.path ? PATH[s.path].n : "未入道", lv: s ? (s.ascended ? 10 : s.lv) : 0, age: s ? s.age : 0 };
+    Object.keys(p || {}).forEach(function (k) { o[k] = String(p[k]).slice(0, 100); });
+    track(name, o);
+  }
   function shop() { if (!idle()) return; entry(0).t.push("你走進坊市。"); s.pending = { id: "shop" }; after(); }
   function brk() { if (!idle() || s.exp < NEED[s.lv] || (s.lv === 5 && !s.node)) return; entry(0); s.pending = { id: "break" }; after(); }
 
@@ -1605,9 +1615,10 @@
     return o;
   }
   function tryBreak(pill) {
-    var c = chance(pill), from = s.lv;
+    var c = chance(pill), from = s.lv, ok = P(c);
     s.wait = 0;
-    if (P(c)) {
+    ga("xx_break", { from: from, ok: ok ? 1 : 0, pill: pill ? 1 : 0 });
+    if (ok) {
       var old = skill();
       s.lv++; s.exp = 0; setLife(); full();
       var nsk = skill() !== old ? "學會新絕技「" + skill() + "」。" : "";
@@ -1658,6 +1669,7 @@
     var top = s.ascended ? 10 : s.lv;
     past.unshift({ n: s.name, a: s.age, p: s.path ? PATH[s.path].n : "", l: s.ascended ? "飛升仙界" : short(s.lv), d: s.dead,
       lv: s.ascended ? 10 : s.lv, pt: s.partner ? s.npc.pt : "", w: s.gear.w ? s.gear.w.n.replace("（前世）", "") : "" });
+    ga("xx_death", { cause: s.dead, quest_no: s.q, ascended: s.ascended ? 1 : 0, kids: (s.kids || []).length, sect_rank: s.sec ? s.sec.rank : -1 });
     var m = meta(), gainK = 1 + s.lv * 2 + (s.ascended ? 20 : 0) + Math.min(5, Math.floor(s.big.length / 3)) + (s.peace ? 3 : 0) + FX.karma();
     m.karma += gainK; m.offer = null; m.lives = (m.lives || 0) + 1;
     var cmsg = "";

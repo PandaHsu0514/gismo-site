@@ -1,1 +1,1 @@
-{ "layout": "story.njk", "noAds": true }
+{ "layout": "story.njk", "noAds": true, "noAnalytics": true }
