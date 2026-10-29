@@ -25,11 +25,11 @@ eleventyExcludeFromCollections: true
 - [{{ s.data.title }}]({{ site.url }}{{ s.url }})（{{ s.data.pages.length }} 頁）：{{ s.data.summary }}
 {%- endfor %}
 
-## 勇博開講（財經知識，僅供學習，非投資建議）
-{% for e in collections.finance %}
+## 勇博開講（科技、財經、民生時事解讀；財經內容僅供學習，非投資建議）
+{% for e in collections.talk %}
 - [{{ e.data.title }}]({{ site.url }}{{ e.url }})（{{ e.date | isoDate }}）：{{ e.data.summary }}
 {%- else %}
-- 整理中，列表頁：{{ site.url }}/finance/
+- 整理中，列表頁：{{ site.url }}/talk/
 {%- endfor %}
 
 ## 文獻筆記（學術論文閱讀摘要）

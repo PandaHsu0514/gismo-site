@@ -12,7 +12,7 @@
 
 {% macro feedRow(a) %}
 {%- set sec = a.url.split("/")[1] -%}
-{%- set label = { articles: a.data.kind, stories: "晚安故事", finance: "勇博開講", notes: "文獻筆記" }[sec] -%}
+{%- set label = { articles: a.data.kind, stories: "晚安故事", talk: "勇博開講", notes: "文獻筆記" }[sec] -%}
 <li class="entry">
   <time datetime="{{ a.date | isoDate }}">{{ a.date | ymd }}</time>
   <div>

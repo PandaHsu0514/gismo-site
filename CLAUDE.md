@@ -1,6 +1,6 @@
 # gismo.com.tw 個人網站
 
-網站名稱「勇博講古」。選單：勇博開講（財經，影片放 YouTube 嵌入）｜文獻筆記｜教學｜AI 小工具（`src/tools/`，純瀏覽器端工具）｜AI 遊樂場（小作品＋28 款遊戲）｜晚安故事（有聲繪本）｜關於（含學術著作，固定最後）。「文章」（原創＋好文分享，`/articles/`）頁面還在，但使用者要求不放在選單。請用繁體中文溝通。
+網站名稱「勇博講古」。選單：勇博開講（`/talk/`，科技／財經／民生時事解讀，影片放 YouTube 嵌入，front matter `category` 分類）｜文獻筆記｜教學｜AI 小工具（`src/tools/`，純瀏覽器端工具）｜AI 遊樂場（小作品＋28 款遊戲）｜晚安故事（有聲繪本）｜關於（含學術著作，固定最後）。「文章」（原創＋好文分享，`/articles/`）頁面還在，但使用者要求不放在選單。請用繁體中文溝通。
 
 設計：宣紙底、墨色字、朱紅印章（`.seal`），標題用 Noto Serif TC。
 
@@ -33,7 +33,7 @@
 ## 內容來源與規則
 - 晚安故事：來源 OpenClaw 的 `bedtime-story/picturebooks/`（外接碟），用繪本審核台核准上架（見下方）；只放完整版、不放樣本；「雲杉林裡小貘的靜靜風箏」「星霧果園裡小鸚鵡的晚安果籃」使用者認為品質不好，不要放；影片一律上傳 YouTube 再填 `youtube` 欄位，不把 MP4 放進網站
 - 文獻筆記：來源 `~/Documents/每日文獻閱讀/文獻讀書報告/`，以及 Google Drive（panda@esad.cc）`我的雲端硬碟/workspace/journal-reading-reports`、`journal-reading-reports 1`（本機路徑 `~/Library/CloudStorage/GoogleDrive-panda@esad.cc/`）。使用者同意全部公開；同一篇論文只留最完整的一份；不放使用者自己論文的筆記；匯入時去掉內部作業說明（選題理由、PDF 路徑等），「你」改成第一人稱；每篇要有中文標題（`title`），英文原題放 `paperTitle`；`category` 用 教育／管理／行銷／觀光／AI 應用／研究方法／理論
-- 財經內容（OpenClaw 的 `finance-learning-reports/`）2026-10-22 使用者決定**不放上 gismo.com.tw**，不要匯入；`src/finance/` 現有 6 篇草稿維持 `draft: true` 不發布
+- 財經內容（OpenClaw 的 `finance-learning-reports/`）2026-10-22 使用者決定**不放上 gismo.com.tw**，不要匯入；`src/talk/` 裡 6 篇 category 財經的舊草稿維持 `draft: true` 不發布
 - AdSense 尚未申請；兒童內容（晚安故事）不放廣告
 - gismo.com.tw 只做個人網站。使用者的 AI token 銷售業務會另外用別的網域經營，不要把販售 token、API 額度的內容放進這個網站
 

@@ -24,10 +24,10 @@ export default function (eleventyConfig) {
   eleventyConfig.addCollection("articles", (api) => api.getFilteredByGlob("src/articles/*.md").sort(byDate));
   eleventyConfig.addCollection("stories", (api) => api.getFilteredByGlob("src/stories/*.md").sort(byDate));
   eleventyConfig.addCollection("notes", (api) => api.getFilteredByGlob("src/notes/*.md").sort(byDate));
-  eleventyConfig.addCollection("finance", (api) => api.getFilteredByGlob("src/finance/*.md").filter(showDraft).sort(byDate));
+  eleventyConfig.addCollection("talk", (api) => api.getFilteredByGlob("src/talk/*.md").filter(showDraft).sort(byDate));
   // 首頁「最近講的」：文章、勇博開講、文獻筆記混在一起依日期排（晚安故事有自己的書架）
   eleventyConfig.addCollection("recent", (api) =>
-    api.getFilteredByGlob(["src/articles/*.md", "src/finance/*.md", "src/notes/*.md"]).filter((p) => !p.data.draft).sort(byDate));
+    api.getFilteredByGlob(["src/articles/*.md", "src/talk/*.md", "src/notes/*.md"]).filter((p) => !p.data.draft).sort(byDate));
   eleventyConfig.addCollection("tools", (api) => api.getFilteredByGlob("src/tools/*.njk").filter((p) => p.url !== "/tools/").sort((a, b) => (a.data.order || 99) - (b.data.order || 99)));
   eleventyConfig.addCollection("teaching", (api) => api.getFilteredByGlob("src/teaching/*.md").sort(byDate));
   eleventyConfig.addCollection("papers", (api) => api.getFilteredByGlob("src/papers/*.md").sort(byYear));

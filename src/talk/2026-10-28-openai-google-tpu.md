@@ -5,6 +5,7 @@ summary: "OpenAI 與 Google 是對手，卻可能成為晶片買家與賣家。�
 youtube: 20b7wWBKoLs
 vertical: true
 format: 每日頭條
+category: 科技
 aliases: ["/headlines/2026-10-28-openai-google-tpu/"]
 ---
 ## 一則看似矛盾的消息

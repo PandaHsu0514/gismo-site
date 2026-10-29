@@ -27,10 +27,10 @@ layout: base.njk
       <p>{{ site.bio }}</p>
       <a href="/about/">更多關於我 →</a>
     </section>
-    {% if collections.finance.length %}
+    {% if collections.talk.length %}
     <section class="side-block">
-      <div class="section-head"><h2>勇博開講</h2><a href="/finance/">全部 →</a></div>
-      <ul class="lessons">{% for e in collections.finance | first(3) %}<li class="lesson"><a href="{{ e.url }}"><span class="lesson-meta">{{ e.date | ymd }}</span><span class="lesson-title">{{ e.data.title }}</span></a></li>{% endfor %}</ul>
+      <div class="section-head"><h2>勇博開講</h2><a href="/talk/">全部 →</a></div>
+      <ul class="lessons">{% for e in collections.talk | first(3) %}<li class="lesson"><a href="{{ e.url }}"><span class="lesson-meta">{{ e.date | ymd }}</span><span class="lesson-title">{{ e.data.title }}</span></a></li>{% endfor %}</ul>
     </section>
     {% endif %}
     {% if collections.teaching.length %}

@@ -317,7 +317,7 @@ main > .grid, main > .papers { padding-bottom: 64px; }
 .note-disclaimer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; margin-top: 40px; }
 .kind.sec-stories { color: var(--blue, #3a6ea5); }
 .kind.sec-notes { color: var(--share); }
-.kind.sec-finance { color: #a07514; }
+.kind.sec-talk { color: #a07514; }
 
 /* 勇博開講 */
 .video { aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; margin: 0 0 28px; background: #000; }
