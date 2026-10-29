@@ -10,7 +10,17 @@ layout: base.njk
     {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
   </header>
   {% if youtube %}
-  <div class="video{% if vertical %} vertical{% endif %}"><iframe src="https://www.youtube-nocookie.com/embed/{{ youtube }}" title="{{ title }}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  {# 點了才載入 YouTube 播放器：沒按播放的訪客不用下載約 1MB 的播放器程式 #}
+  <div class="video{% if vertical %} vertical{% endif %}"><button type="button" class="yt-facade" data-src="https://www.youtube-nocookie.com/embed/{{ youtube }}?autoplay=1" data-title="{{ title }}" aria-label="播放影片：{{ title }}"><img src="https://i.ytimg.com/vi/{{ youtube }}/hqdefault.jpg" alt="" loading="lazy"><span class="yt-play" aria-hidden="true"></span></button></div>
+  <script>
+    document.querySelectorAll(".yt-facade").forEach((b) => b.addEventListener("click", () => {
+      const f = document.createElement("iframe");
+      f.src = b.dataset.src; f.title = b.dataset.title; f.allowFullscreen = true;
+      f.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen";
+      f.referrerPolicy = "strict-origin-when-cross-origin";
+      b.replaceWith(f);
+    }, { once: true }));
+  </script>
   {% endif %}
   <div class="prose">{{ content | safe }}</div>
   {% include "ad.njk" %}
