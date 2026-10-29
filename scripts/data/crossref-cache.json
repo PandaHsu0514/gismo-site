@@ -1471,5 +1471,23 @@
   "vol": "97",
   "issue": null,
   "page": "104724"
+ },
+ "10.1007/s11747-023-00986-8": {
+  "title": "Deploying artificial intelligence in services to AID vulnerable consumers",
+  "authors": "Erik Hermann, Gizem Yalcin Williams, Stefano Puntoni",
+  "journal": "Journal of the Academy of Marketing Science",
+  "year": 2023,
+  "vol": "52",
+  "issue": "5",
+  "page": "1431-1451"
+ },
+ "10.1007/s11628-023-00527-x": {
+  "title": "Perceived value of AI-based recommendations﻿ service: the case of voice assistants",
+  "authors": "K Akdim, Luis V. Casaló",
+  "journal": "Service Business",
+  "year": 2023,
+  "vol": "17",
+  "issue": "1",
+  "page": "81-112"
  }
 }
