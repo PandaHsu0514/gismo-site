@@ -8,12 +8,12 @@
 - 去掉內部作業說明（選題理由、PDF 路徑、paper-inbox 等），「你」改成第一人稱
 - 中文標題、分類讀報告開頭的「## 網站上架資訊」；沒寫的話用英文標題、依標題猜分類
 - 作者、期刊、年份用 DOI 向 Crossref 查（結果快取在 scripts/data/crossref-cache.json）
-- 讀書帳圖用 macOS 的 sips 縮成網頁大小的 JPEG
+- 讀書帳圖用 macOS 的 sips 縮成網頁大小的 JPEG（社群分享預覽用），再用 cwebp 轉一份 WebP 給網頁顯示（小一半多）
 
 用法：python3 scripts/import_notes.py [--dry-run]
 最後一行輸出 JSON：{"new": [{"slug", "title", "warning"}...]}
 """
-import glob, html, json, os, re, subprocess, sys, urllib.parse, urllib.request
+import glob, html, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -211,6 +211,9 @@ def main():
                 out = f"{SITE}/files/notes/{slug}.jpg"
                 subprocess.run(["sips", "-Z", "1100", "-s", "format", "jpeg", "-s", "formatOptions", "65", src_img, "--out", out], capture_output=True)
                 if os.path.exists(out):
+                    # launchd 的 PATH 沒有 Homebrew，所以補上預設路徑；轉不出來就整批失敗，避免網頁出現破圖
+                    cwebp = shutil.which("cwebp") or "/opt/homebrew/bin/cwebp"
+                    subprocess.run([cwebp, "-quiet", "-q", "78", "-m", "6", "-metadata", "none", out, "-o", out[:-4] + ".webp"], check=True)
                     fm["card"] = f"/files/notes/{slug}.jpg"
             with open(f"{SITE}/notes/{slug}.md", "w") as fh:
                 fh.write("---json\n" + json.dumps(fm, ensure_ascii=False, indent=1) + "\n---\n\n" + "\n\n".join(keep) + "\n")

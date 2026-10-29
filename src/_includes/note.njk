@@ -18,7 +18,7 @@ layout: base.njk
   </dl>
   {% if card %}
   <figure class="study-card">
-    <a href="{{ card }}" target="_blank" rel="noopener"><img src="{{ card }}" alt="{{ title }} 讀書帳圖卡" loading="lazy"></a>
+    <a href="{{ card | replace(".jpg", ".webp") }}" target="_blank" rel="noopener"><img src="{{ card | replace(".jpg", ".webp") }}" alt="{{ title }} 讀書帳圖卡" loading="lazy"></a>
     <figcaption>讀書帳：一張圖看懂這篇（點圖放大）</figcaption>
   </figure>
   {% endif %}

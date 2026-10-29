@@ -11,7 +11,7 @@ fail() { echo "失敗：$1"; notify "文獻筆記上架失敗" "$1"; exit 1; }
 echo "=== $(date '+%Y-%m-%d %H:%M') 開始"
 git pull --rebase --autostash -q || fail "git pull 失敗"
 
-result=$(python3 scripts/import_notes.py) || fail "匯入程式出錯"
+result=$(python3 scripts/import_notes.py) || { git checkout -- src/notes src/files/notes 2>/dev/null; git clean -fdq src/notes src/files/notes; fail "匯入程式出錯，已撤回"; }
 echo "$result"
 count=$(echo "$result" | tail -1 | python3 -c "import json,sys; print(len(json.load(sys.stdin).get('new', [])))")
 [ "$count" = "0" ] && { echo "沒有新筆記"; exit 0; }
