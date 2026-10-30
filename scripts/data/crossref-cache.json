@@ -1489,5 +1489,14 @@
   "vol": "17",
   "issue": "1",
   "page": "81-112"
+ },
+ "10.1016/j.compedu.2025.105448": {
+  "title": "Towards reliable generative AI-driven scaffolding: Reducing hallucinations and enhancing quality in self-regulated learning support",
+  "authors": "Keyang Qian, Shiqi Liu, Tongguang Li, Mladen Raković, Xinyu Li, Rui Guan, Inge Molenaar, Sadia Nawaz, Zachari Swiecki, Lixiang Yan, Dragan Gašević",
+  "journal": "Computers & Education",
+  "year": 2026,
+  "vol": "240",
+  "issue": null,
+  "page": "105448"
  }
 }
