@@ -1507,5 +1507,14 @@
   "vol": "98",
   "issue": null,
   "page": "104765"
+ },
+ "10.1016/j.dss.2026.114704": {
+  "title": "Designing AI-based decision support systems for carbon stock estimation and planning: A design science research",
+  "authors": "Amelia S. Li, Shan L. Pan, Yenni Tim, Hoang D. Nguyen",
+  "journal": "Decision Support Systems",
+  "year": 2026,
+  "vol": "208",
+  "issue": null,
+  "page": "114704"
  }
 }
