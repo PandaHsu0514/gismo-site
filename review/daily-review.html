@@ -1,0 +1,242 @@
+<title>勇博講古每日審核</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+/* 版面：一欄的審核清單，像書房案頭的待批公文；每張卡片一個決定，按鈕在拇指好按的位置 */
+:root {
+  --paper: #f4efe4;      /* 宣紙底 */
+  --sheet: #fffcf5;      /* 卡片 */
+  --ink: #2a251f;        /* 墨色字 */
+  --ink-soft: #6f665a;   /* 次要文字 */
+  --rule: #e2d8c5;       /* 細線 */
+  --seal: #b2372a;       /* 朱紅印章 */
+  --seal-ink: #ffffff;
+  --jade: #2f6f4e;       /* 通過／同意 */
+  --amber: #a36a12;      /* 提醒 */
+  --wash: #efe6d3;       /* 淡底 */
+  --serif: "Noto Serif TC", "Songti TC", serif;
+  --sans: "Noto Sans TC", -apple-system, "PingFang TC", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #1b1915; --sheet: #24211b; --ink: #ece4d4; --ink-soft: #a89d8b; --rule: #3a352c;
+  --seal: #e07562; --seal-ink: #1b1915; --jade: #7cc49b; --amber: #e2b15c; --wash: #2c2820; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #1b1915; --sheet: #24211b; --ink: #ece4d4; --ink-soft: #a89d8b; --rule: #3a352c;
+  --seal: #e07562; --seal-ink: #1b1915; --jade: #7cc49b; --amber: #e2b15c; --wash: #2c2820; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.75 var(--sans); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 64px; }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); display: flex; align-items: center; gap: 12px; padding-block: 12px; border-bottom: 1px solid var(--rule); }
+.seal { flex: none; width: 40px; height: 40px; display: grid; place-items: center; background: var(--seal); color: var(--seal-ink); font: 700 13px/1.1 var(--serif); border-radius: 4px; text-align: center; letter-spacing: .05em; }
+header.top h1 { margin: 0; font: 700 20px/1.3 var(--serif); text-wrap: balance; }
+header.top .run { font-size: 12.5px; color: var(--ink-soft); }
+nav.tabs { display: flex; gap: 6px; margin: 14px 0 6px; overflow-x: auto; }
+nav.tabs button { flex: none; font: 500 14px var(--sans); border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+nav.tabs .n { font-variant-numeric: tabular-nums; opacity: .7; margin-left: 4px; }
+.empty { margin-top: 18px; padding: 22px 18px; border: 1px dashed var(--rule); border-radius: 10px; color: var(--ink-soft); }
+.list { display: grid; gap: 16px; margin-top: 12px; }
+article.item { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.kind { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink-soft); letter-spacing: .04em; }
+.chip { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1px solid var(--rule); font-size: 12px; }
+.chip.paper { color: var(--seal); border-color: var(--seal); }
+.chip.book { color: var(--jade); border-color: var(--jade); }
+.chip.warn { color: var(--amber); border-color: var(--amber); }
+.chip.state-approved, .chip.state-published { color: var(--jade); border-color: var(--jade); }
+.chip.state-rejected, .chip.state-failed { color: var(--seal); border-color: var(--seal); }
+article h2 { margin: 0; font: 700 19px/1.45 var(--serif); text-wrap: balance; overflow-wrap: anywhere; }
+.sub { margin: 0; color: var(--ink-soft); font-size: 14px; overflow-wrap: anywhere; }
+.summary { margin: 0; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 14px; }
+.checks li::before { content: "✓ "; color: var(--jade); font-weight: 700; }
+.checks li.fail::before { content: "✗ "; color: var(--seal); }
+.checks .d { color: var(--ink-soft); }
+.strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.strip figure { margin: 0; flex: none; font-size: 11.5px; color: var(--ink-soft); text-align: center; font-variant-numeric: tabular-nums; }
+.strip img { display: block; height: 168px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 6px; background: var(--wash); max-width: none; }
+details { border-top: 1px solid var(--rule); padding-top: 8px; }
+summary { cursor: pointer; color: var(--ink-soft); font-size: 14px; }
+.prose { font-size: 15.5px; overflow-wrap: anywhere; max-width: 65ch; }
+.prose h3 { font: 700 16px/1.5 var(--serif); margin: 16px 0 4px; }
+.prose p, .prose ul, .prose blockquote { margin: 6px 0; }
+.prose ul { padding-left: 1.2em; }
+.prose blockquote { border-left: 3px solid var(--rule); padding-left: 10px; color: var(--ink-soft); }
+.pages { display: grid; gap: 4px; font-size: 15px; max-height: 360px; overflow: auto; }
+.pages p { margin: 0; display: grid; grid-template-columns: 2.4em 1fr; gap: 6px; }
+.pages .pn { color: var(--ink-soft); text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; padding-top: 2px; }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--ink-soft); }
+.field input { font: 16px var(--sans); padding: 8px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); width: 100%; }
+.field input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--seal); outline-offset: 2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.act { font: 600 15px var(--sans); padding: 10px 18px; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); cursor: pointer; min-height: 44px; }
+button.act.go { background: var(--seal); border-color: var(--seal); color: var(--seal-ink); }
+button.act:disabled { opacity: .45; cursor: not-allowed; }
+.confirm { display: grid; gap: 8px; padding: 12px; background: var(--wash); border-radius: 8px; }
+.confirm textarea { font: 15px/1.6 var(--sans); padding: 8px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); min-height: 72px; resize: vertical; width: 100%; }
+.note { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+.note.bad { color: var(--seal); }
+.result a { color: var(--seal); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); z-index: 20; }
+@media (prefers-reduced-motion: no-preference) { article.item { transition: opacity .2s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="seal" aria-hidden="true">勇博<br>審核</div>
+    <div>
+      <h1>每日上架審核</h1>
+      <div class="run" id="run">連線中…</div>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" aria-label="分類">
+    <button type="button" data-tab="pending" aria-selected="true">待審<span class="n" id="n-pending"></span></button>
+    <button type="button" data-tab="decided" aria-selected="false">已決定<span class="n" id="n-decided"></span></button>
+    <button type="button" data-tab="done" aria-selected="false">已上架<span class="n" id="n-done"></span></button>
+    <button type="button" data-tab="brief" aria-selected="false">晨報</button>
+  </nav>
+  <main id="main">
+    <div class="empty" id="boot">正在讀取今天的待審內容。論文與繪本由 Mac 上的排程每天 07:30、21:30 整理進來，你在這裡按「同意上架」，下一次排程就會推上 gismo.com.tw。</div>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>");
+  // 報告與晨報是 Markdown：只處理標題、清單、引言、粗體，其餘當段落
+  function md(text) {
+    const out = []; let list = null;
+    for (const raw of String(text || "").split("\n")) {
+      const line = raw.trimEnd();
+      if (/^\s*[-*] /.test(line)) { if (!list) { list = []; } list.push(`<li>${inline(line.replace(/^\s*[-*] /, ""))}</li>`); continue; }
+      if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; }
+      if (!line.trim() || /^---+$/.test(line)) continue;
+      const h = line.match(/^#{1,4} (.+)/);
+      if (h) out.push(`<h3>${inline(h[1])}</h3>`);
+      else if (line.startsWith(">")) out.push(`<blockquote>${inline(line.replace(/^>\s?/, ""))}</blockquote>`);
+      else out.push(`<p>${inline(line)}</p>`);
+    }
+    if (list) out.push(`<ul>${list.join("")}</ul>`);
+    return out.join("");
+  }
+  const STATE = { pending: "待審", approved: "已同意，等 Mac 上架", rejected: "已退回", published: "已上架", failed: "上架失敗" };
+  let db = null, items = [], meta = null, tab = "pending", openForm = null, loaded = false;
+  try { tab = localStorage.getItem("tab") || "pending"; } catch {}
+
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => (t.hidden = true), 3200); }
+  const fmt = (iso) => { try { return new Date(iso).toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return iso; } };
+
+  function card(it) {
+    const kindChip = it.kind === "paper" ? `<span class="chip paper">論文筆記</span><span>${esc(it.category || "")}</span>` : `<span class="chip book">晚安故事</span><span>${it.pages || 0} 頁</span>`;
+    const stateChip = it.status !== "pending" ? `<span class="chip state-${esc(it.status)}">${esc(STATE[it.status] || it.status)}</span>` : "";
+    const warn = it.warning ? `<span class="chip warn">${esc(it.warning)}</span>` : "";
+    let body = "";
+    if (it.kind === "paper") {
+      body = `<p class="sub">${esc(it.paperTitle)}<br>${esc(it.authors)}${it.year ? `（${esc(it.year)}）` : ""}・${esc(it.journal)}${it.doi ? `・DOI ${esc(it.doi)}` : ""}</p>
+        <p class="summary">${esc(it.summary)}</p>
+        <details><summary>看網頁上會出現的全文</summary><div class="prose">${md(it.body)}</div></details>`;
+    } else {
+      const checks = (it.checks || []).map((c) => `<li class="${c.pass ? "" : "fail"}">${esc(c.label)} <span class="d">${esc(c.detail)}</span></li>`).join("");
+      const strip = (it.thumbs || []).map((t) => `<figure><img src="${esc(t.url)}" alt="第 ${t.page} 頁插圖" loading="lazy"><figcaption>p${t.page}</figcaption></figure>`).join("");
+      const pages = (it.texts || []).map((t, i) => `<p><span class="pn">${i + 1}</span><span>${esc(t)}</span></p>`).join("");
+      body = `${strip ? `<div class="strip">${strip}</div>` : ""}<ul class="checks">${checks}</ul>
+        <details><summary>逐頁文字（${(it.texts || []).length} 頁）</summary><div class="pages">${pages}</div></details>`;
+    }
+    let actions = "";
+    if (it.status === "pending") {
+      const blocked = it.kind === "book" && !it.passed;
+      if (openForm && openForm.id === it._id) {
+        const approve = openForm.mode === "approve";
+        actions = `<div class="confirm">
+          ${approve && it.kind === "paper" ? `<label class="field" for="t-${it._id}">網頁標題（可改）<input id="t-${it._id}" value="${esc(it.title)}"></label>` : ""}
+          ${approve ? "" : `<label class="field" for="r-${it._id}">退回原因（會留給 Spark 參考）<textarea id="r-${it._id}" placeholder="例如：插圖有一張畫錯角色"></textarea></label>`}
+          <p class="note">${approve ? "按下確認後，下一次 Mac 排程（07:30 或 21:30）會把它推上 gismo.com.tw。" : "退回後不會再出現在待審清單。"}</p>
+          <div class="actions"><button type="button" class="act go" data-do="${approve ? "approve" : "reject"}" data-id="${it._id}">${approve ? "確認同意上架" : "確認退回"}</button><button type="button" class="act" data-do="cancel">取消</button></div></div>`;
+      } else {
+        actions = `<div class="actions"><button type="button" class="act go" data-do="open-approve" data-id="${it._id}" ${blocked ? "disabled" : ""}>同意上架</button><button type="button" class="act" data-do="open-reject" data-id="${it._id}">退回</button></div>
+          ${blocked ? `<p class="note bad">自動檢查沒全過，不能上架；請退回讓 Spark 重做。</p>` : ""}`;
+      }
+    } else if (it.status === "approved" || it.status === "rejected") {
+      const d = it.decision || {};
+      actions = `<p class="note">${esc(STATE[it.status])}${d.at ? `・${esc(fmt(d.at))}` : ""}${d.note ? `・原因：${esc(d.note)}` : ""}</p>
+        <div class="actions"><button type="button" class="act" data-do="undo" data-id="${it._id}">改回待審</button></div>`;
+    } else {
+      const r = it.result || {};
+      actions = `<p class="note result ${it.status === "failed" ? "bad" : ""}">${it.status === "published" ? `已上架${r.at ? `・${esc(fmt(r.at))}` : ""}${r.url ? `・<a href="${esc(r.url)}" target="_blank" rel="noopener">在網站上看</a>` : ""}` : `上架失敗：${esc(r.error || "原因不明")}`}</p>
+        ${it.status === "failed" ? `<div class="actions"><button type="button" class="act" data-do="retry" data-id="${it._id}">再試一次</button></div>` : ""}`;
+    }
+    return `<article class="item" id="item-${it._id}"><div class="kind">${kindChip}<span>${esc(it.date)}</span>${warn}${stateChip}</div><h2>${esc(it.decision?.title || it.title)}</h2>${body}${actions}</article>`;
+  }
+
+  function render() {
+    const by = (s) => items.filter((it) => s.includes(it.status));
+    const groups = { pending: by(["pending"]), decided: by(["approved", "rejected", "failed"]), done: by(["published"]) };
+    for (const k of Object.keys(groups)) $(`#n-${k}`).textContent = groups[k].length;
+    for (const b of document.querySelectorAll("#tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
+    const main = $("#main");
+    if (!loaded) return;
+    if (tab === "brief") {
+      main.innerHTML = meta?.brief ? `<article class="item"><div class="kind"><span class="chip">晨報</span><span>${esc(meta.brief.date)}</span><span>只供閱讀，不上網站</span></div><div class="prose">${md(meta.brief.body)}</div></article>`
+        : `<div class="empty">今天的晨報還沒整理進來。Spark 每天 06:00 寫好晨報，07:30 的排程會把它放到這裡。</div>`;
+      return;
+    }
+    const list = groups[tab].sort((a, b) => (b.date || "").localeCompare(a.date || "") || (a.kind > b.kind ? 1 : -1));
+    const emptyText = { pending: "目前沒有待審的論文或繪本。Spark 有新產出時，下一次排程會整理進來。", decided: "還沒有做過決定的項目。", done: "還沒有透過這裡上架的內容。" }[tab];
+    main.innerHTML = list.length ? `<div class="list">${list.map(card).join("")}</div>` : `<div class="empty">${emptyText}</div>`;
+  }
+
+  async function write(id, data, msg) {
+    try { await db.doc(`items/${id}`).update(data); openForm = null; toast(msg); }
+    catch (e) { toast(e?.code === "not_granted" || e?.code === "permission_denied" ? "你沒有權限修改這份清單。" : `沒存成功，請再按一次（${e?.code || "錯誤"}）`); }
+  }
+
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.tab) { tab = b.dataset.tab; openForm = null; try { localStorage.setItem("tab", tab); } catch {} render(); return; }
+    const id = b.dataset.id, now = new Date().toISOString();
+    switch (b.dataset.do) {
+      case "open-approve": openForm = { id, mode: "approve" }; render(); break;
+      case "open-reject": openForm = { id, mode: "reject" }; render(); $(`#r-${id}`)?.focus(); break;
+      case "cancel": openForm = null; render(); break;
+      case "approve": {
+        const t = $(`#t-${id}`)?.value.trim();
+        const it = items.find((x) => x._id === id);
+        await write(id, { status: "approved", decision: { at: now, ...(t && t !== it.title ? { title: t } : {}) } }, "已同意，下一次排程會上架");
+        break;
+      }
+      case "reject": {
+        const note = $(`#r-${id}`)?.value.trim();
+        if (!note) { toast("請寫一句退回原因"); $(`#r-${id}`)?.focus(); return; }
+        await write(id, { status: "rejected", decision: { at: now, note } }, "已退回");
+        break;
+      }
+      case "undo": await write(id, { status: "pending", decision: null }, "已改回待審"); break;
+      case "retry": await write(id, { status: "approved", result: null }, "已重新排入上架"); break;
+    }
+  });
+
+  (window.claude?.use ? window.claude.use("db") : Promise.resolve(null)).then((handle) => {
+    if (!handle) { $("#run").textContent = "這個畫面需要登入 claude.ai 才能讀取清單"; $("#boot").textContent = "目前讀不到審核清單。請用 claude.ai 登入後再開這一頁。"; return; }
+    db = handle;
+    const timer = setTimeout(() => { if (!items.length) $("#run").textContent = "清單讀取較慢，請稍候或重新整理"; }, 10000);
+    db.collection("items").onSnapshot((snap) => {
+      clearTimeout(timer);
+      items = snap.docs.map((d) => ({ _id: d.id, ...d.data() })); loaded = true;
+      render();
+    }, (err) => { clearTimeout(timer); $("#run").textContent = `清單讀取失敗（${err?.code || "錯誤"}），請重新整理`; });
+    db.doc("meta/status").onSnapshot((d) => {
+      meta = d.exists ? d.data() : null;
+      $("#run").textContent = meta?.lastRun ? `Mac 上次整理：${fmt(meta.lastRun)}${meta.message ? `・${meta.message}` : ""}` : "等待 Mac 第一次整理";
+      if (tab === "brief") render();
+    }, () => {});
+  });
+  render();
+})();
+</script>

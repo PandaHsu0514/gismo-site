@@ -10,8 +10,8 @@
 - 作者、期刊、年份用 DOI 向 Crossref 查（結果快取在 scripts/data/crossref-cache.json）
 - 讀書帳圖用 macOS 的 sips 縮成網頁大小的 JPEG（社群分享預覽用），再用 cwebp 轉一份 WebP 給網頁顯示（小一半多）
 
-用法：python3 scripts/import_notes.py [--dry-run]
-最後一行輸出 JSON：{"new": [{"slug", "title", "warning"}...]}
+用法：python3 scripts/import_notes.py [--dry-run] [--only 報告檔名 ...]
+最後一行輸出 JSON：{"new": [{"slug", "title", "warning", "file"}...]}；--dry-run 時另附 fm（front matter）與 body（網頁內文）供審核預覽
 """
 import glob, html, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
 from collections import defaultdict
@@ -21,9 +21,15 @@ SITE = os.path.join(ROOT, "src")
 CACHE = os.path.join(ROOT, "scripts", "data", "crossref-cache.json")
 # OpenClaw 2026-10-11 起把 workspace 搬到外接碟（Drive 只剩舊報告，而且只在雲端的檔案背景讀不到、會卡住）
 # 可用環境變數 NOTES_SOURCE 指到別的資料夾，多個用「:」分隔（例如臨時加讀 Drive）
-SOURCES = (os.environ.get("NOTES_SOURCE") or "/Volumes/mac Ds - Data/Offload/openclaw/workspace").split(":")
+# 2026-11 起改由 Spark 產出、寫到 Google Drive；外接碟（OpenClaw 舊 workspace）保留當備援，同一篇照常去重
+# Drive 的檔案只能在一般 App（例如 Claude 排程）裡讀，launchd 背景讀會出 Errno 11，所以不要再用 launchd 跑
+SOURCES = (os.environ.get("NOTES_SOURCE") or
+           os.path.expanduser("~/Library/CloudStorage/GoogleDrive-panda@esad.cc/我的雲端硬碟/workspace") +
+           ":/Volumes/mac Ds - Data/Offload/openclaw/workspace").split(":")
 DIRS = ["journal-reading-reports", "journal-reading-reports 1"]
 DRY = "--dry-run" in sys.argv
+# --only <報告檔名>：只匯入這一篇（每日審核同意哪篇才上架哪篇）；可重複
+ONLY = {sys.argv[i + 1] for i, a in enumerate(sys.argv) if a == "--only" and i + 1 < len(sys.argv)}
 
 CATS = ["教育", "管理", "行銷", "觀光", "AI 應用", "研究方法", "理論"]
 TOPIC = {"education": "教育", "management": "管理", "marketing": "行銷", "tourism": "觀光", "methods": "研究方法",
@@ -65,6 +71,15 @@ def guess_category(title):
     if re.search(r"hrm|human resource|leader|organi[sz]ation|team|employee|work|job|talent|career|occupation|management|firm|supply chain|entrepreneur", t): return "管理"
     if re.search(r"review|meta-analysis|scale|method|replication|simulation", t): return "研究方法"
     return "AI 應用"
+
+
+ZH_NUM = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9, "十": 10, "十一": 11, "十二": 12}
+
+
+def convert_duan_format(s):
+    """Spark 版報告（## 第一段：研究背景與動機）轉成編號段落（## 1. 研究背景與動機）"""
+    return re.sub(r"^(#{2,3}) 第([一二三四五六七八九十]{1,3})段[：:]\s*(.+)$",
+                  lambda m: f"{m.group(1)} {ZH_NUM.get(m.group(2), m.group(2))}. {m.group(3).strip()}", s, flags=re.M)
 
 
 def convert_old_format(s):
@@ -157,7 +172,7 @@ def main():
                 raw = open(f"{d}/{f}", encoding="utf-8").read()
             except OSError as e:  # Drive 只在雲端的檔案，背景執行時讀不到（Errno 11）
                 print(f"略過（讀不到）：{d}/{f}：{e}", file=sys.stderr); continue
-            s = convert_old_format(raw)
+            s = convert_duan_format(convert_old_format(raw))
             m = re.search(r"10\.\d{4,9}/[^\s\)\]，,。>\"]+", raw)
             doi = m.group(0).lower().rstrip("*`)。.,;'\"") if m else ""
             groups[doi or norm(f[11:])].append(dict(dir=d, file=f, s=s, raw=raw, doi=doi, date=f[:10],
@@ -177,6 +192,8 @@ def main():
         if re.match(r"\d{4}-\d\d-\d\d", en_title):
             en_title = best["file"][11:-3]
         if norm(en_title) in skip_title:
+            continue
+        if ONLY and best["file"] not in ONLY:
             continue
         keep = clean_sections(s)
         if len(keep) < 5:
@@ -218,7 +235,8 @@ def main():
             with open(f"{SITE}/notes/{slug}.md", "w") as fh:
                 fh.write("---json\n" + json.dumps(fm, ensure_ascii=False, indent=1) + "\n---\n\n" + "\n\n".join(keep) + "\n")
         skip_title.add(norm(en_title))
-        new.append({"slug": slug, "title": fm["title"], "warning": warning})
+        new.append({"slug": slug, "title": fm["title"], "warning": warning, "file": best["file"],
+                    **({"fm": fm, "body": "\n\n".join(keep)} if DRY else {})})
 
     if not DRY:
         json.dump(cache, open(CACHE, "w"), ensure_ascii=False, indent=1)
