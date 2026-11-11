@@ -31,7 +31,7 @@ jobs:
       # 跟 actions/upload-pages-artifact@v4 做的事一樣，但保留 .well-known（官方版本會把點開頭的資料夾全部排除）
       - name: 打包網站
         run: tar --dereference --hard-dereference --directory _site -cvf "$RUNNER_TEMP/artifact.tar" --exclude=.git --exclude=.github .
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: github-pages
           path: ${{ runner.temp }}/artifact.tar
