@@ -1516,5 +1516,59 @@
   "vol": "208",
   "issue": null,
   "page": "114704"
+ },
+ "10.1016/j.tourman.2023.104820": {
+  "title": "Current issues in tourism: Mitigating climate change in sustainable tourism research",
+  "authors": "Paul Peeters, Erdinç Çakmak, Jo Guiver",
+  "journal": "Tourism Management",
+  "year": 2024,
+  "vol": "100",
+  "issue": null,
+  "page": "104820"
+ },
+ "10.1186/s43093-025-00423-y": {
+  "title": "Anthropomorphism in artificial intelligence: a game-changer for brand marketing",
+  "authors": "Sofia Gomes, João M. Lopes, Elisabete Nogueira",
+  "journal": "Future Business Journal",
+  "year": 2025,
+  "vol": "11",
+  "issue": "1",
+  "page": "2"
+ },
+ "10.1108/ebr-11-2025-0402": {
+  "title": "Promoting responsible tourism using generative AI nudges",
+  "authors": "Nida Shamim, Arnab Banerjee, Suraksha Gupta, Clarinda Jansberg, Deep Sagar Verma, Matthew Shin",
+  "journal": "European Business Review",
+  "year": 2026,
+  "vol": null,
+  "issue": null,
+  "page": "1-63"
+ },
+ "10.3389/fpsyg.2022.895136": {
+  "title": "Stimulating Tourist Inspiration by Tourist Experience: The Moderating Role of Destination Familiarity",
+  "authors": "Jianping Xue, Zhimin Zhou, Salman Majeed, Ruixia Chen, Nan Zhou",
+  "journal": "Frontiers in Psychology",
+  "year": 2022,
+  "vol": "13",
+  "issue": null,
+  "page": "895136"
+ },
+ "10.1057/s41599-026-08421-3": {
+  "title": "From intuition to evidence: the influence of environmental forces, technology and organizational competence on HR analytics adoption in organizations",
+  "authors": "Gangaram Biswakarma, Sisam Bajgain",
+  "journal": "Humanities and Social Sciences Communications",
+  "year": 2026,
+  "vol": null,
+  "issue": null,
+  "page": null
+ },
+ "10.1007/s10758-026-09967-6": {
+  "title": "Understanding and Modeling Technology Adoption in a New Era: A Cross-Sectional Study on Higher Education Teachers’ Adoption and Use of Generative Artificial Intelligence",
+  "authors": "Izabella Jedel, Adam Palmquist, Miralem Helmefalk",
+  "journal": "Technology, Knowledge and Learning",
+  "year": 2026,
+  "vol": "31",
+  "issue": "4",
+  "page": "2315-2332"
  }
 }
