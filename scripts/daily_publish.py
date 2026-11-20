@@ -4,7 +4,8 @@
 用法：python3 scripts/daily_publish.py <decisions.json>
 decisions.json：{"approved": [item...], "rejected": [item...]}，item 是審核頁 items 集合的文件（至少有 _id、key、kind、title、date，
 論文另有 file，繪本另有 path；decision.title 是使用者改過的網頁標題，decision.note 是退回原因）。
-最後一行輸出 JSON：{"results": [{"_id", "status": "published"|"failed"|"rejected", "url"?, "error"?}], "sha"?}
+每次執行也會匯入新的每日晨報（不用審核，2026-11-20 使用者決定公開精簡版，見 import_briefings.py）。
+最後一行輸出 JSON：{"results": [{"_id", "status": "published"|"failed"|"rejected", "url"?, "error"?}], "briefings": {"new", "skipped"}, "sha"?}
 由 Claude 排程呼叫（它負責讀寫審核頁的資料庫）；Drive 的檔案要在一般 App 裡讀，所以不要用 launchd 跑。
 """
 import json, os, re, subprocess, sys, tempfile
@@ -109,6 +110,16 @@ def main():
         except Exception as e:
             results.append({"_id": it["_id"], "status": "failed", "error": str(e)[:300]})
     out = {"results": results}
+    # 每日晨報：不經審核頁，有新的就跟著這次一起推
+    before = changed_paths()
+    r = sh(sys.executable, "scripts/import_briefings.py", timeout=600)
+    try:
+        out["briefings"] = json.loads(r.stdout.strip().splitlines()[-1])
+    except Exception:
+        out["briefings"] = {"new": [], "skipped": [], "error": (r.stderr or r.stdout)[-300:]}
+    if out["briefings"]["new"]:
+        paths |= changed_paths() - before
+        titles.append(f"每日晨報 {len(out['briefings']['new'])} 篇")
     if paths:
         with tempfile.TemporaryDirectory() as tmp:  # 整個網站建置得起來才推
             b = sh("npx", "--no-install", "eleventy", f"--output={tmp}", timeout=600)
@@ -116,6 +127,8 @@ def main():
             for r in results:
                 if r["status"] == "published":
                     r.update(status="failed", error="網站建置失敗，這次沒有推上去：" + (b.stderr or b.stdout)[-200:])
+            if out["briefings"]["new"]:
+                out["briefings"]["error"] = "網站建置失敗，晨報這次沒有推上去"
             rollback(sorted(paths))
             print(json.dumps(out, ensure_ascii=False)); return
         paths = sorted(p for p in paths if os.path.exists(f"{ROOT}/{p}"))
@@ -127,6 +140,8 @@ def main():
             for r in results:
                 if r["status"] == "published":
                     r.update(status="failed", error="git commit／push 失敗：" + (p.stderr or p.stdout)[-200:])
+            if out["briefings"]["new"]:
+                out["briefings"]["error"] = "git commit／push 失敗，晨報這次沒有推上去"
             if c.returncode == 0:
                 sh("git", "reset", "-q", "--soft", "HEAD~1")  # 還沒推出去的 commit 撤回
             sh("git", "reset", "-q", "--", *paths)

@@ -1,0 +1,22 @@
+---
+layout: base.njk
+title: 每日晨報
+description: 每天早上整理 5 則國際、台灣與科技的重要新聞，附上對產業與經濟的影響。
+permalink: /briefings/
+---
+<section class="page-head">
+  <h1>每日晨報</h1>
+  <p class="lead">每天早上 5 則重要新聞：國際、台灣、科技與經濟，一次看懂發生什麼事、可能有什麼影響。</p>
+</section>
+<ol class="entries list-page" id="briefList">
+  {%- for b in collections.briefings %}
+  <li class="entry">
+    <time datetime="{{ b.date | isoDate }}">{{ b.date | ymd }}</time>
+    <div>
+      <h3><a href="{{ b.url }}">{{ b.data.title }}</a></h3>
+      <p class="summary">{{ b.data.summary }}</p>
+    </div>
+  </li>
+  {%- endfor %}
+</ol>
+<p class="note-disclaimer list-page">晨報為新聞資訊整理，由 AI 協助摘要，不構成任何投資建議。</p>

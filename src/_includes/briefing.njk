@@ -1,0 +1,13 @@
+---
+layout: base.njk
+---
+<article class="reading">
+  <p class="crumb"><a href="/briefings/">← 每日晨報</a></p>
+  <header class="reading-head">
+    <p class="kind">每日晨報・<time datetime="{{ page.date | isoDate }}">{{ page.date | ymd }}</time></p>
+    <h1>{{ title }}</h1>
+  </header>
+  <div class="prose">{{ content | safe }}</div>
+  {% include "ad.njk" %}
+  <p class="note-disclaimer">本晨報為新聞資訊整理，不構成任何投資建議，也不推薦買賣特定標的。</p>
+</article>

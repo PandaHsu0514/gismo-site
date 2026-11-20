@@ -1,6 +1,6 @@
 # gismo.com.tw 個人網站
 
-網站名稱「勇博講古」。選單：勇博開講（`/talk/`，科技／財經／民生時事解讀，影片放 YouTube 嵌入，front matter `category` 分類）｜文獻筆記｜教學｜AI 小工具（`src/tools/`，純瀏覽器端工具）｜AI 遊樂場（小作品＋28 款遊戲）｜晚安故事（有聲繪本）｜關於（含學術著作，固定最後）。「文章」（原創＋好文分享，`/articles/`）頁面還在，但使用者要求不放在選單。請用繁體中文溝通。
+網站名稱「勇博講古」。選單：勇博開講（`/talk/`，科技／財經／民生時事解讀，影片放 YouTube 嵌入，front matter `category` 分類）｜每日晨報（`/briefings/`，晨報公開精簡版，每日自動上架）｜文獻筆記｜AI 小工具（`src/tools/`，純瀏覽器端工具）｜AI 遊樂場（小作品＋28 款遊戲）｜晚安故事（有聲繪本）｜關於（含學術著作，固定最後）。「文章」（原創＋好文分享，`/articles/`）和「教學」（`/teaching/`，2026-11-20 拿掉）頁面還在，但使用者要求不放在選單。請用繁體中文溝通。
 
 設計：宣紙底、墨色字、朱紅印章（`.seal`），標題用 Noto Serif TC。
 
@@ -15,7 +15,7 @@
 - GitHub：`PandaHsu0514/gismo-site`（公開），gh CLI 已登入 PandaHsu0514
 - 推到 `main` → GitHub Actions 自動部署到 GitHub Pages，約 1 分鐘後在 https://gismo.com.tw 生效
 - 自訂網域已設定；不要再設 `PATH_PREFIX` repo 變數（那只在用 github.io 子路徑時需要）
-- commit／push 前先跟使用者確認。例外：使用者在每日審核頁按「同意」的論文與繪本，由每日審核排程匯入並推送（見下方「每日上架審核」）
+- commit／push 前先跟使用者確認。例外：使用者在每日審核頁按「同意」的論文與繪本，以及每日晨報精簡版，由每日審核排程匯入並推送（見下方「每日上架審核」）
 
 ## DNS（GoDaddy）
 - 網站：`@` A 記錄 ×4 指向 GitHub（185.199.108–111.153），`www` CNAME → pandahsu0514.github.io
@@ -35,12 +35,13 @@
 - 晚安故事：來源 OpenClaw 的 `bedtime-story/picturebooks/`（外接碟），用繪本審核台核准上架（見下方）；只放完整版、不放樣本；「雲杉林裡小貘的靜靜風箏」「星霧果園裡小鸚鵡的晚安果籃」使用者認為品質不好，不要放；不把 MP4 放進網站；2026-10-29 使用者決定繪本**不上傳 YouTube**，`youtube` 欄位留空，網站只放互動版（插圖 WebP＋旁白音檔）
 - 文獻筆記：來源 `~/Documents/每日文獻閱讀/文獻讀書報告/`，以及 Google Drive（panda@esad.cc）`我的雲端硬碟/workspace/journal-reading-reports`、`journal-reading-reports 1`（本機路徑 `~/Library/CloudStorage/GoogleDrive-panda@esad.cc/`）。使用者同意全部公開；同一篇論文只留最完整的一份；不放使用者自己論文的筆記；匯入時去掉內部作業說明（選題理由、PDF 路徑等），「你」改成第一人稱；每篇要有中文標題（`title`），英文原題放 `paperTitle`；`category` 用 教育／管理／行銷／觀光／AI 應用／研究方法／理論
 - 財經內容（OpenClaw 的 `finance-learning-reports/`）2026-10-22 使用者決定**不放上 gismo.com.tw**，不要匯入；`src/talk/` 裡 6 篇 category 財經的舊草稿維持 `draft: true` 不發布
+- 每日晨報：2026-11-20 使用者決定**公開精簡版**到 `/briefings/`（取代先前「晨報不上網站」的決定）。`scripts/import_briefings.py` 只取「今日 5 則重要新聞」的標題、摘要、影響，拿掉台股補充（法人、個股排行、技術分析、實務觀察與建議）與「影響」裡含操作建議字眼的句子；不用審核，由 `daily_publish.py` 每次排程自動匯入推送；下架某天要把日期加進 `scripts/data/briefings-removed.json`
 - AdSense 尚未申請；兒童內容（晚安故事）不放廣告
 - gismo.com.tw 只做個人網站。使用者的 AI token 銷售業務會另外用別的網域經營，不要把販售 token、API 額度的內容放進這個網站
 
 ## 每日上架審核（2026-11-07 起，取代文獻筆記全自動上架）
 - 產出改由 Spark 寫到 Google Drive（`~/Library/CloudStorage/GoogleDrive-panda@esad.cc/我的雲端硬碟/`）：論文 `workspace/journal-reading-reports/`、繪本 `睡前故事繪本/`、晨報 `workspace/daily-briefings/`；外接碟的 OpenClaw workspace 保留當備援來源
-- 手機審核頁：https://claude.ai/artifact/LPikow7UL7LdcBVBBxGC91（原始檔 `review/daily-review.html`，資料庫集合 `items` 與 `meta/status`）。使用者按「同意上架／退回」；晨報只放在審核頁給使用者看，不上網站
+- 手機審核頁：https://claude.ai/artifact/LPikow7UL7LdcBVBBxGC91（原始檔 `review/daily-review.html`，資料庫集合 `items` 與 `meta/status`）。使用者按「同意上架／退回」；審核頁放晨報完整版給使用者看，網站只放精簡版（見上方「每日晨報」）
 - Claude 排程 `gismo-daily-review` 每天 07:30、21:30 照 `review/DAILY-TASK.md` 執行：讀決定 → `scripts/daily_publish.py` 匯入同意的項目（論文 `import_notes.py --only`、繪本 `import_story.py`）、建置檢查、commit + push；退回的論文 DOI 加進 `notes-removed.json`、繪本記在 `stories-review.json` → `scripts/review_queue.py` 掃新產出、上傳繪本縮圖、寫進審核頁 → 有變化才推播
 - Drive 的檔案只能在一般 App 裡讀（launchd 背景讀會出 Errno 11 或卡住），所以由 Claude 排程執行；Mac 要開著、Claude App 要開著，關著的話下次開啟時補跑
 - 舊的 13:00 全自動上架（`scripts/publish-notes.sh`、launchd `tw.gismo.publish-notes`）已停用（`launchctl disable`）；要恢復：`launchctl enable gui/$(id -u)/tw.gismo.publish-notes` 再 bootstrap

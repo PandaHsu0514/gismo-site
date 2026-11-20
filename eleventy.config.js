@@ -24,6 +24,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addCollection("articles", (api) => api.getFilteredByGlob("src/articles/*.md").sort(byDate));
   eleventyConfig.addCollection("stories", (api) => api.getFilteredByGlob("src/stories/*.md").sort(byDate));
   eleventyConfig.addCollection("notes", (api) => api.getFilteredByGlob("src/notes/*.md").sort(byDate));
+  eleventyConfig.addCollection("briefings", (api) => api.getFilteredByGlob("src/briefings/*.md").sort(byDate));
   eleventyConfig.addCollection("talk", (api) => api.getFilteredByGlob("src/talk/*.md").filter(showDraft).sort(byDate));
   // 首頁「最近講的」：文章、勇博開講、文獻筆記混在一起依日期排（晚安故事有自己的書架）
   eleventyConfig.addCollection("recent", (api) =>

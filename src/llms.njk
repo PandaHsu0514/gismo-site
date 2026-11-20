@@ -32,6 +32,11 @@ eleventyExcludeFromCollections: true
 - 整理中，列表頁：{{ site.url }}/talk/
 {%- endfor %}
 
+## 每日晨報（每天 5 則重要新聞摘要與影響，非投資建議）
+{% for b in collections.briefings | first(30) %}
+- [{{ b.data.title }}]({{ site.url }}{{ b.url }})
+{%- endfor %}
+
 ## 文獻筆記（學術論文閱讀摘要）
 {% for n in collections.notes %}
 - [{{ n.data.title }}]({{ site.url }}{{ n.url }})：{{ n.data.paperTitle }}（{{ n.data.journal | journalName }}{% if n.data.doi %}，https://doi.org/{{ n.data.doi }}{% endif %}）

@@ -33,12 +33,12 @@
       "url": "/talk/"
     },
     {
-      "label": "文獻筆記",
-      "url": "/notes/"
+      "label": "每日晨報",
+      "url": "/briefings/"
     },
     {
-      "label": "教學",
-      "url": "/teaching/"
+      "label": "文獻筆記",
+      "url": "/notes/"
     },
     {
       "label": "AI 小工具",
