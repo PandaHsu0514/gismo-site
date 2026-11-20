@@ -1,6 +1,6 @@
 ---json
 {
- "title": "Current issues in tourism: Mitigating climate change in sustainable tourism research",
+ "title": "永續觀光研究，為何很少談減碳",
  "date": "2026-11-04",
  "summary": "氣候變遷已成為人類面臨的存亡危機，而旅遊業作為全球碳排放的重要來源之一，其減緩責任不容忽視。作者指出，旅遊研究界長期缺乏全球公認的「旅遊」定義，且資料收集偏向目的地層面，忽略交通運輸、旅遊距離與國…",
  "paperTitle": "Current issues in tourism: Mitigating climate change in sustainable tourism research",
@@ -8,8 +8,7 @@
  "year": "2024",
  "journal": "Tourism Management, 100, 104820",
  "doi": "10.1016/j.tourman.2023.104820",
- "category": "觀光",
- "card": "/files/notes/2026-11-04-current-issues-tourism-mitigating-climate-change.jpg"
+ "category": "觀光"
 }
 ---
 
