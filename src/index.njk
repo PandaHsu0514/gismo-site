@@ -33,12 +33,6 @@ layout: base.njk
       <ul class="lessons">{% for e in collections.talk | first(3) %}<li class="lesson"><a href="{{ e.url }}"><span class="lesson-meta">{{ e.date | ymd }}</span><span class="lesson-title">{{ e.data.title }}</span></a></li>{% endfor %}</ul>
     </section>
     {% endif %}
-    {% if collections.teaching.length %}
-    <section class="side-block">
-      <div class="section-head"><h2>教學分享</h2><a href="/teaching/">全部 →</a></div>
-      <ul class="lessons">{% for l in collections.teaching | first(3) %}{{ c.lessonRow(l) }}{% endfor %}</ul>
-    </section>
-    {% endif %}
   </aside>
 </div>
 
