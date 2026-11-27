@@ -1696,5 +1696,23 @@
   "vol": "14",
   "issue": "1",
   "page": "308"
+ },
+ "10.1186/s41239-026-00592-y": {
+  "title": "Supporting self-regulated learning through generative AI feedback in online higher education: the importance of student perceptions of the source of feedback",
+  "authors": "Mutluhan Yilmaz, Hilmi Bahadir Temur, Levent Emmungil, Embiya Çelik, Andrea Gauthier, Mutlu Cukurova",
+  "journal": "International Journal of Educational Technology in Higher Education",
+  "year": 2026,
+  "vol": "23",
+  "issue": "1",
+  "page": "16"
+ },
+ "10.1186/s41239-025-00503-7": {
+  "title": "Prompt engineering in higher education: a systematic review to help inform curricula",
+  "authors": "Daniel Lee, Edward Palmer",
+  "journal": "International Journal of Educational Technology in Higher Education",
+  "year": 2025,
+  "vol": "22",
+  "issue": "1",
+  "page": "7"
  }
 }
